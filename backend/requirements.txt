@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+redis
+scikit-learn
+pandas
+numpy
+python-dotenv
+pyjwt
+pydantic
+pydantic-settings
+joblib
+asyncio

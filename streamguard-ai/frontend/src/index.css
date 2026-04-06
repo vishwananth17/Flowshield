@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-primary: #0A0E1A;       /* Deep navy — main background */
+    --bg-secondary: #111827;     /* Card backgrounds */
+    --bg-tertiary: #1F2937;      /* Input fields, hover states */
+    --bg-elevated: #1A2235;      /* Modals, dropdowns */
+
+    /* Brand */
+    --accent-blue: #3B82F6;      /* Primary CTA, links */
+    --accent-blue-bright: #60A5FA;
+    --accent-emerald: #10B981;   /* Success, safe transactions */
+    --accent-red: #EF4444;       /* Fraud alerts, danger */
+    --accent-amber: #F59E0B;     /* Warnings, suspicious */
+    --accent-purple: #8B5CF6;    /* Premium features, AI */
+
+    /* Text */
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --text-muted: #4B5563;
+
+    /* Borders */
+    --border-primary: #1F2937;
+    --border-accent: #3B82F6;
+
+    /* Status */
+    --status-safe: #10B981;
+    --status-suspicious: #F59E0B;
+    --status-fraud: #EF4444;
+    --status-review: #8B5CF6;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Space Grotesk', sans-serif;
+    
+    /* Shadcn defaults */
+    --background: 226 44% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 226 44% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    background-color: var(--bg-primary);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer utilities {
+  .bg-glass {
+    @apply bg-opacity-70 backdrop-blur-md;
+  }
+}
