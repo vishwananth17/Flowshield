@@ -6,6 +6,12 @@ import DashboardLayout from '@/pages/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import ApiKeys from '@/pages/ApiKeys';
 import Transactions from '@/pages/Transactions';
+import ComingSoon from '@/pages/ComingSoon';
+import Docs from '@/pages/Docs';
+import Settings from '@/pages/Settings';
+import Alerts from '@/pages/Alerts';
+import Analytics from '@/pages/Analytics';
+import Team from '@/pages/Team';
 
 function App() {
   return (
@@ -20,6 +26,11 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="api-keys" element={<ApiKeys />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="alerts" element={<Alerts />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="team" element={<Team />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="docs" element={<Docs />} />
           </Route>
         </Route>
       </Routes>

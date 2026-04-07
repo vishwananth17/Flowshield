@@ -97,7 +97,7 @@ async def get_analyze_auth(
                     "code": "INVALID_API_KEY",
                     "message": "The API key provided is invalid or has been revoked.",
                     "request_id": request_id,
-                    "docs_url": "https://docs.streamguard.ai/errors#INVALID_API_KEY",
+                    "docs_url": "https://docs.flowshield.ai/errors#INVALID_API_KEY",
                 },
             )
         return AnalyzeAuth(org_id=row.org_id, api_key=row)
@@ -109,7 +109,7 @@ async def get_analyze_auth(
                 "code": "UNAUTHORIZED",
                 "message": "Authentication required (X-API-Key or Bearer token).",
                 "request_id": request_id,
-                "docs_url": "https://docs.streamguard.ai/errors#UNAUTHORIZED",
+                "docs_url": "https://docs.flowshield.ai/errors#UNAUTHORIZED",
             },
         )
     payload = safe_decode_token(token)

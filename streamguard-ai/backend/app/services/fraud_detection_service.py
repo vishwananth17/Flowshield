@@ -4,11 +4,12 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from app.schemas.transaction import TransactionAnalyzeRequest
+from app.ml.model import ml_model
 
 SANCTIONED_COUNTRIES = frozenset({"IR", "KP", "SY"})
 HIGH_RISK_MCC_PREFIXES = ("7995", "4829", "5960", "6211")
 NIGHT_HOURS = {23, 0, 1, 2, 3, 4, 5}
-MODEL_VERSION = "rules_v1"
+MODEL_VERSION = "ensemble_v2_isolation_forest"
 
 
 @dataclass
@@ -31,14 +32,25 @@ def _classify(score: float) -> tuple[str, str]:
 
 
 class FraudDetectionService:
-    """Phase-1 rule-based scorer. ML ensemble replaces this in later phases."""
+    """Phase-3 Ensemble Scorer coupling Isolation Forest anomaly patterns with static rules."""
 
     def analyze(self, tx: TransactionAnalyzeRequest) -> FraudResult:
         reasons: list[str] = []
-        score = 0.12
+        
+        now = datetime.now(UTC)
+        is_cb = tx.customer.country != tx.card.issuing_country
+        
+        # Invoke Sci-Kit Learn Model
+        ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb)
+        
+        # Start base score with ML insights
+        score = ml_score
+        
+        if ml_score > 0.6:
+            reasons.append(f"AI Anomaly Model spotted high deviation (score: {ml_score:.2f})")
 
         amt = float(tx.amount)
-        if amt > 100_000 and tx.customer.country != tx.card.issuing_country:
+        if amt > 100_000 and is_cb:
             score = max(score, 0.95)
             reasons.append("High-value cross-border transaction")
 
@@ -59,7 +71,7 @@ class FraudDetectionService:
             score = max(score, 0.45)
             reasons.append("High-risk merchant category")
 
-        if tx.customer.country != tx.card.issuing_country:
+        if is_cb:
             score = max(score, 0.4)
             reasons.append("IP geolocation mismatch with card country")
 

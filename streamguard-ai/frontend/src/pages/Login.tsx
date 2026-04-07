@@ -56,7 +56,7 @@ export default function Login() {
               </div>
             </motion.div>
             <div>
-              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">StreamGuard AI</CardTitle>
+              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">Flowshield AI</CardTitle>
               <CardDescription className="text-gray-400 mt-2">Sign in to your protective shield</CardDescription>
             </div>
           </CardHeader>
@@ -109,7 +109,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex justify-center border-t border-[#1F2937]/50 pt-6 pb-6 bg-[#0A0E1A]/30">
             <p className="text-sm text-gray-400">
-              New to StreamGuard?{' '}
+              New to Flowshield?{' '}
               <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Request access</Link>
             </p>
           </CardFooter>

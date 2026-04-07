@@ -12,7 +12,8 @@ import {
   BookOpen,
   Bell,
   Search,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -35,10 +36,10 @@ export default function DashboardLayout() {
       {/* Sidebar */}
       <div className="w-64 border-r border-[#1F2937] bg-[#111827] flex flex-col">
         <div className="p-6 flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-lg">
-            S
+          <div className="h-8 w-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+            <Shield className="h-5 w-5 text-blue-400" />
           </div>
-          <span className="text-xl font-display font-bold">StreamGuard AI</span>
+          <span className="text-xl font-display font-bold">Flowshield AI</span>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">
@@ -64,9 +65,13 @@ export default function DashboardLayout() {
           </nav>
         </div>
         
-        <div className="p-4 border-t border-[#1F2937]">
+        <div className="p-4 border-t border-[#1F2937] space-y-2">
+          <div className="px-3 pb-2 text-[10px] uppercase tracking-widest text-[#374151] font-bold">
+            Powered by Flowshield AI
+            <br/><span className="text-blue-500/50">Founder: Vishwananth B</span>
+          </div>
           <Link
-            to="/docs"
+            to="/dashboard/docs"
             className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors"
           >
             <BookOpen className="h-5 w-5" />

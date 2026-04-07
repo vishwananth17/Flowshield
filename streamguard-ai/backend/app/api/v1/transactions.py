@@ -1,3 +1,4 @@
+import asyncio
 import time
 import uuid
 from datetime import UTC, datetime
@@ -9,6 +10,8 @@ from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import AnalyzeAuthDep, CurrentUser, get_db
+from app.core.websockets import ws_manager
+from app.core.kafka import kafka_streamer
 from app.models.alert import Alert
 from app.models.organization import Organization
 from app.models.transaction import Transaction
@@ -100,20 +103,25 @@ async def analyze_transaction(
     await db.commit()
     await db.refresh(row)
 
-    message = {
-        "id": str(row.id),
-        "external_id": row.external_id,
-        "amount": str(row.amount),
-        "currency": row.currency,
-        "merchant_name": row.merchant_name,
-        "risk_score": float(row.risk_score) if row.risk_score is not None else None,
-        "risk_label": row.risk_label,
-        "decision": row.decision,
-        "created_at": row.created_at.isoformat() if row.created_at else datetime.now(UTC).isoformat()
-    }
-    from app.services.kafka_service import kafka_service
-    import asyncio
-    asyncio.create_task(kafka_service.publish("transactions_live", message))
+    # Broadcast to dashboard via WebSockets
+    tx_item = TransactionListItem(
+        id=row.id,
+        external_id=row.external_id,
+        amount=str(row.amount),
+        currency=row.currency,
+        merchant_name=row.merchant_name,
+        risk_score=float(row.risk_score) if row.risk_score is not None else None,
+        risk_label=row.risk_label,
+        decision=row.decision,
+        created_at=row.created_at,
+    )
+    asyncio.create_task(
+        ws_manager.broadcast(
+            str(auth.org_id),
+            {"type": "new_transaction", "data": tx_item.model_dump(mode="json")},
+        )
+    )
+    asyncio.create_task(kafka_streamer.emit_transaction(tx_item.model_dump(mode="json")))
 
     return TransactionAnalyzeResponse(
         transaction_id=f"sg_{internal_id}",

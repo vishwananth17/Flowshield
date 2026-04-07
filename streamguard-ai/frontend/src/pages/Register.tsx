@@ -50,15 +50,18 @@ export default function Register() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="flex justify-center"
             >
-              <div className="relative rounded-full bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                <Shield className="h-8 w-8 text-emerald-400" />
-                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-blue-400 animate-pulse" />
+              <div className="flex justify-center mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+                    <Shield className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <span className="text-3xl font-display font-bold text-white tracking-tight">Flowshield AI</span>
+                </div>
               </div>
             </motion.div>
             <div>
-              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">Join StreamGuard</CardTitle>
+              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">Join Flowshield AI</CardTitle>
               <CardDescription className="text-gray-400 mt-2">Start protecting your transactions instantly</CardDescription>
             </div>
           </CardHeader>

@@ -1,25 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, ShieldAlert, DollarSign, Clock, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
-import { motion, type Variants, AnimatePresence } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 export default function Dashboard() {
-  const [liveTransactions, setLiveTransactions] = useState<any[]>([]);
+  const [recentTx, setRecentTx] = useState<any[]>([]);
 
   useEffect(() => {
     const wsUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/stream/ws'
-      : 'ws://localhost:8000/api/v1/stream/ws';
+      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/feed/ws'
+      : 'ws://localhost:8000/api/v1/feed/ws';
       
     const ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {
       try {
-        const newTx = JSON.parse(event.data);
-        setLiveTransactions(prev => [newTx, ...prev].slice(0, 5));
-      } catch (err) {}
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'new_transaction') {
+          setRecentTx(prev => [payload.data, ...prev].slice(0, 10));
+        }
+      } catch (err) {
+        console.error("WS message error", err);
+      }
     };
-    
+
     return () => ws.close();
   }, []);
 
@@ -115,9 +119,9 @@ export default function Dashboard() {
               Live Transactions Feed
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            {liveTransactions.length === 0 ? (
-              <div className="flex h-[350px] items-center justify-center relative">
+          <CardContent className="p-0 h-[350px] overflow-y-auto">
+            {recentTx.length === 0 ? (
+              <div className="flex h-full items-center justify-center relative">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
                 <div className="text-center z-10">
                   <div className="relative inline-flex mb-4">
@@ -125,36 +129,32 @@ export default function Dashboard() {
                     <div className="absolute inset-0 w-12 h-12 rounded-full border border-blue-500/10 blur-sm" />
                   </div>
                   <p className="text-gray-400 font-medium font-mono text-sm">Waiting for live events...</p>
-                  <p className="text-gray-500 text-xs mt-1">Listening on wss://streamguard.ai/feed</p>
+                  <p className="text-gray-500 text-xs mt-1">Listening on wss://flowshield.ai/feed</p>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col h-[350px] overflow-hidden p-2">
-                <AnimatePresence>
-                  {liveTransactions.map((tx) => (
-                    <motion.div 
-                      key={tx.id || Math.random()}
-                      initial={{ opacity: 0, x: -20, height: 0 }}
-                      animate={{ opacity: 1, x: 0, height: 'auto' }}
-                      exit={{ opacity: 0, x: 20, height: 0 }}
-                      className="flex items-center justify-between p-3 mb-2 rounded-lg bg-[#1F2937]/30 border border-[#374151]/50"
-                    >
-                      <div>
-                        <p className="text-white font-mono text-sm">{tx.amount} {tx.currency}</p>
-                        <p className="text-gray-400 text-xs mt-0.5">{tx.merchant_name || 'Unknown Merchant'}</p>
-                      </div>
+              <div className="divide-y divide-[#1F2937]/50">
+                {recentTx.map((tx: any) => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={tx.id} 
+                    className="p-4 hover:bg-[#1F2937]/30 transition-colors flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-white">{tx.merchant_name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-400 font-mono mt-1">{tx.id.substring(0, 13)}...</p>
+                    </div>
+                    <div className="text-right flex items-center space-x-4">
                       <div className="text-right">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          tx.risk_label === 'fraud' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 
-                          tx.risk_label === 'review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
-                          'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        }`}>
-                          {tx.risk_label?.toUpperCase() || "SAFE"}
-                        </span>
+                        <p className="text-sm font-bold text-white">{tx.currency} {tx.amount}</p>
+                        <p className={`text-xs mt-1 font-medium ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {tx.risk_label.toUpperCase()}
+                        </p>
                       </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </CardContent>

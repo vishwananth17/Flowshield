@@ -13,7 +13,6 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.middleware import RequestLoggingMiddleware
 from app.db.session import AsyncSessionLocal, engine
-from app.services.kafka_service import kafka_service
 
 logger = logging.getLogger("streamguard")
 
@@ -23,12 +22,13 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     if settings.environment == "development":
         logging.basicConfig(level=logging.INFO)
+        
+    from app.core.kafka import kafka_streamer
+    await kafka_streamer.connect()
     
-    await kafka_service.connect_producer()
-    await kafka_service.connect_consumer()
     yield
-    await kafka_service.disconnect_consumer()
-    await kafka_service.disconnect_producer()
+    
+    await kafka_streamer.close()
     await engine.dispose()
 
 
@@ -68,7 +68,7 @@ def create_app() -> FastAPI:
                     "code": "HTTP_ERROR",
                     "message": str(detail),
                     "request_id": rid,
-                    "docs_url": "https://docs.streamguard.ai/errors",
+                    "docs_url": "https://docs.flowshield.ai/errors",
                 }
             },
         )
@@ -84,14 +84,14 @@ def create_app() -> FastAPI:
                     "message": "Request validation failed",
                     "request_id": rid,
                     "details": exc.errors(),
-                    "docs_url": "https://docs.streamguard.ai/errors#VALIDATION_ERROR",
+                    "docs_url": "https://docs.flowshield.ai/errors#VALIDATION_ERROR",
                 }
             },
         )
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:
-        return {"status": "healthy", "service": "streamguard-api"}
+        return {"status": "healthy", "service": "flowshield-api"}
 
     @app.get("/health/db", tags=["Health"])
     async def health_db() -> dict[str, Any]:

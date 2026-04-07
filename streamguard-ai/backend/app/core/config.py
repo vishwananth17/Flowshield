@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "StreamGuard AI"
+    app_name: str = "Flowshield AI"
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = False
 

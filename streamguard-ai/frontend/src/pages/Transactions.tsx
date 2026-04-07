@@ -34,29 +34,25 @@ export default function Transactions() {
     };
     fetchTransactions();
     
-    // Connect to WebSocket for Phase 3 real-time streaming
+    // Connect to WebSocket feed
     const wsUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/stream/ws'
-      : 'ws://localhost:8000/api/v1/stream/ws';
+      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/feed/ws'
+      : 'ws://localhost:8000/api/v1/feed/ws';
       
     const ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {
       try {
-        const newTx = JSON.parse(event.data);
-        setTransactions(prev => {
-          // Prevent duplicates if already in list
-          if (prev.some(t => t.id === newTx.id)) return prev;
-          return [newTx, ...prev].slice(0, 100);
-        });
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'new_transaction') {
+          setTransactions(prev => [payload.data, ...prev].slice(0, 200));
+        }
       } catch (err) {
-        console.error("WS parse error", err);
+        console.error("WS message error", err);
       }
     };
-    
-    return () => {
-      ws.close();
-    };
+
+    return () => ws.close();
   }, []);
 
   const getRiskColor = (score: number) => {

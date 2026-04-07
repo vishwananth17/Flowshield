@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Key } from 'lucide-react';
+import { Key, Copy } from 'lucide-react';
 import api from '@/services/api';
 
 interface ApiKey {
@@ -64,7 +64,7 @@ export default function ApiKeys() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold">API Keys</h1>
-          <p className="text-gray-400 mt-1">Manage keys for authenticating with the StreamGuard AI API</p>
+          <p className="text-gray-400 mt-1">Manage keys for authenticating with the Flowshield AI API</p>
         </div>
       </div>
 
@@ -72,11 +72,23 @@ export default function ApiKeys() {
         <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-500 p-4 rounded-lg flex flex-col space-y-2">
           <strong>Key Created Successfully!</strong>
           <p className="text-sm">Please copy this key now. You won't be able to see it again.</p>
-          <code className="bg-[#1F2937] px-3 py-2 rounded text-emerald-300 select-all font-mono">
-            {createdKey}
-          </code>
+          <div className="flex items-center space-x-2">
+            <code className="bg-[#1F2937] px-3 py-2 rounded text-emerald-300 select-all font-mono flex-1">
+              {createdKey}
+            </code>
+            <Button 
+              variant="outline" 
+              className="border-emerald-500 bg-emerald-500 text-emerald-900 hover:bg-emerald-400"
+              onClick={() => {
+                navigator.clipboard.writeText(createdKey);
+                alert('API Key copied to clipboard!');
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" /> Copy
+            </Button>
+          </div>
           <Button variant="outline" className="w-fit mt-2 border-emerald-500 text-emerald-500 hover:bg-emerald-500/20" onClick={() => setCreatedKey(null)}>
-            I have copied the key
+            I have saved the key securely
           </Button>
         </div>
       )}
