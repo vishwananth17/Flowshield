@@ -1,4 +1,4 @@
-# Cloud Deployment Guide (StreamGuard AI)
+# Cloud Deployment Guide (Flowshield AI)
 
 To get your application live and accept public requests and display the dashboard on your custom domain, you will deploy the architecture in three steps using modern serverless/managed infrastructure.
 
@@ -14,12 +14,12 @@ You need a PostgreSQL database that is publicly accessible by your backend serve
 We will deploy your FastAPI Python backend container. **Render** is the easiest platform for Dockerfiles.
 1. Go to [Render.com](https://render.com) and click **"New Web Service"**.
 2. Connect your GitHub repository where this project lies.
-3. Select `backend` as your root directory. Render will automatically detect the `Dockerfile`.
+3. Select `streamguard-ai/backend` as your root directory. Render will automatically detect the `Dockerfile`.
 4. In the Environment Variables section, add:
    - `DATABASE_URL` = (Your String from Step 1)
    - `STRIPE_SECRET_KEY` = (Your real stripe key)
    - `STRIPE_WEBHOOK_SECRET` = (Your real webhook signing secret)
-5. Click **Deploy**. Your API will instantly be live (e.g., `https://streamguard-api.onrender.com`).
+5. Click **Deploy**. Your API will instantly be live (e.g., `https://flowshield-api.onrender.com`).
 
 ## Step 3: Frontend Deployment (Vercel)
 Vercel is the fastest way to deploy a Vite React application globally.
@@ -27,15 +27,15 @@ Vercel is the fastest way to deploy a Vite React application globally.
 2. Click **"Add New Project"** and import your GitHub repository.
 3. When configuring the project:
    - **Framework Preset:** Vite
-   - **Root Directory:** `frontend`
+   - **Root Directory:** `streamguard-ai/frontend`
 4. In the **Environment Variables**, add:
-   - `VITE_API_URL` = (The URL of your backend from Step 2, e.g. `https://streamguard-api.onrender.com`)
+   - `VITE_API_URL` = (The URL of your backend from Step 2, e.g. `https://flowshield-api.onrender.com`)
 5. Click **Deploy**. Vercel will process your React code and attach a public `https://...vercel.app` URL to it.
 
 ## Step 4: Stripe Configuration
 1. Go to your [Stripe Developer Dashboard](https://dashboard.stripe.com/test/webhooks).
 2. Add a new webhook endpoint.
-3. Set the Endpoint URL to your backend API's webhook path: `https://streamguard-api.onrender.com/api/v1/billing/webhook`.
+3. Set the Endpoint URL to your backend API's webhook path: `https://flowshield-api.onrender.com/api/v1/billing/webhook`.
 4. Choose the `checkout.session.completed` event.
 5. Grab the new Webhook Signing Secret and update it in your Backend Environment Variables.
 
