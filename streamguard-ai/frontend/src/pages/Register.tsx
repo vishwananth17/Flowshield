@@ -25,7 +25,7 @@ export default function Register() {
       await register({ email, password, full_name: fullName, organization_name: orgName });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.error?.message || 'Failed to register account');
+      setError(err?.response?.data?.detail || err?.response?.data?.error?.message || 'Failed to register account');
     } finally {
       setLoading(false);
     }
