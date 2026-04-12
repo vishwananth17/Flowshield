@@ -131,7 +131,7 @@ async def login(
     body: LoginRequest,
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, UserOut]:
+) -> dict[str, Any]:
     result = await db.execute(select(User).where(User.email == str(body.email).lower().strip()))
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.password_hash):
