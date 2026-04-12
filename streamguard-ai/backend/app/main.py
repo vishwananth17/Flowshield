@@ -102,6 +102,23 @@ def create_app() -> FastAPI:
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url="/docs")
 
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        rid = getattr(request.state, "request_id", "")
+        import traceback
+        logger.error(f"Global error {rid}: {exc}\n{traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": str(exc),
+                    "request_id": rid,
+                    "traceback": traceback.format_exc(),
+                }
+            },
+        )
+
     app.include_router(api_router, prefix="/api/v1")
     return app
 
