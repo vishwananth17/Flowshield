@@ -6,12 +6,12 @@ import DashboardLayout from '@/pages/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import ApiKeys from '@/pages/ApiKeys';
 import Transactions from '@/pages/Transactions';
-import ComingSoon from '@/pages/ComingSoon';
 import Docs from '@/pages/Docs';
 import Settings from '@/pages/Settings';
 import Alerts from '@/pages/Alerts';
 import Analytics from '@/pages/Analytics';
 import Team from '@/pages/Team';
+import Billing from '@/pages/Billing';
 
 function App() {
   return (
@@ -20,6 +20,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/docs" element={<Docs />} />
         
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
@@ -29,6 +30,7 @@ function App() {
             <Route path="alerts" element={<Alerts />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="team" element={<Team />} />
+            <Route path="billing" element={<Billing />} />
             <Route path="settings" element={<Settings />} />
             <Route path="docs" element={<Docs />} />
           </Route>

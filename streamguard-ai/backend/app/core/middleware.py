@@ -41,3 +41,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         }
         logger.info(json.dumps(log_payload))
         return response
+
+def get_cors_origins() -> list[str]:
+    """Calculate allowed origins based on environment settings."""
+    from app.core.config import get_settings
+    settings = get_settings()
+    
+    if settings.environment == "development":
+        return ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174"]
+    
+    # In production, ONLY allow the primary dashboard domain
+    # Use environment variables if set, otherwise fallback to safe default
+    return settings.cors_origin_list

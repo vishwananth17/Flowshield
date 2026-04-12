@@ -82,23 +82,20 @@ async def analyze_transaction(
 
     org = await db.get(Organization, auth.org_id)
     if org is not None:
-        org.monthly_tx_count += 1
+        if org.monthly_request_count >= org.monthly_request_limit:
+            from fastapi import HTTPException
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Monthly request limit reached ({org.monthly_request_limit}). Please upgrade your plan."
+            )
+        org.monthly_request_count += 1
 
     if auth.api_key is not None:
         auth.api_key.last_used_at = datetime.now(UTC)
         auth.api_key.monthly_requests += 1
 
-    if result.decision == "block" or result.risk_label == "fraud":
-        db.add(
-            Alert(
-                org_id=auth.org_id,
-                transaction_id=internal_id,
-                severity="high",
-                status="open",
-                title="High-risk transaction",
-                description=", ".join(result.reasons[:5]),
-            )
-        )
+    # Offload alerting and broadcasting to background tasks to minimize latency
+    asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
 
     await db.commit()
     await db.refresh(row)
@@ -165,3 +162,38 @@ async def list_transactions(
             )
         )
     return out
+@router.post("/simulate", summary="Trigger synthetic traffic burst (Demo Only)")
+async def simulate_traffic(
+    auth: AnalyzeAuthDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    count: int = Query(5, ge=1, le=20)
+):
+    """
+    Synthesize mock transactions to demonstrate live dashboard updates.
+    """
+    from app.schemas.transaction import MerchantIn, CardIn, CustomerIn
+    import random
+    
+    scenarios = [
+        {"amount": 49.99, "email": "legit.user@gmail.com", "country": "US", "label": "SAFE"},
+        {"amount": 12500, "email": "bot_998877@tempmail.com", "country": "RU", "label": "FRAUD"},
+        {"amount": 850, "email": "john.doe@yahoo.com", "country": "NG", "label": "REVIEW"},
+    ]
+    
+    for i in range(count):
+        scene = random.choice(scenarios)
+        tx_req = TransactionAnalyzeRequest(
+            transaction_id=f"sim_{uuid.uuid4().hex[:8]}",
+            amount=scene["amount"],
+            currency="USD",
+            merchant=MerchantIn(id="m_sim_store", name="Simulated Store", category="5411", country="US"),
+            card=CardIn(last_four=str(random.randint(1000, 9999)), type="credit", issuing_country="US"),
+            customer=CustomerIn(id=f"c_{uuid.uuid4().hex[:8]}", email=scene["email"], country=scene["country"], ip="127.0.0.1"),
+            channel="web"
+        )
+        
+        # We call the internal logic
+        await analyze_transaction(tx_req, db, auth)
+        await asyncio.sleep(0.5) # Space them out for the websocket effect
+        
+    return {"status": "simulation_triggered", "count": count}

@@ -12,6 +12,7 @@ from sqlalchemy import text
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.middleware import RequestLoggingMiddleware
+from app.core.rate_limiter import RateLimitMiddleware
 from app.db.session import AsyncSessionLocal, engine
 
 logger = logging.getLogger("streamguard")
@@ -42,15 +43,19 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
+    from app.core.middleware import RequestLoggingMiddleware, get_cors_origins
     app.add_middleware(GZipMiddleware, minimum_size=500)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origin_list,
+        allow_origins=get_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Custom rate limiter for the /analyze endpoint
+    app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
@@ -89,19 +94,10 @@ def create_app() -> FastAPI:
             },
         )
 
-    @app.get("/health", tags=["Health"])
-    async def health() -> dict[str, str]:
-        return {"status": "healthy", "service": "flowshield-api"}
-
-    @app.get("/health/db", tags=["Health"])
-    async def health_db() -> dict[str, Any]:
-        try:
-            async with AsyncSessionLocal() as session:
-                await session.execute(text("SELECT 1"))
-        except Exception as e:
-            logger.exception("db_health_failed")
-            return {"status": "unhealthy", "database": "disconnected", "detail": str(e)}
-        return {"status": "healthy", "database": "connected"}
+    @app.get("/api/docs", include_in_schema=False)
+    async def api_docs_redirect():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/docs")
 
     app.include_router(api_router, prefix="/api/v1")
     return app

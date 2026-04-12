@@ -21,6 +21,7 @@ class CardIn(BaseModel):
 
 class CustomerIn(BaseModel):
     id: str = Field(..., max_length=255)
+    email: str | None = Field(default=None, max_length=255)
     ip: str | None = Field(default=None, max_length=45)
     device_fingerprint: str | None = Field(default=None, max_length=255)
     country: str = Field(..., min_length=2, max_length=2)

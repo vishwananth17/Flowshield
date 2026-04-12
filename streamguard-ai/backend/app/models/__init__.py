@@ -1,4 +1,5 @@
 from app.models.alert import Alert
+from app.models.alert_activity import AlertActivity
 from app.models.api_key import ApiKey
 from app.models.organization import Organization
 from app.models.transaction import Transaction

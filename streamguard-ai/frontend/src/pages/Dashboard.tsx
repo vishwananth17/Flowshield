@@ -63,9 +63,27 @@ export default function Dashboard() {
           <h1 className="text-3xl font-display font-bold text-white tracking-tight">Overview</h1>
           <p className="text-gray-400 mt-1">Here's what's happening with your traffic today.</p>
         </div>
-        <div className="flex items-center space-x-2 bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-          <Zap className="h-4 w-4" />
-          <span className="text-sm font-medium">System fully operational</span>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={async () => {
+              try {
+                const api = (await import('@/services/api')).default;
+                await api.post('/transactions/simulate?count=10');
+              } catch (e) {
+                console.error("Simulation failed", e);
+              }
+            }}
+            className="group relative inline-flex items-center space-x-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-6 py-2.5 rounded-full border border-red-500/30 transition-all duration-300 active:scale-95"
+          >
+            <div className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ShieldAlert className="h-4 w-4 relative" />
+            <span className="text-sm font-semibold relative">Simulate Attack</span>
+          </button>
+          
+          <div className="flex items-center space-x-2 bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+            <Zap className="h-4 w-4" />
+            <span className="text-sm font-medium">System fully operational</span>
+          </div>
         </div>
       </motion.div>
 

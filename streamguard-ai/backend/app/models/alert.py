@@ -36,13 +36,19 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     transaction: Mapped["Transaction | None"] = relationship(
         "Transaction", back_populates="alerts"
     )
-
+    activities: Mapped[list["AlertActivity"]] = relationship(
+        "AlertActivity", back_populates="alert", cascade="all, delete-orphan"
+    )
 
 from typing import TYPE_CHECKING  # noqa: E402
 
 if TYPE_CHECKING:
     from app.models.transaction import Transaction
+    from app.models.alert_activity import AlertActivity

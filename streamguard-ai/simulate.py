@@ -26,6 +26,10 @@ print("Flowshield AI \u2014 Live Simulation Starting...\n")
 for i in range(50):
     scenario = random.choice(SCENARIOS)
     
+    # Enhanced customer intelligence simulation
+    emails = ["john.doe@gmail.com", "user992211@tempmail.com", "bot_99887766@outlook.com", "legit.buyer@yahoo.com"]
+    current_email = random.choice(emails)
+
     payload = {
         "transaction_id": f"txn_{random.randint(1000000, 9999999)}",
         "amount": scenario["amount"],
@@ -43,13 +47,17 @@ for i in range(50):
         },
         "customer": {
             "id": f"cust_{random.randint(1000,9999)}",
+            "email": current_email,
             "ip": f"{random.randint(1,255)}.{random.randint(1,255)}.0.1",
             "device_fingerprint": f"dev_{random.randint(1000,9999)}",
             "country": scenario["customer_country"],
             "city": "Mumbai"
         },
         "channel": scenario["channel"],
-        "metadata": {}
+        "metadata": {
+            "session_duration_sec": random.randint(10, 300),
+            "referrer": "google.com"
+        }
     }
 
     try:

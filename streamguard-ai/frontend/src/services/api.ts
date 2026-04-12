@@ -9,9 +9,30 @@ const api = axios.create({
   }
 });
 
+import { toast } from 'sonner';
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const remaining = response.headers['x-ratelimit-remaining'];
+    const limit = response.headers['x-ratelimit-limit'];
+    
+    if (remaining !== undefined && limit !== undefined) {
+      const remainingNum = parseInt(remaining);
+      const limitNum = parseInt(limit);
+      const usedPercent = ((limitNum - remainingNum) / limitNum) * 100;
+
+      if (usedPercent >= 100) {
+        toast.error("Monthly request limit reached. Upgrade to continue.", { id: 'rate-limit-100' });
+      } else if (usedPercent >= 80) {
+        toast.warning("You've used 80% of your monthly requests. Upgrade to avoid interruption.", { id: 'rate-limit-80' });
+      }
+    }
+    return response;
+  },
   async (error) => {
+    if (error.response?.status === 429) {
+      toast.error(error.response.data.error?.message || "Rate limit exceeded");
+    }
     const originalRequest = error.config;
     
     // If unauthorized, and not already retrying

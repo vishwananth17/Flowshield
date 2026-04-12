@@ -1,48 +1,57 @@
-from locust import HttpUser, task, between
 import random
+import uuid
+from locust import HttpUser, task, between
 
-class FraudAPIUser(HttpUser):
-    wait_time = between(0.1, 0.5)
+class FlowshieldTrafficGenerator(HttpUser):
+    wait_time = between(1, 5)
     
-    def on_start(self):
-        self.api_key = "sg_live___B_64wEMOuszKOe94l2y5pj9Piz4WbS"
-        self.headers = {
-            "X-API-Key": self.api_key,
-            "Content-Type": "application/json"
-        }
-    
-    @task(7)  # 70% normal transactions
-    def normal_transaction(self):
-        self.client.post("/api/v1/transactions/analyze", json={
-            "transaction_id": f"txn_{random.randint(1000, 99999)}",
-            "amount": random.randint(200, 5000),
-            "currency": "INR",
-            "merchant": {"id": "m1", "name": random.choice(["Swiggy", "Flipkart", "Zomato"]), "category": "5411", "country": "IN"},
-            "card": {"last_four": "1234", "type": "credit", "issuing_country": "IN"},
-            "customer": {"id": f"cust_{random.randint(1,1000)}", "ip": "1.1.1.1", "device_fingerprint": "dev_1", "country": "IN", "city": "Mumbai"},
-            "channel": "mobile"
-        }, headers=self.headers)
-    
-    @task(2)  # 20% suspicious
-    def suspicious_transaction(self):
-        self.client.post("/api/v1/transactions/analyze", json={
-            "transaction_id": f"txn_{random.randint(1000, 99999)}",
-            "amount": random.randint(10000, 50000),
-            "currency": "INR",
-            "merchant": {"id": "m2", "name": "Unknown Merchant", "category": "5411", "country": "US"},
-            "card": {"last_four": "1234", "type": "credit", "issuing_country": "US"},
-            "customer": {"id": f"cust_{random.randint(1,1000)}", "ip": "2.2.2.2", "device_fingerprint": "dev_2", "country": "US", "city": "NY"},
+    # Replace with a real API key from your dashboard if you have one, 
+    # or use this placeholder which the dev backend should accept
+    headers = {
+        "X-API-Key": "fs_live_dev_test_key_123",
+        "Content-Type": "application/json"
+    }
+
+    @task(8)
+    def simulate_legit_transaction(self):
+        """Simulates normal, low-risk user behavior."""
+        payload = {
+            "transaction_id": f"tx_{uuid.uuid4().hex[:8]}",
+            "amount": round(random.uniform(10.0, 150.0), 2),
+            "currency": "USD",
+            "card": {
+                "last_four": str(random.randint(1000, 9999)),
+                "type": random.choice(["visa", "mastercard"]),
+                "issuing_country": "US"
+            },
+            "customer": {
+                "id": f"cust_{random.randint(1, 1000)}",
+                "ip": f"192.168.1.{random.randint(1, 254)}",
+                "country": "US"
+            },
+            "merchant": {"category": "5000"},
             "channel": "web"
-        }, headers=self.headers)
-    
-    @task(1)  # 10% fraud attempts
-    def fraud_transaction(self):
-        self.client.post("/api/v1/transactions/analyze", json={
-            "transaction_id": f"txn_{random.randint(1000, 99999)}",
-            "amount": random.randint(80000, 200000),
-            "currency": "INR",
-            "merchant": {"id": "m3", "name": "Crypto Exchange", "category": "6051", "country": "RU"},
-            "card": {"last_four": "9999", "type": "debit", "issuing_country": "RU"},
-            "customer": {"id": f"cust_{random.randint(1,1000)}", "ip": "3.3.3.3", "device_fingerprint": "dev_3", "country": "NG", "city": "Lagos"},
+        }
+        self.client.post("/api/v1/transactions/analyze", json=payload, headers=self.headers)
+
+    @task(2)
+    def simulate_fraud_attack(self):
+        """Simulates high-risk, suspicious behavior."""
+        payload = {
+            "transaction_id": f"atck_{uuid.uuid4().hex[:8]}",
+            "amount": round(random.uniform(5000.0, 25000.0), 2), # Unusually high amount
+            "currency": "USD",
+            "card": {
+                "last_four": "4242", 
+                "type": "visa",
+                "issuing_country": "UNKNOWN" # Suspicious country
+            },
+            "customer": {
+                "id": "anon_attacker",
+                "ip": f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}",
+                "country": "KP" # High-risk origin
+            },
+            "merchant": {"category": "9999"},
             "channel": "api"
-        }, headers=self.headers)
+        }
+        self.client.post("/api/v1/transactions/analyze", json=payload, headers=self.headers)

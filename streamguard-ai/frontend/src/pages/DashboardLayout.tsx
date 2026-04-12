@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { 
@@ -13,13 +12,29 @@ import {
   Bell,
   Search,
   LogOut,
-  Shield
+  Shield,
+  CreditCard
 } from 'lucide-react';
+import { useAlertStore } from '@/stores/alertStore';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { Button } from '@/components/ui/button';
+
+const AlertBadge = () => {
+  const unreadCount = useAlertStore(state => state.unreadCount);
+  if (unreadCount <= 0) return null;
+  return (
+    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+      {unreadCount > 99 ? '99+' : unreadCount}
+    </span>
+  );
+};
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore();
   const location = useLocation();
+  
+  // Activate global websocket
+  useWebSocket();
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -28,6 +43,7 @@ export default function DashboardLayout() {
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
     { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
     { name: 'Team', path: '/dashboard/team', icon: Users },
+    { name: 'Billing', path: '/dashboard/billing', icon: CreditCard },
     { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
 
@@ -58,7 +74,19 @@ export default function DashboardLayout() {
                   }`}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium text-sm">{item.name}</span>
+                  <span className="font-medium text-sm flex-1">{item.name}</span>
+                  {item.name === 'Alerts' && (
+                    <AlertBadge />
+                  )}
+                  {item.name === 'Billing' && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      useAuthStore.getState().organization?.plan === 'growth' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-700 text-gray-400'
+                    }`}>
+                      {useAuthStore.getState().organization?.plan === 'growth' ? 'PRO' : 'FREE'}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -71,7 +99,8 @@ export default function DashboardLayout() {
             <br/><span className="text-blue-500/50">Founder: Vishwananth B</span>
           </div>
           <Link
-            to="/dashboard/docs"
+            to="/docs"
+            target="_blank"
             className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors"
           >
             <BookOpen className="h-5 w-5" />
