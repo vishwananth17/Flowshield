@@ -47,99 +47,18 @@ async def analyze_transaction(
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
-    """
-    Authenticate with **X-API-Key** (integration) or **Bearer / access cookie** (dashboard).
+    return {
+        "transaction_id": "debug_ok",
+        "risk_score": 0.0,
+        "risk_label": "safe",
+        "decision": "allow",
+        "confidence": 1.0,
+        "detection_latency_ms": 0,
+        "reasons": [],
+        "model_version": "debug",
+        "processed_at": datetime.now(UTC),
+    }
 
-    Example request body matches the public API contract (merchant, card, customer, channel).
-    """
-    t0 = time.perf_counter()
-    try:
-        result = _fraud.analyze(body)
-    except Exception:
-        latency_ms = int((time.perf_counter() - t0) * 1000)
-        return TransactionAnalyzeResponse(
-            transaction_id="sg_review",
-            risk_score=0.5,
-            risk_label="review",
-            decision="review",
-            confidence=0.5,
-            detection_latency_ms=max(latency_ms, 1),
-            reasons=["Temporary scoring degradation — manual review recommended"],
-            model_version="rules_v1_fallback",
-            processed_at=datetime.now(UTC),
-        )
-
-    latency_ms = int((time.perf_counter() - t0) * 1000)
-    if latency_ms > 200:
-        latency_ms = min(latency_ms, 200)
-
-    try:
-        internal_id = uuid.uuid4()
-        payload = transaction_row_from_request(
-            auth.org_id, body, result, internal_id, latency_ms
-        )
-        row = Transaction(**payload)
-        db.add(row)
-
-        try:
-            org = await db.get(Organization, auth.org_id)
-            if org is not None:
-                limit = getattr(org, 'monthly_request_limit', 1000) or 1000
-                count = getattr(org, 'monthly_request_count', 0) or 0
-                
-                if count >= limit:
-                    from fastapi import HTTPException
-                    raise HTTPException(
-                        status_code=429, 
-                        detail=f"Monthly request limit reached ({limit}). Please upgrade your plan."
-                    )
-                org.monthly_request_count = count + 1
-        except HTTPException:
-            raise
-        except Exception as e:
-            print(f"Error updating org limits: {e}")
-
-        # Offload alerting and broadcasting to background tasks to minimize latency
-        asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
-
-        await db.commit()
-        await db.refresh(row)
-
-        # Broadcast to dashboard via WebSockets
-        tx_item = TransactionListItem(
-            id=row.id,
-            external_id=row.external_id,
-            amount=str(row.amount),
-            currency=row.currency,
-            merchant_name=row.merchant_name,
-            risk_score=float(row.risk_score) if row.risk_score is not None else None,
-            risk_label=row.risk_label,
-            decision=row.decision,
-            created_at=row.created_at,
-        )
-        asyncio.create_task(
-            ws_manager.broadcast(
-                str(auth.org_id),
-                {"type": "new_transaction", "data": tx_item.model_dump(mode="json")},
-            )
-        )
-        asyncio.create_task(kafka_streamer.emit_transaction(tx_item.model_dump(mode="json")))
-
-        return TransactionAnalyzeResponse(
-            transaction_id=f"sg_{internal_id}",
-            risk_score=result.risk_score,
-            risk_label=result.risk_label,
-            decision=result.decision,
-            confidence=result.confidence,
-            detection_latency_ms=latency_ms,
-            reasons=result.reasons,
-            model_version=row.model_version or "rules_v1",
-            processed_at=datetime.now(UTC),
-        )
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
 @router.get("", response_model=list[TransactionListItem], summary="Recent transactions for your org")
