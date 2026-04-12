@@ -59,8 +59,8 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     # 4. Check ML model
     # Simple check if isolation forest is loaded in memory
     try:
-        from app.api.v1.transactions import model
-        if model:
+        from app.ml.model import ml_model
+        if ml_model and ml_model._model:
             health_status["services"]["ml_model"] = "ok"
         else:
             health_status["services"]["ml_model"] = "error: model not found"
