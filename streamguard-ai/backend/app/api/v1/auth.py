@@ -37,10 +37,11 @@ REFRESH_COOKIE = "refresh_token"
 
 def _cookie_args() -> dict:
     settings = get_settings()
+    is_prod = settings.environment == "production"
     args: dict = {
         "httponly": True,
-        "secure": settings.cookie_secure,
-        "samesite": "lax",
+        "secure": True if is_prod else settings.cookie_secure,
+        "samesite": "none" if is_prod else "lax",
         "path": "/",
     }
     if settings.cookie_domain:
@@ -114,12 +115,14 @@ async def register(
     await db.refresh(org)
     await db.refresh(user)
 
+    access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)
 
     return RegisterResponse(
         user=UserOut.model_validate(user),
         organization=OrganizationOut.model_validate(org),
         api_key=raw_key,
+        access_token=access
     )
 
 
@@ -137,9 +140,17 @@ async def login(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
     user.last_login_at = datetime.now(UTC)
+    access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)
+    
+    org = await db.get(Organization, user.org_id)
     await db.commit()
-    return {"user": UserOut.model_validate(user)}
+    
+    return {
+        "user": UserOut.model_validate(user),
+        "organization": OrganizationOut.model_validate(org) if org else None,
+        "access_token": access
+    }
 
 
 @router.post("/refresh", summary="Rotate access token using refresh cookie")
@@ -186,7 +197,9 @@ async def me(
     org = await db.get(Organization, user.org_id)
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+    access = create_access_token(str(user.id))
     return AuthMeResponse(
         user=UserOut.model_validate(user),
         organization=OrganizationOut.model_validate(org),
+        access_token=access
     )

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import api from '../services/api';
 
 interface Alert {
   id: string;
@@ -50,7 +50,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
   fetchAlerts: async (status = 'open', severity = 'all', page = 1) => {
     set({ isLoading: true });
     try {
-      const response = await axios.get('/api/v1/alerts', {
+      const response = await api.get('/alerts', {
         params: { status, severity, page }
       });
       set({ 
@@ -67,7 +67,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
 
   fetchStats: async () => {
     try {
-      const response = await axios.get('/api/v1/alerts/stats');
+      const response = await api.get('/alerts/stats');
       set({ stats: response.data });
     } catch (error) {
       console.error('Failed to fetch alert stats:', error);
@@ -76,7 +76,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
 
   updateAlertStatus: async (alertId, status, note) => {
     try {
-      await axios.patch(`/api/v1/alerts/${alertId}`, { status, note });
+      await api.patch(`/alerts/${alertId}`, { status, note });
       // Optimistic update or refresh
       const { alerts } = get();
       set({
@@ -91,7 +91,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
 
   bulkAction: async (alertIds, action) => {
     try {
-      await axios.post('/api/v1/alerts/bulk', { alert_ids: alertIds, action });
+      await api.post('/alerts/bulk', { alert_ids: alertIds, action });
       get().fetchAlerts();
       get().fetchStats();
     } catch (error) {

@@ -128,7 +128,7 @@ export default function DashboardLayout() {
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"></span>
             </button>
             <div className="h-8 w-8 rounded-full border border-[#374151] overflow-hidden bg-[#1F2937] flex items-center justify-center text-sm font-medium">
-              {user?.email?.charAt(0).toUpperCase()}
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <Button variant="ghost" size="icon" onClick={() => logout()}>
               <LogOut className="h-5 w-5 text-gray-400 hover:text-white" />

@@ -1,31 +1,51 @@
-import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Activity, ShieldAlert, DollarSign, Clock, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
-import { motion, type Variants } from 'framer-motion';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Dashboard() {
   const [recentTx, setRecentTx] = useState<any[]>([]);
+  const { accessToken } = useAuthStore();
 
   useEffect(() => {
-    const wsUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/feed/ws'
-      : 'ws://localhost:8000/api/v1/feed/ws';
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+
+    const connect = () => {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+      const wsBase = baseUrl.replace(/^https?:\/\//, '');
+      const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
       
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === 'new_transaction') {
-          setRecentTx(prev => [payload.data, ...prev].slice(0, 10));
+      console.log("Connecting to WS:", wsUrl.split('?')[0]);
+      ws = new WebSocket(wsUrl);
+      
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'new_transaction') {
+            setRecentTx(prev => [payload.data, ...prev].slice(0, 10));
+          }
+        } catch (err) {
+          console.error("WS message error", err);
         }
-      } catch (err) {
-        console.error("WS message error", err);
-      }
+      };
+
+      ws.onclose = () => {
+        console.log("WS closed, reconnecting in 3s...");
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+
+      ws.onerror = (err) => {
+        console.error("WS error", err);
+        ws?.close();
+      };
     };
 
-    return () => ws.close();
-  }, []);
+    connect();
+
+    return () => {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      ws?.close();
+    };
+  }, [accessToken]);
 
   const stats = [
     { title: 'Total Transactions (24h)', value: '12,345', trend: '+12.5%', isUp: true, icon: Activity, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -147,7 +167,7 @@ export default function Dashboard() {
                     <div className="absolute inset-0 w-12 h-12 rounded-full border border-blue-500/10 blur-sm" />
                   </div>
                   <p className="text-gray-400 font-medium font-mono text-sm">Waiting for live events...</p>
-                  <p className="text-gray-500 text-xs mt-1">Listening on wss://flowshield.ai/feed</p>
+                  <p className="text-gray-500 text-xs mt-1">Listening for real-time transactions</p>
                 </div>
               </div>
             ) : (
@@ -161,13 +181,13 @@ export default function Dashboard() {
                   >
                     <div>
                       <p className="text-sm font-medium text-white">{tx.merchant_name || 'Unknown'}</p>
-                      <p className="text-xs text-gray-400 font-mono mt-1">{tx.id.substring(0, 13)}...</p>
+                      <p className="text-xs text-gray-400 font-mono mt-1">{(tx.id || '').substring(0, 13)}...</p>
                     </div>
                     <div className="text-right flex items-center space-x-4">
                       <div className="text-right">
                         <p className="text-sm font-bold text-white">{tx.currency} {tx.amount}</p>
                         <p className={`text-xs mt-1 font-medium ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                          {tx.risk_label.toUpperCase()}
+                          {(tx.risk_label || 'unknown').toUpperCase()}
                         </p>
                       </div>
                     </div>

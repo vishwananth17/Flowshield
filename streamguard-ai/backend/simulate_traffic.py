@@ -1,23 +1,31 @@
 import asyncio
 import httpx
 import random
-import time
+import sys
+import os
 
-API_URL = "http://localhost:8000/api/v1"
+# Configuration
+API_URL = os.getenv("API_URL", "https://flowshieldai-backend-production.up.railway.app/api/v1")
+USER_EMAIL = os.getenv("USER_EMAIL", "bsvizva@gmail.com")
+USER_PASSWORD = os.getenv("USER_PASSWORD", "")
 
 MERCHANTS = ["Amazon", "Apple", "Netflix", "Steam", "Best Buy", "Target", "Walmart", "Spotify"]
 
-async def simulate_traffic(email: str, password: str):
+async def simulate_traffic():
+    if not USER_PASSWORD:
+        print("Error: USER_PASSWORD environment variable not set.")
+        return
+
     async with httpx.AsyncClient() as client:
         # Login
-        print("Logging in...")
-        resp = await client.post(f"{API_URL}/auth/login", json={"email": email, "password": password})
+        print(f"Logging in as {USER_EMAIL} to {API_URL}...")
+        resp = await client.post(f"{API_URL}/auth/login", json={"email": USER_EMAIL, "password": USER_PASSWORD})
         if resp.status_code != 200:
-            print("Login failed:", resp.text)
+            print("Login failed:", resp.status_code, resp.text)
             return
 
         cookies = resp.cookies
-        print("Successfully logged in. Starting simulation...")
+        print("Successfully logged in. Starting simulation (Ctrl+C to stop)...")
 
         while True:
             # Generate random transaction
@@ -39,16 +47,23 @@ async def simulate_traffic(email: str, password: str):
                 "billing_address_match": random.choice([True, False])
             }
 
-            resp = await client.post(f"{API_URL}/transactions/analyze", json=payload, cookies=cookies)
-            if resp.status_code == 200:
-                data = resp.json()
-                print(f"Sent {payload['merchant_name']} ${amount} -> {data.get('risk_label').upper()} ({data.get('risk_score')})")
-            else:
-                print("Failed to send transaction:", resp.status_code, resp.text)
+            try:
+                resp = await client.post(f"{API_URL}/transactions/analyze", json=payload, cookies=cookies)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    print(f"Sent {payload['merchant_name']} ${amount} -> {data.get('risk_label', 'UNKNOWN').upper()} (Score: {data.get('risk_score', 0)})")
+                else:
+                    print("Failed to send transaction:", resp.status_code, resp.text)
+            except Exception as e:
+                print(f"Request error: {e}")
 
             await asyncio.sleep(random.uniform(0.5, 3.0))
 
 if __name__ == "__main__":
-    # Assuming user's password could be standard test password
-    # For now, let's ask user to try it or execute it if we know the password
-    pass
+    if len(sys.argv) > 1:
+        USER_PASSWORD = sys.argv[1]
+    
+    try:
+        asyncio.run(simulate_traffic())
+    except KeyboardInterrupt:
+        print("\nSimulation stopped.")

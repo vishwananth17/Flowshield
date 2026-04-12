@@ -38,6 +38,7 @@ class OrganizationOut(BaseModel):
 class AuthMeResponse(BaseModel):
     user: UserOut
     organization: OrganizationOut
+    access_token: str | None = None
 
 
 class RegisterResponse(BaseModel):
@@ -46,3 +47,4 @@ class RegisterResponse(BaseModel):
     api_key: str = Field(
         description="Shown once. Store securely. Use as X-API-Key for /transactions/analyze."
     )
+    access_token: str | None = None

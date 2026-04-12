@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
-import { useAlertStore } from '../stores/alertStore';
-import { toast } from 'sonner';
+import { useAuthStore } from '../store/authStore';
 
 export const useWebSocket = () => {
     const addAlertFromSocket = useAlertStore(state => state.addAlertFromSocket);
+    const { accessToken } = useAuthStore();
 
     useEffect(() => {
-        const wsUrl = import.meta.env.VITE_API_URL 
-            ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/feed/ws'
-            : 'ws://localhost:8000/api/v1/feed/ws';
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+        const wsBase = baseUrl.replace(/^https?:\/\//, '');
+        const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
             
         const ws = new WebSocket(wsUrl);
         

@@ -18,6 +18,7 @@ export interface Organization {
 interface AuthStore {
   user: User | null;
   organization: Organization | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   checkAuth: () => Promise<void>;
@@ -29,6 +30,7 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   organization: null,
+  accessToken: null,
   isAuthenticated: false,
   isLoading: true,
 
@@ -38,33 +40,53 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
+        accessToken: res.data.access_token,
         isAuthenticated: true, 
         isLoading: false 
       });
     } catch (error) {
-      set({ user: null, organization: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, organization: null, accessToken: null, isAuthenticated: false, isLoading: false });
     }
   },
 
   login: async (credentials) => {
-    const res = await api.post('/auth/login', credentials);
-    set({ user: res.data.user, isAuthenticated: true });
-    // Fetch further details if needed or handled in layout
+    set({ isLoading: true });
+    try {
+      const res = await api.post('/auth/login', credentials);
+      set({ 
+        user: res.data.user, 
+        organization: res.data.organization,
+        accessToken: res.data.access_token,
+        isAuthenticated: true,
+        isLoading: false 
+      });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   register: async (data) => {
-    const res = await api.post('/auth/register', data);
-    set({ 
-      user: res.data.user, 
-      organization: res.data.organization,
-      isAuthenticated: true 
-    });
+    set({ isLoading: true });
+    try {
+      const res = await api.post('/auth/register', data);
+      set({ 
+        user: res.data.user, 
+        organization: res.data.organization,
+        accessToken: res.data.access_token,
+        isAuthenticated: true,
+        isLoading: false
+      });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   logout: async () => {
     try {
       await api.post('/auth/logout');
     } catch (e) {}
-    set({ user: null, organization: null, isAuthenticated: false });
+    set({ user: null, organization: null, accessToken: null, isAuthenticated: false });
   }
 }));

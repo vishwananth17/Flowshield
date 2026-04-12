@@ -21,8 +21,11 @@ logger = logging.getLogger("streamguard")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
-    if settings.environment == "development":
-        logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
         
     from app.core.kafka import kafka_streamer
     await kafka_streamer.connect()

@@ -8,7 +8,7 @@ import {
   History,
   Info
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import { useAlertStore } from '../stores/alertStore';
 
 interface AlertDrawerProps {
@@ -31,7 +31,7 @@ export const AlertDrawer: React.FC<AlertDrawerProps> = ({ alertId, onClose }) =>
   const fetchDetail = async () => {
     setLoading(true);
     try {
-      const resp = await axios.get(`/api/v1/alerts/${alertId}`);
+      const resp = await api.get(`/alerts/${alertId}`);
       setAlert(resp.data);
     } catch (err) {
       console.error('Failed to fetch alert details', err);
@@ -107,7 +107,7 @@ export const AlertDrawer: React.FC<AlertDrawerProps> = ({ alertId, onClose }) =>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-400">Transaction ID</span>
-                    <span className="text-slate-300 font-mono text-xs">SG_{alert?.transaction?.id?.substring(0, 8).toUpperCase()}</span>
+                    <span className="text-slate-300 font-mono text-xs">SG_{(alert?.transaction?.id || '').substring(0, 8).toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-400">Card</span>

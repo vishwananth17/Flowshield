@@ -35,8 +35,10 @@ api.interceptors.response.use(
     }
     const originalRequest = error.config;
     
-    // If unauthorized, and not already retrying
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If unauthorized, and not already retrying, and not a login/refresh request
+    const isAuthPath = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
       originalRequest._retry = true;
       try {
         await api.post('/auth/refresh');
@@ -46,6 +48,7 @@ api.interceptors.response.use(
         return Promise.reject(e);
       }
     }
+
     return Promise.reject(error);
   }
 );
