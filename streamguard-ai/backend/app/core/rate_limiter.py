@@ -84,32 +84,37 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
         # 2. Check Redis for usage
-        now = datetime.now()
-        month_key = f"usage:{org_id}:{now.year}-{now.month:02d}"
-        
-        current_usage = await self.redis.get(month_key)
-        current_count = int(current_usage) if current_usage else 0
-        
-        if current_count >= limit:
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={
-                    "error": {
-                        "code": "RATE_LIMIT_EXCEEDED",
-                        "message": f"Monthly request limit reached. Upgrade to Growth for 100,000 requests/month.",
-                        "upgrade_url": "https://flowshieldai.com/settings/billing"
+        try:
+            now = datetime.now()
+            month_key = f"usage:{org_id}:{now.year}-{now.month:02d}"
+            
+            current_usage = await self.redis.get(month_key)
+            current_count = int(current_usage) if current_usage else 0
+            
+            if current_count >= limit:
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content={
+                        "error": {
+                            "code": "RATE_LIMIT_EXCEEDED",
+                            "message": f"Monthly request limit reached. Upgrade to Growth for 100,000 requests/month.",
+                            "upgrade_url": "https://flowshieldai.com/settings/billing"
+                        }
                     }
-                }
-            )
+                )
 
-        # 3. Increment and set headers
-        new_count = await self.redis.incr(month_key)
-        if new_count == 1:
-            # Set TTL for the end of the month
-            import calendar
-            last_day = calendar.monthrange(now.year, now.month)[1]
-            expire_at = datetime(now.year, now.month, last_day, 23, 59, 59)
-            await self.redis.expireat(month_key, int(expire_at.timestamp()))
+            # 3. Increment and set headers
+            new_count = await self.redis.incr(month_key)
+            if new_count == 1:
+                # Set TTL for the end of the month
+                import calendar
+                last_day = calendar.monthrange(now.year, now.month)[1]
+                expire_at = datetime(now.year, now.month, last_day, 23, 59, 59)
+                await self.redis.expireat(month_key, int(expire_at.timestamp()))
+        except Exception as e:
+            print(f"Rate Limiter Redis Error: {e}")
+            # Fallback: allow the request and use DB count + 1 as estimation
+            new_count = (org.monthly_request_count or 0) + 1
 
         # 4. Async update DB every 100 increments
         if new_count % 100 == 0:
