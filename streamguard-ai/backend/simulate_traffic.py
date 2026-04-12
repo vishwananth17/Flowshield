@@ -29,35 +29,47 @@ async def simulate_traffic():
 
         while True:
             # Generate random transaction
-            amount = round(random.uniform(5.0, 500.0), 2)
-            if random.random() > 0.8:
-                amount *= 10  # Occasional large transaction to trigger rules
+            amount = round(random.uniform(5.0, 1500.0), 2)
+            if random.random() > 0.9:
+                amount *= 10  # Occasional high value
             
             payload = {
+                "transaction_id": f"sim_{random.randint(100000, 999999)}",
                 "amount": amount,
                 "currency": "USD",
-                "merchant_name": random.choice(MERCHANTS),
-                "merchant_category_code": "5411",
-                "card_last_four": str(random.randint(1000, 9999)),
-                "card_brand": "Visa",
-                "card_country": "US",
-                "customer_ip": f"192.168.1.{random.randint(1,255)}",
-                "device_id": f"dev_{random.randint(1000,9999)}",
-                "channel": "web",
-                "billing_address_match": random.choice([True, False])
+                "merchant": {
+                    "id": f"m_{random.randint(1,100)}",
+                    "name": random.choice(MERCHANTS),
+                    "category": "5411",
+                    "country": "US"
+                },
+                "card": {
+                    "last_four": str(random.randint(1000, 9999)),
+                    "type": "credit",
+                    "issuing_country": random.choice(["US", "US", "US", "CA", "GB"])
+                },
+                "customer": {
+                    "id": f"c_{random.randint(1000, 9999)}",
+                    "email": f"user_{random.randint(1,1000)}@example.com",
+                    "ip": f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}",
+                    "country": random.choice(["US", "US", "CA", "GB", "RU", "NG"]),
+                    "city": "SimCity",
+                    "device_fingerprint": f"fp_{random.randint(1000, 9999)}"
+                },
+                "channel": "web"
             }
 
             try:
                 resp = await client.post(f"{API_URL}/transactions/analyze", json=payload, cookies=cookies)
                 if resp.status_code == 200:
                     data = resp.json()
-                    print(f"Sent {payload['merchant_name']} ${amount} -> {data.get('risk_label', 'UNKNOWN').upper()} (Score: {data.get('risk_score', 0)})")
+                    print(f"Sent: {payload['merchant']['name']} ${amount} | Result: {data.get('risk_label').upper()} (Score: {data.get('risk_score')})")
                 else:
-                    print("Failed to send transaction:", resp.status_code, resp.text)
+                    print(f"Failed ({resp.status_code}): {resp.text}")
             except Exception as e:
                 print(f"Request error: {e}")
 
-            await asyncio.sleep(random.uniform(0.5, 3.0))
+            await asyncio.sleep(random.uniform(1.0, 3.0))
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

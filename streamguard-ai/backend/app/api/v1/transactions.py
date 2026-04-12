@@ -80,19 +80,23 @@ async def analyze_transaction(
     row = Transaction(**payload)
     db.add(row)
 
-    org = await db.get(Organization, auth.org_id)
-    if org is not None:
-        if org.monthly_request_count >= org.monthly_request_limit:
-            from fastapi import HTTPException
-            raise HTTPException(
-                status_code=429, 
-                detail=f"Monthly request limit reached ({org.monthly_request_limit}). Please upgrade your plan."
-            )
-        org.monthly_request_count += 1
-
-    if auth.api_key is not None:
-        auth.api_key.last_used_at = datetime.now(UTC)
-        auth.api_key.monthly_requests += 1
+    try:
+        org = await db.get(Organization, auth.org_id)
+        if org is not None:
+            limit = getattr(org, 'monthly_request_limit', 1000) or 1000
+            count = getattr(org, 'monthly_request_count', 0) or 0
+            
+            if count >= limit:
+                from fastapi import HTTPException
+                raise HTTPException(
+                    status_code=429, 
+                    detail=f"Monthly request limit reached ({limit}). Please upgrade your plan."
+                )
+            org.monthly_request_count = count + 1
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating org limits: {e}")
 
     # Offload alerting and broadcasting to background tasks to minimize latency
     asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
