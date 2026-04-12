@@ -18,7 +18,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     settings = get_settings()
     health_status: dict[str, Any] = {
         "status": "ok",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "environment": settings.environment,
         "uptime_seconds": int(time.time() - start_time),
         "timestamp": datetime.utcnow().isoformat() + "Z",

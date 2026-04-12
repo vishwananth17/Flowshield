@@ -14,7 +14,7 @@ jobs:
       - name: Run backend tests
         run: |
           cd backend
-          pip install -r requirements.txt
+          pip install -r requirements.txt pytest
           # Skip actual DB tests or use mock if no DB is available in CI
           pytest tests/ -v --tb=short
         continue-on-error: false
