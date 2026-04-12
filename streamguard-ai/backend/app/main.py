@@ -57,8 +57,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Custom rate limiter for the /analyze endpoint
-    app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
+    # Custom rate limiter for the /analyze endpoint (Disabled temporarily for debugging 500)
+    # app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
