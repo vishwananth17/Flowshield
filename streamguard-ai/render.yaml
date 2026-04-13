@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: flowshield-api
+    env: python
+    buildCommand: "cd streamguard-ai/backend && pip install -r requirements.txt"
+    startCommand: "cd streamguard-ai/backend && gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT"
+    envVars:
+      - key: DATABASE_URL
+        sync: false # You will paste your Neon URL here
+      - key: SECRET_KEY
+        sync: false # You will paste your existing secret key here
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: IS_PROD
+        value: "true"
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        sync: false # You can keep using your existing Upstash/Railway Kafka
+      - key: KAFKA_API_KEY
+        sync: false
+      - key: KAFKA_API_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
