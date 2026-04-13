@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=get_cors_origins(),
+        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.up\.railway\.app|https://.*\.flowshield\.ai|http://localhost:.*",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -84,6 +84,13 @@ def create_app() -> FastAPI:
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
         rid = getattr(request.state, "request_id", "")
+        
+        # Sanitize errors to ensure they are JSON serializable
+        try:
+            errors = json.loads(json.dumps(exc.errors(), default=lambda x: str(x)))
+        except:
+            errors = str(exc.errors())
+
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
@@ -91,7 +98,7 @@ def create_app() -> FastAPI:
                     "code": "VALIDATION_ERROR",
                     "message": "Request validation failed",
                     "request_id": rid,
-                    "details": exc.errors(),
+                    "details": errors,
                     "docs_url": "https://docs.flowshield.ai/errors#VALIDATION_ERROR",
                 }
             },

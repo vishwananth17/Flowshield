@@ -1,3 +1,15 @@
+import { useEffect, useState } from 'react';
+import { motion, Variants } from 'framer-motion';
+import { 
+  Activity, 
+  ShieldAlert, 
+  DollarSign, 
+  Clock, 
+  Zap, 
+  ArrowUpRight, 
+  ArrowDownRight 
+} from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
 
 export default function Dashboard() {
