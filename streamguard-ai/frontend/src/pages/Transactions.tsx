@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Filter } from 'lucide-react';
+import { Download, Filter, Search } from 'lucide-react';
 import api from '@/services/api';
 
 interface Transaction {
@@ -87,6 +87,12 @@ export default function Transactions() {
     link.click();
     document.body.removeChild(link);
     toast.success(`Exported ${filteredTransactions.length} records to CSV`);
+  };
+
+  const getRiskColor = (score: number) => {
+    if (score < 0.3) return 'bg-[#10B981]';
+    if (score < 0.7) return 'bg-[#F59E0B]';
+    return 'bg-[#EF4444]';
   };
 
   return (
