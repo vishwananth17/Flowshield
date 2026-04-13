@@ -17,9 +17,13 @@ interface Transaction {
   created_at: string;
 }
 
+import { toast } from 'sonner';
+
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [riskFilter, setRiskFilter] = useState('all');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -55,59 +59,108 @@ export default function Transactions() {
     return () => ws.close();
   }, []);
 
-  const getRiskColor = (score: number) => {
-    if (score < 0.3) return 'bg-[#10B981]';
-    if (score < 0.7) return 'bg-[#F59E0B]';
-    return 'bg-[#EF4444]';
+  const filteredTransactions = transactions.filter(tx => {
+    const matchesSearch = tx.merchant_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         tx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tx.external_id?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRisk = riskFilter === 'all' || tx.risk_label === riskFilter;
+    return matchesSearch && matchesRisk;
+  });
+
+  const handleExport = () => {
+    if (filteredTransactions.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    const headers = ["ID", "External ID", "Amount", "Currency", "Merchant", "Risk Score", "Label", "Time"];
+    const rows = filteredTransactions.map(tx => [
+      tx.id, tx.external_id || '', tx.amount, tx.currency, tx.merchant_name, tx.risk_score, tx.risk_label, tx.created_at
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `flowshield_transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Exported ${filteredTransactions.length} records to CSV`);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Transactions Feed</h1>
+          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Transactions Feed</h1>
           <p className="text-gray-400 mt-1">Live monitoring of your transaction stream</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" className="text-gray-300 border-[#374151]">
-            <Filter className="mr-2 h-4 w-4" /> Filters
-          </Button>
-          <Button variant="outline" className="text-gray-300 border-[#374151]">
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <select 
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+              className="pl-9 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              <option value="all">All Risk Levels</option>
+              <option value="fraud">Fraud</option>
+              <option value="review">Review</option>
+              <option value="safe">Safe</option>
+            </select>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleExport}
+            className="text-gray-300 border-[#374151] hover:bg-[#1F2937]"
+          >
             <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
         </div>
       </div>
 
-      <Card>
+      <div className="flex items-center bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2 focus-within:border-blue-500/50 transition-colors">
+        <Search className="h-4 w-4 text-gray-500 mr-3" />
+        <input 
+          type="text"
+          placeholder="Search by Merchant, ID, or Reference..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
+        />
+      </div>
+
+      <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80 overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-[#1F2937] border-b border-[#374151]">
+              <thead className="text-xs text-gray-400 uppercase bg-[#1F2937]/50 border-b border-[#1F2937]/50">
                 <tr>
-                  <th className="px-6 py-4 rounded-tl-lg">Transaction ID</th>
+                  <th className="px-6 py-4">Transaction ID</th>
                   <th className="px-6 py-4">Amount</th>
                   <th className="px-6 py-4">Merchant</th>
-                  <th className="px-6 py-4">Risk Score</th>
+                  <th className="px-6 py-4 text-center">Risk Analysis</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4 rounded-tr-lg">Action</th>
+                  <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                {loading && transactions.length === 0 ? (
+              <tbody className="divide-y divide-[#1F2937]/30">
+                {loading && filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      Loading transactions...
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 italic">
+                      Intercepting transaction packets...
                     </td>
                   </tr>
-                ) : transactions.length === 0 ? (
+                ) : filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      No transactions found. Send a test request via API.
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      No matches found for your current filters.
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((tx, idx) => (
+                  filteredTransactions.map((tx, idx) => (
                     <tr key={tx.id} className={`border-b border-[#1F2937] ${idx % 2 === 0 ? 'bg-[#0A0E1A]' : 'bg-[#111827]'} hover:bg-[#1F2937]/50 transition-colors`}>
                       <td className="px-6 py-4 font-mono text-gray-300">
                         {tx.external_id || tx.id.substring(0, 13)}

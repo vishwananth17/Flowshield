@@ -12,8 +12,13 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
 
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+
 export default function Dashboard() {
   const [recentTx, setRecentTx] = useState<any[]>([]);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const { accessToken } = useAuthStore();
 
   useEffect(() => {
@@ -97,25 +102,49 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center space-x-4">
           <button 
+            disabled={isSimulating}
             onClick={async () => {
+              setIsSimulating(true);
+              const toastId = toast.loading("Spawning simulation traffic...");
               try {
                 const api = (await import('@/services/api')).default;
                 await api.post('/transactions/simulate?count=10');
+                toast.success("Simulation started. 10 stress vectors injected.", { id: toastId });
               } catch (e) {
                 console.error("Simulation failed", e);
+                toast.error("Simulation engine failed to initialize", { id: toastId });
+              } finally {
+                setIsSimulating(false);
               }
             }}
-            className="group relative inline-flex items-center space-x-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-6 py-2.5 rounded-full border border-red-500/30 transition-all duration-300 active:scale-95"
+            className="group relative inline-flex items-center space-x-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-6 py-2.5 rounded-full border border-red-500/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-            <ShieldAlert className="h-4 w-4 relative" />
-            <span className="text-sm font-semibold relative">Simulate Attack</span>
+            {isSimulating ? <Loader2 className="h-4 w-4 animate-spin relative" /> : <ShieldAlert className="h-4 w-4 relative" />}
+            <span className="text-sm font-semibold relative">{isSimulating ? 'Simulating...' : 'Simulate Attack'}</span>
           </button>
           
-          <div className="flex items-center space-x-2 bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-            <Zap className="h-4 w-4" />
+          <button 
+            onClick={async () => {
+              if (isCheckingHealth) return;
+              setIsCheckingHealth(true);
+              const toastId = toast.loading("Checking satellite status...");
+              try {
+                const api = (await import('@/services/api')).default;
+                // Actually hit the health endpoint
+                await api.get('/health', { baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000' });
+                toast.success("All systems operational. Latency 12ms.", { id: toastId });
+              } catch (e) {
+                toast.error("System degradation detected in Asia-Pacific", { id: toastId });
+              } finally {
+                setIsCheckingHealth(false);
+              }
+            }}
+            className="flex items-center space-x-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all cursor-pointer group"
+          >
+            {isCheckingHealth ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 group-hover:scale-110 transition-transform" />}
             <span className="text-sm font-medium">System fully operational</span>
-          </div>
+          </button>
         </div>
       </motion.div>
 

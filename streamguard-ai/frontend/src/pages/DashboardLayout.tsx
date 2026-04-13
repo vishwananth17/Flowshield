@@ -123,14 +123,36 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
+            <Link 
+              to="/dashboard/alerts" 
+              className="relative p-2 text-gray-400 hover:text-white transition-colors group"
+            >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
-            <div className="h-8 w-8 rounded-full border border-[#374151] overflow-hidden bg-[#1F2937] flex items-center justify-center text-sm font-medium">
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#111827]"></span>
+              <div className="absolute top-full mt-2 right-0 bg-[#1F2937] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                View Alerts
+              </div>
+            </Link>
+            
+            <Link 
+              to="/dashboard/settings"
+              className="h-8 w-8 rounded-full border border-[#374151] overflow-hidden bg-[#1F2937] flex items-center justify-center text-sm font-medium hover:border-blue-500/50 transition-colors group relative"
+            >
               {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => logout()}>
+              <div className="absolute top-full mt-2 right-0 bg-[#1F2937] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                Profile Settings
+              </div>
+            </Link>
+
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => {
+                logout();
+                import('sonner').then(m => m.toast.success("Successfully logged out"));
+              }}
+              title="Logout"
+            >
               <LogOut className="h-5 w-5 text-gray-400 hover:text-white" />
             </Button>
           </div>
