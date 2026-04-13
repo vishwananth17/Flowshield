@@ -102,6 +102,10 @@ def create_app() -> FastAPI:
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url="/docs")
 
+    @app.get("/health", summary="Railway health check")
+    async def railway_health():
+        return {"status": "ok"}
+
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         rid = getattr(request.state, "request_id", "")
