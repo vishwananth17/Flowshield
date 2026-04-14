@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
+const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
+const defaultBaseURL = isProduction 
+  ? 'https://flowshieldai-backend-production.up.railway.app' 
+  : 'http://localhost:8000';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL + '/api/v1' : 'http://localhost:8000/api/v1',
+  baseURL: (import.meta.env.VITE_API_URL || defaultBaseURL) + '/api/v1',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

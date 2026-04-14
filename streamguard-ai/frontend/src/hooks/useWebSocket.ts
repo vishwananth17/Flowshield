@@ -8,7 +8,12 @@ export const useWebSocket = () => {
     const { accessToken } = useAuthStore();
 
     useEffect(() => {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
+        const defaultBaseURL = isProduction 
+            ? 'https://flowshieldai-backend-production.up.railway.app' 
+            : 'http://localhost:8000';
+
+        const baseUrl = import.meta.env.VITE_API_URL || defaultBaseURL;
         const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
         const wsBase = baseUrl.replace(/^https?:\/\//, '');
         const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
