@@ -104,14 +104,21 @@ export default function Dashboard() {
           <button 
             disabled={isSimulating}
             onClick={async () => {
-              setIsSimulating(true);
               const toastId = toast.loading("Spawning simulation traffic...");
+              
+              // Force clear after 12s just in case axios timeout fails
+              const safetyTimer = setTimeout(() => {
+                setIsSimulating(false);
+                toast.error("Simulation request timed out. Check backend status.", { id: toastId });
+              }, 12000);
+
               try {
                 const api = (await import('@/services/api')).default;
-                // Add a timeout of 10s for this heavy simulation request
                 await api.post('/transactions/simulate?count=10', {}, { timeout: 10000 });
+                clearTimeout(safetyTimer);
                 toast.success("Simulation triggered. Look at the feed!", { id: toastId });
               } catch (e: any) {
+                clearTimeout(safetyTimer);
                 console.error("Simulation failed", e);
                 const msg = e.response?.data?.detail?.message || e.message;
                 toast.error(`Simulation failed: ${msg}`, { id: toastId });
