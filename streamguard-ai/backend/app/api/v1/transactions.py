@@ -39,23 +39,70 @@ class TransactionListItem(BaseModel):
 @router.post(
     "/analyze",
     response_model=TransactionAnalyzeResponse,
-    summary="Score a transaction (rules-based in Phase 1)",
-    response_description="Risk assessment in under 200ms; persisted for audit trail.",
+    summary="Score a transaction (ML + Rules)",
+    response_description="Risk assessment with persistence and live dashboard broadcast.",
 )
 async def analyze_transaction(
     body: TransactionAnalyzeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
+    # 1. Start timer for latency tracking
+    start_time = time.perf_counter()
+    
+    # 2. Run analysis (ML + Rules Engine)
+    result = _fraud.analyze(body)
+    
+    # 3. Calculate latency
+    latency_ms = int((time.perf_counter() - start_time) * 1000)
+    
+    # 4. Persistence
+    internal_id = uuid.uuid4()
+    row_data = transaction_row_from_request(
+        auth.org_id, body, result, internal_id, latency_ms
+    )
+    
+    # Add to DB
+    new_tx = Transaction(**row_data)
+    db.add(new_tx)
+    await db.commit()
+    
+    # 5. Background Tasks (Alerting)
+    asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
+
+    # 6. WebSocket Broadcast (Dashboard Live Feed)
+    await ws_manager.broadcast({
+        "type": "new_transaction",
+        "org_id": str(auth.org_id),
+        "data": {
+            "id": str(internal_id),
+            "external_id": body.transaction_id,
+            "merchant_name": body.merchant.name,
+            "amount": float(body.amount),
+            "currency": body.currency,
+            "risk_score": result.risk_score,
+            "risk_label": result.risk_label,
+            "decision": result.decision,
+            "created_at": datetime.now(UTC).isoformat()
+        }
+    }, org_id=auth.org_id)
+
+    # 7. Kafka (Optional - enabled if configured)
+    try:
+        if kafka_streamer.producer:
+            await kafka_streamer.send_transaction(row_data)
+    except Exception:
+        pass # Don't block API if Kafka is down
+
     return {
-        "transaction_id": "debug_ok",
-        "risk_score": 0.0,
-        "risk_label": "safe",
-        "decision": "allow",
-        "confidence": 1.0,
-        "detection_latency_ms": 0,
-        "reasons": [],
-        "model_version": "debug",
+        "transaction_id": str(internal_id),
+        "risk_score": result.risk_score,
+        "risk_label": result.risk_label,
+        "decision": result.decision,
+        "confidence": result.confidence,
+        "detection_latency_ms": latency_ms,
+        "reasons": result.reasons,
+        "model_version": "ensemble_v2",
         "processed_at": datetime.now(UTC),
     }
 
