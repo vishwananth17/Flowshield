@@ -7,12 +7,14 @@ export interface User {
   full_name?: string;
   role: string;
   org_id: string;
+  created_at?: string;
 }
 
 export interface Organization {
   id: string;
   name: string;
   plan: string;
+  created_at?: string;
 }
 
 interface AuthStore {
