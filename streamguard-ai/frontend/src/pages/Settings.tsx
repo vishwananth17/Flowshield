@@ -17,8 +17,8 @@ export default function Settings() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-6 md:p-12 text-white">
       <div>
-        <h1 className="text-3xl font-display font-bold">Workspace Settings</h1>
-        <p className="text-gray-400 mt-1">Manage your organization's billing and subscription tiers.</p>
+        <h1 className="text-3xl font-display font-bold">Subscription & Billing</h1>
+        <p className="text-gray-400 mt-1">Manage your organization's subscription tiers and quota.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

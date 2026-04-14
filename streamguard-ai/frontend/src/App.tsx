@@ -12,6 +12,7 @@ import Alerts from '@/pages/Alerts';
 import Analytics from '@/pages/Analytics';
 import Team from '@/pages/Team';
 import Billing from '@/pages/Billing';
+import Profile from '@/pages/Profile';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="api-keys" element={<ApiKeys />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="alerts" element={<Alerts />} />

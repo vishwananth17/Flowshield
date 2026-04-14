@@ -108,11 +108,13 @@ export default function Dashboard() {
               const toastId = toast.loading("Spawning simulation traffic...");
               try {
                 const api = (await import('@/services/api')).default;
-                await api.post('/transactions/simulate?count=10');
-                toast.success("Simulation started. 10 stress vectors injected.", { id: toastId });
-              } catch (e) {
+                // Add a timeout of 10s for this heavy simulation request
+                await api.post('/transactions/simulate?count=10', {}, { timeout: 10000 });
+                toast.success("Simulation triggered. Look at the feed!", { id: toastId });
+              } catch (e: any) {
                 console.error("Simulation failed", e);
-                toast.error("Simulation engine failed to initialize", { id: toastId });
+                const msg = e.response?.data?.detail?.message || e.message;
+                toast.error(`Simulation failed: ${msg}`, { id: toastId });
               } finally {
                 setIsSimulating(false);
               }
