@@ -26,7 +26,10 @@ export default function Dashboard() {
     let reconnectTimeout: any = null;
 
     const connect = () => {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const isProduction = window.location.hostname !== 'localhost';
+      const defaultApiUrl = 'https://flowshieldai-backend-production.up.railway.app';
+      const baseUrl = import.meta.env.VITE_API_URL || (isProduction ? defaultApiUrl : 'http://localhost:8000');
+      
       const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
       const wsBase = baseUrl.replace(/^https?:\/\//, '');
       const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
