@@ -38,19 +38,17 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    is_prod = settings.environment == "production"
+    is_prod = settings.environment == "production"    description = """
+# Flowshield AI Integration Guide
 
-    description = """
-# 🛡️ Flowshield AI Integration Guide
-
-Welcome to the **Flowshield AI Real-Time Fraud Detection API**. 
-Integrate enterprise-grade security into your business in minutes.
+Welcome to the Flowshield AI Real-Time Fraud Detection API. 
+Integrate enterprise-grade security into your business operations.
 
 ---
 
-## 🔑 Authentication
+## Authentication
 All requests must include your API Key in the `X-API-Key` header.
-Get your key from the **[Flowshield Dashboard](https://frontend-blue-one-42.vercel.app/dashboard/api-keys)**.
+Manage your keys via the [Flowshield Dashboard](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
 
 ```bash
 X-API-Key: sg_live_xxxxxxxxxxxxxxxxxxxxxxxx
@@ -58,10 +56,10 @@ X-API-Key: sg_live_xxxxxxxxxxxxxxxxxxxxxxxx
 
 ---
 
-## 🚀 Integration Examples
+## Integration Examples
 
 ### 1. Web / Backend (Node.js/Javascript)
-Ideal for marketplaces and e-commerce checkouts.
+Standard implementation for e-commerce and digital checkouts.
 
 ```javascript
 // Example analysis call
@@ -72,21 +70,21 @@ const response = await fetch('https://flowshield-backend-ani8.onrender.com/api/v
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    amount: 99.99,
+    amount: 150.00,
     currency: 'USD',
-    merchant_name: 'Store Name',
-    customer: { email: 'user@example.com', ip: '1.2.3.4' }
+    merchant_name: 'Enterprise Store',
+    customer: { email: 'client@business.com', ip: '192.168.1.5' }
   })
 });
 
 const result = await response.json();
 if (result.decision === 'block') {
-  alert('Payment declined by fraud protection.');
+  console.log('Transaction declined by Flowshield AI.');
 }
 ```
 
-### 2. Mobile App (Python/Swift/Kotlin)
-Connect your fintech app directly to the shield.
+### 2. Mobile / App (Python/Swift/Kotlin)
+Connect your mobile application directly to the fraud detection layer.
 
 ```python
 import requests
@@ -99,35 +97,34 @@ def verify_transaction(tx_data):
     return response.json()
 ```
 
-### 3. Terminal/cURL
-Test your integration instantly from the command line.
+### 3. Terminal / cURL
+Validate your integration credentials via terminal.
 
 ```bash
 curl -X POST https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"amount": 50.0, "currency": "USD", "merchant_name": "Terminal Test"}'
+  -d '{"amount": 100.0, "currency": "USD", "merchant_name": "API Test"}'
 ```
 
 ---
 
-## 🏦 Banking & Compliance
-Use Flowshield to monitor internal bank-to-bank transfers or cross-border payments. 
-Our ML models specialized in **High-Lump-Sum (HLS)** detection.
+## Technical Specifications
+Flowshield AI utilizes ensemble machine learning models including Isolation Forests and custom heuristics for high-accuracy transaction scoring.
 
 ---
 
-## 📈 Response Model
-Each analysis returns a `risk_score` (0-1) and a `decision`:
-- `allow`: Proceed with transaction.
-- `review`: Manual verification recommended.
-- `block`: Stop transaction (High risk detected).
+## Response Schema
+Each analysis returns a risk score (0-1) and a system decision:
+- allow: Transaction authorized.
+- review: Flagged for manual audit.
+- block: Transaction rejected (High risk).
 """
 
     app = FastAPI(
-        title="🛡️ Flowshield AI | Developer Documentation",
+        title="Flowshield AI | Developer Documentation",
         description=description,
-        version="2.1.0",
+        version="2.2.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -138,10 +135,10 @@ Each analysis returns a `risk_score` (0-1) and a `decision`:
     async def custom_swagger_ui_html():
         return get_swagger_ui_html(
             openapi_url=app.openapi_url,
-            title=app.title + " - API Docs",
+            title=app.title,
             oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
             swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.1/themes/3.x/theme-material.css",
+            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.0/themes/3.x/theme-monokai.css",
             swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
         )
 
