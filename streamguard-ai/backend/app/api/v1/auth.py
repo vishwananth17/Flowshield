@@ -29,7 +29,7 @@ from app.schemas.auth import (
     UserOut,
 )
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 ACCESS_COOKIE = "access_token"
 REFRESH_COOKIE = "refresh_token"
