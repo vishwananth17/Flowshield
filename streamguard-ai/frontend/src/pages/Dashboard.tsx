@@ -97,7 +97,9 @@ export default function Dashboard() {
     { 
       title: 'Fraud Detected', 
       value: statsData?.fraud_blocked?.toLocaleString() || '0', 
-      trend: statsData?.total_analyzed > 0 ? `${((statsData.fraud_blocked / statsData.total_analyzed) * 100).toFixed(1)}%` : '0%', 
+      trend: (statsData?.total_analyzed && statsData.total_analyzed > 0) 
+        ? `${((statsData.fraud_blocked / statsData.total_analyzed) * 100).toFixed(1)}%` 
+        : '0%', 
       isUp: false, 
       icon: ShieldAlert, 
       color: 'text-red-500', 
