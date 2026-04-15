@@ -39,9 +39,95 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     is_prod = settings.environment == "production"
+
+    description = """
+# 🛡️ Flowshield AI Integration Guide
+
+Welcome to the **Flowshield AI Real-Time Fraud Detection API**. 
+Integrate enterprise-grade security into your business in minutes.
+
+---
+
+## 🔑 Authentication
+All requests must include your API Key in the `X-API-Key` header.
+Get your key from the **[Flowshield Dashboard](https://frontend-blue-one-42.vercel.app/dashboard/api-keys)**.
+
+```bash
+X-API-Key: sg_live_xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+## 🚀 Integration Examples
+
+### 1. Web / Backend (Node.js/Javascript)
+Ideal for marketplaces and e-commerce checkouts.
+
+```javascript
+// Example analysis call
+const response = await fetch('https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze', {
+  method: 'POST',
+  headers: {
+    'X-API-Key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    amount: 99.99,
+    currency: 'USD',
+    merchant_name: 'Store Name',
+    customer: { email: 'user@example.com', ip: '1.2.3.4' }
+  })
+});
+
+const result = await response.json();
+if (result.decision === 'block') {
+  alert('Payment declined by fraud protection.');
+}
+```
+
+### 2. Mobile App (Python/Swift/Kotlin)
+Connect your fintech app directly to the shield.
+
+```python
+import requests
+
+def verify_transaction(tx_data):
+    headers = {"X-API-Key": "YOUR_API_KEY"}
+    url = "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze"
+    
+    response = requests.post(url, json=tx_data, headers=headers)
+    return response.json()
+```
+
+### 3. Terminal/cURL
+Test your integration instantly from the command line.
+
+```bash
+curl -X POST https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze \\
+  -H "X-API-Key: YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"amount": 50.0, "currency": "USD", "merchant_name": "Terminal Test"}'
+```
+
+---
+
+## 🏦 Banking & Compliance
+Use Flowshield to monitor internal bank-to-bank transfers or cross-border payments. 
+Our ML models specialized in **High-Lump-Sum (HLS)** detection.
+
+---
+
+## 📈 Response Model
+Each analysis returns a `risk_score` (0-1) and a `decision`:
+- `allow`: Proceed with transaction.
+- `review`: Manual verification recommended.
+- `block`: Stop transaction (High risk detected).
+"""
+
     app = FastAPI(
-        title=settings.app_name,
-        version="0.1.0",
+        title="🛡️ Flowshield AI | Developer Documentation",
+        description=description,
+        version="2.1.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
