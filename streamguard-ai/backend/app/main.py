@@ -125,7 +125,7 @@ Each analysis returns a risk score (0-1) and a system decision:
     app = FastAPI(
         title="Flowshield AI | Developer Documentation",
         description=description,
-        version="2.2.0",
+        version="2.3.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -144,17 +144,29 @@ Each analysis returns a risk score (0-1) and a system decision:
             swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
         )
         
-        # Inject custom enterprise dark CSS
+        # Inject custom enterprise dark CSS (Explicit theme)
         custom_css = """
         <style>
-            body { background-color: #0B0F1A !important; margin: 0; color: #E2E8F0 !important; }
-            .swagger-ui { background-color: #0B0F1A !important; filter: invert(88%) hue-rotate(180deg) brightness(1.1) contrast(1.2); }
+            .swagger-ui { background-color: #0B0F1A !important; color: #E2E8F0 !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info .title { color: #FFFFFF !important; }
-            .swagger-ui .opblock { border-radius: 8px !important; }
-            .swagger-ui input, .swagger-ui textarea, .swagger-ui select { background: #1F2937 !important; color: white !important; }
-            /* Fix for images/logos to not be inverted */
-            .swagger-ui img { filter: invert(100%) hue-rotate(180deg) !important; }
+            .swagger-ui .info .title { color: #FFFFFF !important; font-family: 'Inter', sans-serif !important; }
+            .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: #94A3B8 !important; }
+            .swagger-ui .opblock { border: 1px solid #1F2937 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important; background: #111827 !important; }
+            .swagger-ui .opblock-summary { border-bottom: 1px solid #1F2937 !important; }
+            .swagger-ui .opblock .opblock-summary-method { border-radius: 4px !important; font-weight: bold !important; }
+            .swagger-ui .opblock-get { border-color: #3B82F6 !important; }
+            .swagger-ui .opblock-get .opblock-summary-method { background: #3B82F6 !important; }
+            .swagger-ui .opblock-post { border-color: #10B981 !important; }
+            .swagger-ui .opblock-post .opblock-summary-method { background: #10B981 !important; }
+            .swagger-ui section.models { border-color: #1F2937 !important; background: #111827 !important; }
+            .swagger-ui section.models .model-container { background: #0B0F1A !important; color: #E2E8F0 !important; }
+            .swagger-ui .model-box { background: transparent !important; }
+            .swagger-ui select, .swagger-ui input, .swagger-ui textarea { background: #1F2937 !important; border: 1px solid #374151 !important; color: #FFFFFF !important; }
+            .swagger-ui .btn.execute { background-color: #2563EB !important; color: #FFFFFF !important; border: none !important; }
+            .swagger-ui .btn.authorize { color: #10B981 !important; border-color: #10B981 !important; }
+            .swagger-ui .btn.authorize svg { fill: #10B981 !important; }
+            body { background-color: #0B0F1A !important; margin: 0; }
+            .swagger-ui .scheme-container { background: #0B0F1A !important; border-top: 1px solid #1F2937 !important; box-shadow: none !important; }
         </style>
         """
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
