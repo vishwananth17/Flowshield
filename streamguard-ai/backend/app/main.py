@@ -23,6 +23,7 @@ logger = logging.getLogger("streamguard")
 async def lifespan(app: FastAPI):
     # Startup: Initialize Database Tables for Render
     from app.models.base import Base
+    from app.models.waitlist import Waitlist # Ensure models are registered
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
