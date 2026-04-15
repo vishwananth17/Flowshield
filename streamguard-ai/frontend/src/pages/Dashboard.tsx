@@ -16,10 +16,25 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
+  const [statsData, setStatsData] = useState<any>(null);
   const [recentTx, setRecentTx] = useState<any[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const { accessToken } = useAuthStore();
+
+  const fetchStats = async () => {
+    try {
+      const api = (await import('@/services/api')).default;
+      const res = await api.get('/analytics/stats');
+      setStatsData(res.data);
+    } catch (e) {
+      console.error("Failed to fetch stats", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     let ws: WebSocket | null = null;
@@ -42,6 +57,8 @@ export default function Dashboard() {
           const payload = JSON.parse(event.data);
           if (payload.type === 'new_transaction') {
             setRecentTx(prev => [payload.data, ...prev].slice(0, 10));
+            // Refresh stats on new data
+            fetchStats();
           }
         } catch (err) {
           console.error("WS message error", err);
@@ -68,10 +85,42 @@ export default function Dashboard() {
   }, [accessToken]);
 
   const stats = [
-    { title: 'Total Transactions (24h)', value: '12,345', trend: '+12.5%', isUp: true, icon: Activity, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Fraud Detected', value: '42', trend: '-2.4%', isUp: false, icon: ShieldAlert, color: 'text-red-500', bg: 'bg-red-500/10' },
-    { title: 'Amount Protected', value: '$24,500', trend: '+18.2%', isUp: true, icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { title: 'Avg Latency', value: '45ms', trend: '-5.0%', isUp: true, icon: Clock, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { 
+      title: 'Total Transactions (24h)', 
+      value: statsData?.total_analyzed?.toLocaleString() || '0', 
+      trend: '+0%', 
+      isUp: true, 
+      icon: Activity, 
+      color: 'text-blue-500', 
+      bg: 'bg-blue-500/10' 
+    },
+    { 
+      title: 'Fraud Detected', 
+      value: statsData?.fraud_blocked?.toLocaleString() || '0', 
+      trend: statsData?.total_analyzed > 0 ? `${((statsData.fraud_blocked / statsData.total_analyzed) * 100).toFixed(1)}%` : '0%', 
+      isUp: false, 
+      icon: ShieldAlert, 
+      color: 'text-red-500', 
+      bg: 'bg-red-500/10' 
+    },
+    { 
+      title: 'Amount Protected', 
+      value: `$${statsData?.total_volume?.toLocaleString() || '0'}`, 
+      trend: '+0%', 
+      isUp: true, 
+      icon: DollarSign, 
+      color: 'text-emerald-500', 
+      bg: 'bg-emerald-500/10' 
+    },
+    { 
+      title: 'Avg Latency', 
+      value: `${Math.round(statsData?.avg_latency_ms || 0)}ms`, 
+      trend: '-0%', 
+      isUp: true, 
+      icon: Clock, 
+      color: 'text-purple-500', 
+      bg: 'bg-purple-500/10' 
+    },
   ];
 
   const container: Variants = {
