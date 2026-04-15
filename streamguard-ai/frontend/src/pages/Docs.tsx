@@ -28,6 +28,7 @@ const SECTIONS = [
   { id: 'code-examples', title: 'Live Benchmarks', icon: Play },
   { id: 'errors', title: 'Error Library', icon: AlertCircle },
   { id: 'webhooks', title: 'Event Streams', icon: Webhook },
+  { id: 'sdks', title: 'Official SDKs', icon: Layers },
 ];
 
 const LANGUAGES = [
@@ -276,6 +277,31 @@ export default function Docs() {
                             <div className="h-[1px] flex-1 bg-slate-800/50" />
                          </div>
                          <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+                      </div>
+                    ))}
+                 </div>
+              </section>
+
+              <section id="sdks" className="space-y-8">
+                 <h2 className="text-3xl font-black text-white tracking-tighter">Official SDKs</h2>
+                 <p className="text-slate-400 leading-relaxed">
+                   Accelerate your integration with our pre-built client libraries for popular environments.
+                 </p>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { name: 'Node.js', command: 'npm install @flowshield/sdk', icon: '📦' },
+                      { name: 'Python', command: 'pip install flowshield-ai', icon: '🐍' },
+                      { name: 'Go', command: 'go get github.com/flowshield/go', icon: '🐹' },
+                      { name: 'Java', command: 'implementation "ai.flowshield:sdk"', icon: '☕' },
+                    ].map(sdk => (
+                      <div key={sdk.name} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col space-y-3">
+                         <div className="flex items-center space-x-2">
+                           <span>{sdk.icon}</span>
+                           <span className="font-bold">{sdk.name}</span>
+                         </div>
+                         <code className="text-[10px] text-indigo-400 bg-black/30 p-2 rounded block overflow-x-auto whitespace-nowrap">
+                           {sdk.command}
+                         </code>
                       </div>
                     ))}
                  </div>

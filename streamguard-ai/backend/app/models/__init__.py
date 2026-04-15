@@ -5,6 +5,7 @@ from app.models.organization import Organization
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.webhook import Webhook
+from app.models.waitlist import Waitlist
 
 __all__ = [
     "Alert",
@@ -13,4 +14,5 @@ __all__ = [
     "Transaction",
     "User",
     "Webhook",
+    "Waitlist",
 ]

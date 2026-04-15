@@ -14,13 +14,14 @@ import Analytics from '@/pages/Analytics';
 import Team from '@/pages/Team';
 import Billing from '@/pages/Billing';
 import Profile from '@/pages/Profile';
+import Landing from '@/pages/Landing';
 
 function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
