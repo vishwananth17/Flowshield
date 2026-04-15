@@ -4,23 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Download, Filter, Search } from 'lucide-react';
 import api from '@/services/api';
-
-interface Transaction {
-  id: string;
-  external_id: string;
-  amount: string;
-  currency: string;
-  merchant_name: string;
-  risk_score: number;
-  risk_label: string;
-  decision: string;
-  created_at: string;
-}
-
+import { useTransactionStore } from '@/stores/transactionStore';
 import { toast } from 'sonner';
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { recentTransactions, setInitialTransactions } = useTransactionStore();
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [riskFilter, setRiskFilter] = useState('all');
@@ -29,7 +17,7 @@ export default function Transactions() {
     const fetchTransactions = async () => {
       try {
         const res = await api.get('/transactions');
-        setTransactions(res.data);
+        setInitialTransactions(res.data);
       } catch (e) {
         console.error(e);
       } finally {
@@ -37,29 +25,8 @@ export default function Transactions() {
       }
     };
     fetchTransactions();
-    
-    // Connect to WebSocket feed
-    const wsUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('http', 'ws') + '/api/v1/feed/ws'
-      : 'ws://localhost:8000/api/v1/feed/ws';
-      
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === 'new_transaction') {
-          setTransactions(prev => [payload.data, ...prev].slice(0, 200));
-        }
-      } catch (err) {
-        console.error("WS message error", err);
-      }
-    };
-
-    return () => ws.close();
-  }, []);
-
-  const filteredTransactions = transactions.filter(tx => {
+  }, [setInitialTransactions]);
+  const filteredTransactions = recentTransactions.filter(tx => {
     const matchesSearch = tx.merchant_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          tx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tx.external_id?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -212,3 +179,4 @@ export default function Transactions() {
     </div>
   );
 }
+

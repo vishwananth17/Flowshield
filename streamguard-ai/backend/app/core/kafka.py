@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from aiokafka import AIOKafkaProducer
 from app.core.config import get_settings
 
@@ -17,14 +18,19 @@ class KafkaStreamer:
             logger.warning("Kafka bootstrap servers not set in env, Kafka streamer disabled.")
             return
 
-        # Attempt to create Kafka producer
+        # Attempt to create Kafka producer with timeout
         try:
             self.producer = AIOKafkaProducer(
                 bootstrap_servers=servers,
                 value_serializer=lambda v: json.dumps(v).encode('utf-8')
             )
-            await self.producer.start()
-            logger.info("AIOKafka producer connected.")
+            # Upstash Kafka can sometimes hang on start() if unreachable, 
+            # so we enforce a strict 5 second timeout to ensure graceful degradation.
+            await asyncio.wait_for(self.producer.start(), timeout=5.0)
+            logger.info("AIOKafka producer connected successfully.")
+        except asyncio.TimeoutError:
+            logger.error("Kafka connection timed out. Degraded mode active.")
+            self.producer = None
         except Exception as e:
             logger.error(f"Failed to connect to Kafka tracking stream: {e}")
             self.producer = None

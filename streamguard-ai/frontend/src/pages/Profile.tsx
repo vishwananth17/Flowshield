@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { User, Mail, Shield, Building2, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/stores/authStore';
 import { format } from 'date-fns';
 
 export default function Profile() {
@@ -64,3 +64,4 @@ export default function Profile() {
     </div>
   );
 }
+

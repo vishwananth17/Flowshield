@@ -20,6 +20,8 @@ from app.services.fraud_detection_service import FraudDetectionService, transact
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 _fraud = FraudDetectionService()
+_background_tasks = set()
+
 
 
 class TransactionListItem(BaseModel):
@@ -68,7 +70,9 @@ async def analyze_transaction(
     await db.commit()
     
     # 5. Background Tasks (Alerting)
-    asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
+    task = asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
     # 6. WebSocket Broadcast (Dashboard Live Feed)
     await ws_manager.broadcast({

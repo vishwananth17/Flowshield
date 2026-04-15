@@ -48,3 +48,4 @@ function Badge({ className, variant, pulsingDot, children, ...props }: BadgeProp
 }
 
 export { Badge, badgeVariants }
+

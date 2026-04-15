@@ -39,12 +39,14 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    is_prod = settings.environment == "production"
     app = FastAPI(
         title=settings.app_name,
         version="0.1.0",
         lifespan=lifespan,
-        docs_url="/docs",
-        redoc_url="/redoc",
+        docs_url=None if is_prod else "/docs",
+        redoc_url=None if is_prod else "/redoc",
+        openapi_url=None if is_prod else "/openapi.json",
     )
 
     from app.core.middleware import RequestLoggingMiddleware, get_cors_origins
@@ -58,8 +60,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Custom rate limiter for the /analyze endpoint (Disabled temporarily for debugging 500)
-    # app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
+    # Custom rate limiter for the /analyze endpoint with Redis fallback
+    app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
@@ -119,16 +121,20 @@ def create_app() -> FastAPI:
         rid = getattr(request.state, "request_id", "")
         import traceback
         logger.error(f"Global error {rid}: {exc}\n{traceback.format_exc()}")
+        settings = get_settings()
+        content = {
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Internal Server Error" if settings.environment == "production" else str(exc),
+                "request_id": rid,
+            }
+        }
+        if settings.environment != "production":
+            content["error"]["traceback"] = traceback.format_exc()
+            
         return JSONResponse(
             status_code=500,
-            content={
-                "error": {
-                    "code": "INTERNAL_ERROR",
-                    "message": str(exc),
-                    "request_id": rid,
-                    "traceback": traceback.format_exc(),
-                }
-            },
+            content=content,
         )
 
     app.include_router(api_router, prefix="/api/v1")

@@ -37,7 +37,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
     # 2. Check Redis
     try:
-        r = redis.from_url(settings.redis_url)
+        r = redis.from_url(settings.redis_url, socket_timeout=2.0, socket_connect_timeout=2.0)
         await r.ping()
         health_status["services"]["redis"] = "ok"
     except Exception as e:

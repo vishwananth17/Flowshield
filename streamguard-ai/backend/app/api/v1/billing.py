@@ -55,6 +55,8 @@ async def create_checkout_session(
             mode="subscription",
             success_url=f"{FRONTEND_URL}/dashboard/billing?success=true&session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{FRONTEND_URL}/dashboard/billing?canceled=true",
+            client_reference_id=str(org.id),
+            metadata={"org_id": str(org.id)},
             subscription_data={
                 "metadata": {"org_id": str(org.id)}
             },
@@ -91,14 +93,15 @@ async def stripe_webhook(
 
     if event_type == "checkout.session.completed":
         # Upgrade organization to 'growth'
-        org_id = data_object.get("subscription_data", {}).get("metadata", {}).get("org_id")
+        org_id = data_object.get("client_reference_id") or data_object.get("metadata", {}).get("org_id")
+        
         if not org_id:
             # Fallback to customer lookup if metadata is missing in the session itself
             # The subscription object might have it
             subscription_id = data_object.get("subscription")
             if subscription_id:
                 subscription = stripe.Subscription.retrieve(subscription_id)
-                org_id = subscription.metadata.get("org_id")
+                org_id = subscription.get("metadata", {}).get("org_id")
 
         if org_id:
             result = await db.execute(select(Organization).filter(Organization.id == org_id))
@@ -112,7 +115,7 @@ async def stripe_webhook(
 
     elif event_type == "customer.subscription.deleted":
         # Downgrade organization back to 'starter'
-        org_id = data_object.metadata.get("org_id")
+        org_id = data_object.get("metadata", {}).get("org_id")
         if org_id:
             result = await db.execute(select(Organization).filter(Organization.id == org_id))
             org = result.scalar_one_or_none()

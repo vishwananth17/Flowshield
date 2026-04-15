@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/stores/authStore';
 import { 
   LayoutDashboard, 
   Activity, 
@@ -166,3 +166,4 @@ export default function DashboardLayout() {
     </div>
   );
 }
+

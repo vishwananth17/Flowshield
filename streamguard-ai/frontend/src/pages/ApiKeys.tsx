@@ -41,7 +41,7 @@ export default function ApiKeys() {
     e.preventDefault();
     if (!newKeyName.trim()) return;
     try {
-      const res = await api.post('/api-keys', { name: newKeyName, environment: newEnv });
+      const res = await api.post('/api-keys', { name: newKeyName, environment: newEnv }, { timeout: 15000 });
       setCreatedKey(res.data.raw_key);
       setNewKeyName('');
       fetchKeys();
@@ -170,3 +170,4 @@ export default function ApiKeys() {
     </div>
   );
 }
+

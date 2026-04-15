@@ -6,7 +6,7 @@ import api from '@/services/api';
 export default function Settings() {
   const handleUpgrade = async () => {
     try {
-      const response = await api.post('/billing/create-checkout-session');
+      const response = await api.post('/billing/create-checkout-session', {}, { timeout: 15000 });
       window.location.href = response.data.url;
     } catch (e) {
       console.error('Failed to create checkout session', e);
@@ -62,3 +62,4 @@ export default function Settings() {
     </div>
   );
 }
+

@@ -15,7 +15,7 @@ from app.models.organization import Organization
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_url: str):
         super().__init__(app)
-        self.redis = redis.from_url(redis_url, decode_responses=True)
+        self.redis = redis.from_url(redis_url, decode_responses=True, socket_timeout=2.0, socket_connect_timeout=2.0)
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Coroutine[None, None, Response]]) -> Response:
         # Only apply to the analyze endpoint

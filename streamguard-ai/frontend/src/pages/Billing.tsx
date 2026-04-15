@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Zap, 
@@ -25,10 +26,26 @@ export default function Billing() {
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     fetchSubscription();
-  }, []);
+    
+    if (searchParams.get('success') === 'true') {
+        toast.success("Successfully upgraded to Growth plan!", {
+            description: "Your new rate limits have been immediately applied."
+        });
+        searchParams.delete('success');
+        searchParams.delete('session_id');
+        setSearchParams(searchParams);
+    } else if (searchParams.get('canceled') === 'true') {
+        toast.error("Checkout was canceled.", {
+            description: "No charges were made to your account."
+        });
+        searchParams.delete('canceled');
+        setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   const fetchSubscription = async () => {
     try {
@@ -44,7 +61,7 @@ export default function Billing() {
   const handleUpgrade = async () => {
     setUpgrading(true);
     try {
-      const response = await api.post('/billing/create-checkout-session');
+      const response = await api.post('/billing/create-checkout-session', {}, { timeout: 15000 });
       window.location.href = response.data.checkout_url;
     } catch (e: any) {
       toast.error(e.response?.data?.error?.message || "Failed to initiate upgrade");
@@ -214,3 +231,4 @@ export default function Billing() {
     </div>
   );
 }
+

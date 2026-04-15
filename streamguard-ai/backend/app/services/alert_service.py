@@ -10,6 +10,8 @@ from app.models.alert_activity import AlertActivity
 from app.models.transaction import Transaction
 from app.db.session import AsyncSessionLocal
 
+_background_tasks = set()
+
 class AlertService:
     @staticmethod
     async def create_alert(
@@ -60,7 +62,9 @@ class AlertService:
         
         # Notify via WebSocket (Implementation in later step)
         from app.api.v1.websocket import broadcast_alert
-        asyncio.create_task(broadcast_alert(org_id, alert))
+        task = asyncio.create_task(broadcast_alert(org_id, alert))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         
         return alert
 

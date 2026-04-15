@@ -41,9 +41,11 @@ class FraudDetectionService:
         
         now = datetime.now(UTC)
         is_cb = tx.customer.country != tx.card.issuing_country
+        is_prepaid = tx.card.type.lower() == "prepaid" if tx.card.type else False
+        email_len = len(tx.customer.email) if tx.customer.email else 0
         
         # Invoke Sci-Kit Learn Model
-        ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb)
+        ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
         
         # Start base score with ML insights
         score = ml_score
@@ -112,6 +114,39 @@ class FraudDetectionService:
             score = max(score, 0.28)
             weights["unusual_hour"] = 0.28
             reasons.append("Unusual transaction hour")
+            
+        # Prepaid over high threshold
+        if is_prepaid and amt > 1000:
+            score = max(score, 0.75)
+            weights["prepaid_high_value"] = 0.75
+            reasons.append("High value transaction on prepaid card")
+        
+        # High-risk Email TLDs
+        if tx.customer.email:
+            temp_email = tx.customer.email.lower()
+            suspicious_tlds = (".xyz", ".biz", ".tk", ".ru", ".info", ".pro")
+            if any(temp_email.endswith(tld) for tld in suspicious_tlds):
+                score = max(score, 0.6)
+                weights["suspicious_tld"] = 0.6
+                reasons.append("Suspicious email top-level domain")
+                
+        # Known risky IP subnets / anomalies
+        if tx.customer.ip and tx.customer.ip.startswith("104.28."):
+            score = max(score, 0.5)
+            weights["vpn_proxy_ip"] = 0.5
+            reasons.append("IP address associated with VPN or proxy network")
+            
+        # Device Fingerprint missing on interactive channels
+        if not tx.customer.device_fingerprint and tx.channel in ("web", "mobile"):
+            score = max(score, 0.65)
+            weights["missing_fingerprint"] = 0.65
+            reasons.append("Missing device fingerprint on interactive channel")
+
+        # Compound rule: High amount + Cross-border + Night Hour
+        if amt > 2000 and is_cb and now.hour in NIGHT_HOURS:
+            score = max(score, 0.90)
+            weights["compound_risk_night_cb_high"] = 0.90
+            reasons.append("Compound risk: High value cross-border transaction at unusual hour")
 
         if not reasons:
             reasons.append("No elevated risk signals detected")

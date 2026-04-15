@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../stores/authStore';
 
 const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
 const defaultBaseURL = isProduction 
@@ -53,3 +53,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

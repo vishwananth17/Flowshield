@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { 
   Activity, 
@@ -10,17 +10,18 @@ import {
   ArrowDownRight 
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useAuthStore } from '@/store/authStore';
+import { useTransactionStore } from '@/stores/transactionStore';
 
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState<any>(null);
-  const [recentTx, setRecentTx] = useState<any[]>([]);
+  const { recentTransactions } = useTransactionStore();
+  const prevCountRef = useRef(recentTransactions.length);
+  
   const [isSimulating, setIsSimulating] = useState(false);
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
-  const { accessToken } = useAuthStore();
 
   const fetchStats = async () => {
     try {
@@ -37,52 +38,12 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    let ws: WebSocket | null = null;
-    let reconnectTimeout: any = null;
-
-    const connect = () => {
-      const isProduction = window.location.hostname !== 'localhost';
-      const defaultApiUrl = 'https://flowshieldai-backend-production.up.railway.app';
-      const baseUrl = import.meta.env.VITE_API_URL || (isProduction ? defaultApiUrl : 'http://localhost:8000');
-      
-      const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-      const wsBase = baseUrl.replace(/^https?:\/\//, '');
-      const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
-      
-      console.log("Connecting to WS:", wsUrl.split('?')[0]);
-      ws = new WebSocket(wsUrl);
-      
-      ws.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload.type === 'new_transaction') {
-            setRecentTx(prev => [payload.data, ...prev].slice(0, 10));
-            // Refresh stats on new data
-            fetchStats();
-          }
-        } catch (err) {
-          console.error("WS message error", err);
-        }
-      };
-
-      ws.onclose = () => {
-        console.log("WS closed, reconnecting in 3s...");
-        reconnectTimeout = setTimeout(connect, 3000);
-      };
-
-      ws.onerror = (err) => {
-        console.error("WS error", err);
-        ws?.close();
-      };
-    };
-
-    connect();
-
-    return () => {
-      if (reconnectTimeout) clearTimeout(reconnectTimeout);
-      ws?.close();
-    };
-  }, [accessToken]);
+    // Refresh stats if new transactions arrive from global ws
+    if (recentTransactions.length > prevCountRef.current) {
+        fetchStats();
+    }
+    prevCountRef.current = recentTransactions.length;
+  }, [recentTransactions]);
 
   const stats = [
     { 
@@ -267,8 +228,8 @@ export default function Dashboard() {
               Live Transactions Feed
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0 h-[350px] overflow-y-auto">
-            {recentTx.length === 0 ? (
+          <CardContent className="p-0 h-[350px] overflow-y-auto w-full">
+            {recentTransactions.length === 0 ? (
               <div className="flex h-full items-center justify-center relative">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
                 <div className="text-center z-10">
@@ -281,8 +242,8 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-[#1F2937]/50">
-                {recentTx.map((tx: any) => (
+              <div className="divide-y divide-[#1F2937]/50 w-full overflow-hidden">
+                {recentTransactions.slice(0, 10).map((tx: any) => (
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -329,3 +290,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

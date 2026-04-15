@@ -92,3 +92,4 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ user: null, organization: null, accessToken: null, isAuthenticated: false });
   }
 }));
+
