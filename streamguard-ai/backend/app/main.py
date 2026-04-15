@@ -42,9 +42,9 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version="0.1.0",
         lifespan=lifespan,
-        docs_url=None if is_prod else "/docs",
-        redoc_url=None if is_prod else "/redoc",
-        openapi_url=None if is_prod else "/openapi.json",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
     )
 
     # TEMPORARY: Simplified middleware stack to isolate CORS issue
