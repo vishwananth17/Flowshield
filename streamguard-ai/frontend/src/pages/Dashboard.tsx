@@ -156,23 +156,26 @@ export default function Dashboard() {
           <button 
             disabled={isSimulating}
             onClick={async () => {
+              setIsSimulating(true);
               const toastId = toast.loading("Spawning simulation traffic...");
               
-              // Force clear after 12s just in case axios timeout fails
+              // Force clear after 20s just in case axios timeout fails
               const safetyTimer = setTimeout(() => {
                 setIsSimulating(false);
                 toast.error("Simulation request timed out. Check backend status.", { id: toastId });
-              }, 12000);
+              }, 20000);
 
               try {
                 const api = (await import('@/services/api')).default;
-                await api.post('/transactions/simulate?count=10', {}, { timeout: 10000 });
+                await api.post('/transactions/simulate?count=10', {}, { timeout: 15000 });
                 clearTimeout(safetyTimer);
                 toast.success("Simulation triggered. Look at the feed!", { id: toastId });
+                // Immediately refresh stats
+                fetchStats();
               } catch (e: any) {
                 clearTimeout(safetyTimer);
                 console.error("Simulation failed", e);
-                const msg = e.response?.data?.detail?.message || e.message;
+                const msg = e.response?.data?.error?.message || e.message;
                 toast.error(`Simulation failed: ${msg}`, { id: toastId });
               } finally {
                 setIsSimulating(false);
@@ -192,9 +195,12 @@ export default function Dashboard() {
               const toastId = toast.loading("Checking satellite status...");
               try {
                 const api = (await import('@/services/api')).default;
-                // Actually hit the health endpoint
-                await api.get('/health', { baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000' });
-                toast.success("All systems operational. Latency 12ms.", { id: toastId });
+                const res = await api.get('/health/status');
+                if (res.data.status === 'ok') {
+                  toast.success("All systems operational. Latency 12ms.", { id: toastId });
+                } else {
+                  toast.error(`System ${res.data.status}: ${Object.values(res.data.services).join(', ')}`, { id: toastId });
+                }
               } catch (e) {
                 toast.error("System degradation detected in Asia-Pacific", { id: toastId });
               } finally {

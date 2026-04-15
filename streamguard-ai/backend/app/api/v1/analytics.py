@@ -55,12 +55,13 @@ async def get_stats(
     )
     avg_latency = float(latency_result.scalar() or 0)
     
-    # Total volume (sum of amounts)
+    # Amount Protected (sum of BLOCKED amounts)
     volume_result = await db.execute(
         select(func.sum(Transaction.amount))
         .where(Transaction.org_id == user.org_id)
+        .where(Transaction.decision == "block")
     )
-    total_volume = float(volume_result.scalar() or 0)
+    protected_volume = float(volume_result.scalar() or 0)
 
     # Risk by country
     country_result = await db.execute(
@@ -76,7 +77,7 @@ async def get_stats(
         fraud_blocked=fraud_blocked,
         safe_transactions=safe_transactions,
         avg_latency_ms=avg_latency,
-        total_volume=total_volume,
+        total_volume=protected_volume,
         risk_by_country=risk_by_country
     )
 
