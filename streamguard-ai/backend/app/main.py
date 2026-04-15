@@ -38,7 +38,8 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    is_prod = settings.environment == "production"    description = """
+    is_prod = settings.environment == "production"
+    description = """
 # Flowshield AI Integration Guide
 
 Welcome to the Flowshield AI Real-Time Fraud Detection API. 
