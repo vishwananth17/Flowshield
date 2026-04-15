@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -42,10 +43,21 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version="0.1.0",
         lifespan=lifespan,
-        docs_url="/docs",
-        redoc_url="/redoc",
+        docs_url=None,
+        redoc_url=None,
         openapi_url="/openapi.json",
     )
+
+    @app.get("/docs", include_in_schema=False)
+    async def custom_swagger_ui_html():
+        return get_swagger_ui_html(
+            openapi_url=app.openapi_url,
+            title=app.title + " - API Docs",
+            oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+            swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.1/themes/3.x/theme-material.css",
+            swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
+        )
 
     # TEMPORARY: Simplified middleware stack to isolate CORS issue
     app.add_middleware(GZipMiddleware, minimum_size=500)
