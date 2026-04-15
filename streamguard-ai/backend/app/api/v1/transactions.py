@@ -90,7 +90,7 @@ async def analyze_transaction(
     # 7. Kafka (Optional - enabled if configured)
     try:
         if kafka_streamer.producer:
-            await kafka_streamer.send_transaction(row_data)
+            await kafka_streamer.emit_transaction(row_data)
     except Exception:
         pass # Don't block API if Kafka is down
 
