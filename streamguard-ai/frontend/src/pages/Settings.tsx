@@ -5,13 +5,33 @@ import api from '@/services/api';
 
 export default function Settings() {
   const handleUpgrade = async () => {
-    try {
-      const response = await api.post('/billing/create-checkout-session', {}, { timeout: 15000 });
-      window.location.href = response.data.url;
-    } catch (e) {
-      console.error('Failed to create checkout session', e);
-      alert('Stripe configuration missing. Add STRIPE_SECRET_KEY to your .env');
-    }
+    import('@/services/payment').then(async (mod) => {
+      try {
+        const order = await mod.createPaymentOrder("Pro Tier", 9900); // 9900 paise = ₹99
+        
+        const options = {
+          key: "rzp_live_SdsJqiWHvpIz79",
+          amount: order.amount,
+          currency: order.currency,
+          name: "Flowshield AI",
+          description: "Pro Tier Monthly Subscription",
+          order_id: order.id,
+          handler: async function (response: any) {
+            await mod.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            import('sonner').then(m => m.toast.success("Successfully upgraded to Pro Tier!"));
+          },
+          theme: { color: "#2563eb" }
+        };
+        
+        mod.loadRazorpayCheckout(options);
+      } catch (err) {
+        import('sonner').then(m => m.toast.error("Failed to initiate payment"));
+      }
+    });
   };
 
   return (

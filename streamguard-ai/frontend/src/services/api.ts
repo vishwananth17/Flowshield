@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 
 const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
 const defaultBaseURL = isProduction 
-  ? 'https://flowshieldai-backend-production.up.railway.app' 
+  ? 'https://flowshield-backend-ani8.onrender.com' 
   : (window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8002' : 'http://localhost:8002');
 
 const api = axios.create({

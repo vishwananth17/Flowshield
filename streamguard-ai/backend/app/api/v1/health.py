@@ -35,14 +35,14 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
         health_status["services"]["database"] = f"error: {str(e)}"
         overall_ok = False
 
-    # 2. Check Redis
+    # 2. Check Redis (Optional in Production)
     try:
         r = redis.from_url(settings.redis_url, socket_timeout=2.0, socket_connect_timeout=2.0)
         await r.ping()
         health_status["services"]["redis"] = "ok"
-    except Exception as e:
-        health_status["services"]["redis"] = f"error: {str(e)}"
-        overall_ok = False
+    except Exception:
+        health_status["services"]["redis"] = "disconnected (optional)"
+        # We don't mark overall_ok as False for Redis
 
     # 3. Check Kafka
     try:

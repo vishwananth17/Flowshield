@@ -60,13 +60,44 @@ export default function Billing() {
 
   const handleUpgrade = async () => {
     setUpgrading(true);
-    try {
-      const response = await api.post('/billing/create-checkout-session', {}, { timeout: 15000 });
-      window.location.href = response.data.checkout_url;
-    } catch (e: any) {
-      toast.error(e.response?.data?.error?.message || "Failed to initiate upgrade");
-      setUpgrading(false);
-    }
+    import('@/services/payment').then(async (mod) => {
+      try {
+        const order = await mod.createPaymentOrder("Growth Plan", 9900);
+        
+        const options = {
+          key: "rzp_live_SdsJqiWHvpIz79",
+          amount: order.amount,
+          currency: order.currency,
+          name: "Flowshield AI",
+          description: "Growth Plan Monthly",
+          order_id: order.id,
+          handler: async function (response: any) {
+             try {
+                await mod.verifyPayment({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature
+                });
+                toast.success("Successfully upgraded to Growth plan!");
+                fetchSubscription();
+             } catch (e) {
+                toast.error("Verification failed");
+             } finally {
+                setUpgrading(false);
+             }
+          },
+          modal: {
+            ondismiss: () => setUpgrading(false)
+          },
+          theme: { color: "#2563eb" }
+        };
+        
+        mod.loadRazorpayCheckout(options);
+      } catch (err) {
+        toast.error("Failed to initiate upgrade");
+        setUpgrading(false);
+      }
+    });
   };
 
   if (loading) {
