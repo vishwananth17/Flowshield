@@ -130,7 +130,7 @@ export default function Dashboard() {
 
               try {
                 const api = (await import('@/services/api')).default;
-                await api.post('/transactions/simulate?count=10', {}, { timeout: 15000 });
+                await api.post('/transactions/simulate?count=10', {}, { timeout: 30000 });
                 clearTimeout(safetyTimer);
                 toast.success("Simulation triggered. Look at the feed!", { id: toastId });
                 // Immediately refresh stats
