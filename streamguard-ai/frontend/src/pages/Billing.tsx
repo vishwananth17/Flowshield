@@ -201,7 +201,7 @@ export default function Billing() {
                   disabled={upgrading}
                   className="w-full mt-8 bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 text-lg"
                 >
-                  {upgrading ? "Contacting Stripe..." : "$99 / month"}
+                  {upgrading ? "Processing..." : "Upgrade Now"}
                 </Button>
               </CardContent>
             </Card>

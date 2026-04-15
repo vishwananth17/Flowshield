@@ -1,8 +1,7 @@
-import axios from 'axios';
-import { API_BASE_URL } from './api';
+import api from './api';
 
 export const createPaymentOrder = async (planName: string, amount: number) => {
-    const response = await axios.post(`${API_BASE_URL}/payments/order`, {
+    const response = await api.post('/payments/order', {
         plan_name: planName,
         amount: amount
     });
@@ -14,7 +13,7 @@ export const verifyPayment = async (paymentData: {
     razorpay_payment_id: string;
     razorpay_signature: string;
 }) => {
-    const response = await axios.post(`${API_BASE_URL}/payments/verify`, paymentData);
+    const response = await api.post('/payments/verify', paymentData);
     return response.data;
 };
 

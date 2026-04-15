@@ -98,14 +98,15 @@ export default function DashboardLayout() {
             Powered by Flowshield AI
             <br/><span className="text-blue-500/50">Founder: Vishwananth B</span>
           </div>
-          <Link
-            to="/docs"
+          <a
+            href="https://flowshield-backend-ani8.onrender.com/docs"
             target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors"
           >
             <BookOpen className="h-5 w-5" />
             <span className="font-medium text-sm">Documentation</span>
-          </Link>
+          </a>
         </div>
       </div>
 
