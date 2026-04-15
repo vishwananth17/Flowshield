@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Toaster } from 'sonner';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import DashboardLayout from '@/pages/DashboardLayout';
@@ -19,6 +20,7 @@ import Landing from '@/pages/Landing';
 function App() {
   return (
     <ErrorBoundary>
+      <Toaster position="top-right" richColors />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />

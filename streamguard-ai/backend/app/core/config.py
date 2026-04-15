@@ -41,6 +41,8 @@ class Settings(BaseSettings):
         alias="KAFKA_BOOTSTRAP_SERVERS",
     )
 
+    resend_api_key: str | None = Field(default=None, alias="RESEND_API_KEY")
+
     cookie_secure: bool = Field(default=False, alias="COOKIE_SECURE")
     cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")
 

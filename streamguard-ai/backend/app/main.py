@@ -28,12 +28,12 @@ async def lifespan(app: FastAPI):
     )
 
         
-    from app.core.kafka import kafka_streamer
-    await kafka_streamer.connect()
+    # from app.core.kafka import kafka_streamer
+    # await kafka_streamer.connect()
     
     yield
     
-    await kafka_streamer.close()
+    # await kafka_streamer.close()
     await engine.dispose()
 
 
@@ -49,19 +49,35 @@ def create_app() -> FastAPI:
         openapi_url=None if is_prod else "/openapi.json",
     )
 
-    from app.core.middleware import RequestLoggingMiddleware, get_cors_origins
+    # TEMPORARY: Simplified middleware stack to isolate CORS issue
     app.add_middleware(GZipMiddleware, minimum_size=500)
-    app.add_middleware(RequestLoggingMiddleware)
+    
+    # CORS MUST be outermost (last added)
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.up\.railway\.app|https://.*\.flowshield\.ai|http://localhost:.*",
+        allow_origins=[
+            "http://localhost:5173", 
+            "http://localhost:5174", 
+            "http://localhost:5175", 
+            "http://localhost:5176",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+            "http://127.0.0.1:5175",
+            "http://127.0.0.1:5176",
+            "http://127.0.0.1:8000"
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
-    # Custom rate limiter for the /analyze endpoint with Redis fallback
-    app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
+
+    @app.get("/cors-test")
+    def cors_test():
+        return {"status": "CORS should be working if you can see this from the frontend"}
+
+    # Commenting out for isolation
+    # app.add_middleware(RequestLoggingMiddleware)
+    # app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:

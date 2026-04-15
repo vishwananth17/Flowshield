@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Shield, 
@@ -21,19 +21,29 @@ export default function Landing() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
 
-  const handleWaitlist = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
+  useEffect(() => {
+    // Analytics/Init logic can go here
+  }, []);
 
+  const handleWaitlistManual = async () => {
+    if (!email) {
+      alert("Please enter an email first!");
+      return;
+    }
+
+    console.log("🚀 Subscription attempt for:", email);
     setIsSubmitting(true);
     try {
-      await api.post('/waitlist', { email });
+      const response = await api.post('/waitlist', { email });
+      console.log("✅ Success:", response.data);
       setIsJoined(true);
       toast.success("Welcome to the front of the line!", {
         description: "We'll notify you as soon as early access opens up."
       });
-    } catch (error) {
-      toast.error("Failed to join waitlist. Please try again.");
+    } catch (error: any) {
+      console.error("❌ Waitlist Error:", error);
+      const msg = error.response?.data?.error?.message || "Failed to join waitlist. Please try again.";
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -57,9 +67,9 @@ export default function Landing() {
           <span className="text-xl font-bold tracking-tight">Flowshield AI</span>
         </div>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
-          <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
-          <a href="#docs" className="hover:text-blue-400 transition-colors">Documentation</a>
+          <a href="/#features" className="hover:text-blue-400 transition-colors">Features</a>
+          <a href="/#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
+          <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
         </div>
         <div className="flex items-center space-x-4">
           <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Log in</Link>
@@ -70,7 +80,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
+      <section id="hero" className="relative z-10 pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -94,31 +104,36 @@ export default function Landing() {
             before it hits your balance. Built for high-volume marketplaces and fintech.
           </p>
 
-          {!isJoined ? (
-            <form onSubmit={handleWaitlist} className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 mb-12">
-              <Input 
-                type="email" 
-                placeholder="Enter your work email" 
-                className="bg-slate-900/50 border-slate-700 focus:border-blue-500 h-12"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="bg-white text-slate-950 hover:bg-slate-200 h-12 px-8 font-bold text-base"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.8 }}
+          >
+            {!isJoined ? (
+              <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 mb-12">
+                <Input 
+                  type="email" 
+                  placeholder="Enter your work email" 
+                  className="bg-slate-900/50 border-slate-700 focus:border-blue-500 h-12"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <Button 
+                  type="button" 
+                  disabled={isSubmitting}
+                  onClick={handleWaitlistManual}
+                  className="bg-white text-slate-950 hover:bg-slate-200 h-12 px-8 font-bold text-base whitespace-nowrap"
+                >
+                  {isSubmitting ? "Joining..." : "Join Waitlist"}
+                </Button>
+              </div>
+            ) : (
+              <motion.div 
+                 initial={{ scale: 0.8, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 className="max-w-md mx-auto bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl mb-12 flex items-center justify-center space-x-3 text-emerald-400"
               >
-                {isSubmitting ? "Joining..." : "Join Waitlist"}
-              </Button>
-            </form>
-          ) : (
-            <motion.div 
-               initial={{ scale: 0.8, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className="max-w-md mx-auto bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl mb-12 flex items-center justify-center space-x-3 text-emerald-400"
-            >
-              <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">You're on the list! Watch your inbox.</span>
             </motion.div>
           )}
@@ -129,6 +144,7 @@ export default function Landing() {
               <span key={brand} className="text-xl font-bold tracking-tighter">{brand}</span>
             ))}
           </div>
+          </motion.div>
         </motion.div>
 
         {/* Hero Image / UI Preview */}
@@ -183,7 +199,7 @@ export default function Landing() {
       </section>
 
       {/* CTA section */}
-      <section className="py-24 px-6 mb-24 max-w-5xl mx-auto text-center relative">
+      <section id="pricing" className="py-24 px-6 mb-24 max-w-5xl mx-auto text-center relative">
         <div className="absolute inset-0 bg-indigo-600/5 blur-[80px] -z-10 rounded-full" />
         <div className="bg-[#111827] border border-slate-800 p-12 rounded-3xl">
           <h2 className="text-4xl font-bold mb-6">Ready to shield your flow?</h2>
@@ -192,7 +208,16 @@ export default function Landing() {
             Access is currently limited to selected partners.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button size="lg" className="bg-white text-slate-950 hover:bg-slate-200 px-10">Start for Free</Button>
+            <Button 
+              size="lg" 
+              className="bg-white text-slate-950 hover:bg-slate-200 px-10"
+              onClick={() => {
+                document.querySelector('input[type="email"]')?.scrollIntoView({ behavior: 'smooth' });
+                (document.querySelector('input[type="email"]') as HTMLInputElement)?.focus();
+              }}
+            >
+              Start for Free
+            </Button>
             <Button size="lg" variant="outline" className="border-slate-700 hover:bg-slate-800 px-10">Talk to Sales</Button>
           </div>
         </div>
