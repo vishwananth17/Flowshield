@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     )
 
     resend_api_key: str | None = Field(default=None, alias="RESEND_API_KEY")
+    
+    razorpay_key_id: str | None = Field(default=None, alias="RAZORPAY_KEY_ID")
+    razorpay_key_secret: str | None = Field(default=None, alias="RAZORPAY_KEY_SECRET")
 
     cookie_secure: bool = Field(default=False, alias="COOKIE_SECURE")
     cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { createPaymentOrder, loadRazorpayCheckout, verifyPayment } from '@/services/payment';
 
 export default function Landing() {
   const [email, setEmail] = useState('');
@@ -44,6 +45,49 @@ export default function Landing() {
       console.error("❌ Waitlist Error:", error);
       const msg = error.response?.data?.error?.message || "Failed to join waitlist. Please try again.";
       toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePremiumPayment = async () => {
+    setIsSubmitting(true);
+    try {
+      // 📝 Create order on backend (9900 paise = ₹99)
+      const order = await createPaymentOrder("Pro Plan", 9900);
+      
+      const options = {
+        key: "rzp_live_SdsJqiWHvpIz79", // Your live key
+        amount: order.amount,
+        currency: order.currency,
+        name: "Flowshield AI",
+        description: "Early Access Pro Plan",
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            toast.success("Payment Received!", {
+              description: "You are now a Priority Launch Partner."
+            });
+          } catch (err) {
+            toast.error("Verification failed. Contact support.");
+          }
+        },
+        prefill: {
+          email: email || "user@example.com"
+        },
+        theme: {
+          color: "#2563eb"
+        }
+      };
+      
+      loadRazorpayCheckout(options);
+    } catch (error) {
+      toast.error("Failed to start payment. Try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -198,14 +242,65 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold mb-4">Choose Your Shield</h2>
+          <p className="text-slate-400">Join the waitlist or get priority early access.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Free Tier */}
+          <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 flex flex-col h-full">
+            <h3 className="text-xl font-bold mb-2">Standard</h3>
+            <div className="text-4xl font-bold mb-6">Free</div>
+            <ul className="space-y-4 mb-8 flex-grow">
+              <li className="flex items-center text-slate-400 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Waitlist queuing
+              </li>
+              <li className="flex items-center text-slate-400 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Basic Fraud Dashboard
+              </li>
+              <li className="flex items-center text-slate-400 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Community support
+              </li>
+            </ul>
+            <Button variant="outline" className="w-full h-12 border-slate-700 font-bold" onClick={() => (document.querySelector('input') as HTMLElement)?.focus()}>
+              Sign Up
+            </Button>
+          </div>
+
+          {/* Pro Tier */}
+          <div className="p-8 rounded-3xl bg-blue-600/10 border-2 border-blue-500 relative flex flex-col h-full overflow-hidden">
+            <div className="absolute top-4 right-4 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</div>
+            <h3 className="text-xl font-bold mb-2">Pro Access</h3>
+            <div className="text-4xl font-bold mb-6">₹99 <span className="text-sm font-normal text-slate-400">/ one-time</span></div>
+            <ul className="space-y-4 mb-8 flex-grow">
+              <li className="flex items-center text-slate-100 text-sm">
+                <Zap className="h-4 w-4 mr-2 text-yellow-400" /> <b>Priority Launch Access</b>
+              </li>
+              <li className="flex items-center text-slate-100 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Real-time Protection
+              </li>
+              <li className="flex items-center text-slate-100 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> 24/7 Premium Support
+              </li>
+            </ul>
+            <Button className="w-full h-12 bg-blue-600 hover:bg-blue-500 font-bold shadow-lg shadow-blue-500/20" onClick={handlePremiumPayment}>
+              Get Priority Now
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA section */}
-      <section id="pricing" className="py-24 px-6 mb-24 max-w-5xl mx-auto text-center relative">
+      <section className="py-24 px-6 mb-24 max-w-5xl mx-auto text-center relative">
         <div className="absolute inset-0 bg-indigo-600/5 blur-[80px] -z-10 rounded-full" />
         <div className="bg-[#111827] border border-slate-800 p-12 rounded-3xl">
           <h2 className="text-4xl font-bold mb-6">Ready to shield your flow?</h2>
           <p className="text-slate-400 mb-10 max-w-xl mx-auto">
             Join the elite teams using Flowshield to maintain zero-loss operations. 
-            Access is currently limited to selected partners.
+            Access is currently limited.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button 
@@ -218,7 +313,7 @@ export default function Landing() {
             >
               Start for Free
             </Button>
-            <Button size="lg" variant="outline" className="border-slate-700 hover:bg-slate-800 px-10">Talk to Sales</Button>
+            <Button size="lg" variant="outline" className="border-slate-700 hover:bg-slate-800 px-10" onClick={handlePremiumPayment}>Go Pro</Button>
           </div>
         </div>
       </section>
