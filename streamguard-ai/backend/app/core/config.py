@@ -20,6 +20,16 @@ class Settings(BaseSettings):
         default="postgresql+asyncpg://streamguard:devpassword@localhost:5433/streamguard",
         alias="DATABASE_URL",
     )
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str) -> str:
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and "+asyncpg" not in v:
+                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
     redis_url: str = Field(default="redis://localhost:6380/0", alias="REDIS_URL")
 
     secret_key: str = Field(
