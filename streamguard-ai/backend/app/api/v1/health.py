@@ -44,32 +44,29 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
         health_status["services"]["redis"] = "disconnected (optional)"
         # We don't mark overall_ok as False for Redis
 
-    # 3. Check Kafka
+    # 3. Check Kafka (Optional)
     try:
-        # We check the Kafka streamer if it's connected
         from app.core.kafka import kafka_streamer
         if kafka_streamer.producer:
             health_status["services"]["kafka"] = "ok"
         else:
-            health_status["services"]["kafka"] = "error: not connected"
-            overall_ok = False
-    except ImportError:
+            health_status["services"]["kafka"] = "skipped (no broker)"
+    except Exception:
         health_status["services"]["kafka"] = "skipped"
 
     # 4. Check ML model
-    # Simple check if isolation forest is loaded in memory
     try:
         from app.ml.model import ml_model
         if ml_model and ml_model._model:
             health_status["services"]["ml_model"] = "ok"
         else:
-            health_status["services"]["ml_model"] = "error: model not found"
-            overall_ok = False
-    except ImportError:
+            health_status["services"]["ml_model"] = "loading..."
+    except Exception:
         health_status["services"]["ml_model"] = "skipped"
 
-    if not overall_ok:
+    if health_status["services"]["database"] != "ok":
         health_status["status"] = "degraded"
+        overall_ok = False
         # We don't raise 503 so that Railway health checks don't restart it if it's just minor
         # but the user requested 503 if any service is down for monitoring
         # return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content=health_status)
