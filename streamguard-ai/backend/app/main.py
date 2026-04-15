@@ -133,14 +133,31 @@ Each analysis returns a risk score (0-1) and a system decision:
 
     @app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
-        return get_swagger_ui_html(
+        from fastapi.responses import HTMLResponse
+        html = get_swagger_ui_html(
             openapi_url=app.openapi_url,
             title=app.title,
             oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
             swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.0/themes/3.x/theme-monokai.css",
+            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
             swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
         )
+        
+        # Inject custom enterprise dark CSS
+        custom_css = """
+        <style>
+            body { background-color: #0B0F1A !important; margin: 0; color: #E2E8F0 !important; }
+            .swagger-ui { background-color: #0B0F1A !important; filter: invert(88%) hue-rotate(180deg) brightness(1.1) contrast(1.2); }
+            .swagger-ui .topbar { display: none !important; }
+            .swagger-ui .info .title { color: #FFFFFF !important; }
+            .swagger-ui .opblock { border-radius: 8px !important; }
+            .swagger-ui input, .swagger-ui textarea, .swagger-ui select { background: #1F2937 !important; color: white !important; }
+            /* Fix for images/logos to not be inverted */
+            .swagger-ui img { filter: invert(100%) hue-rotate(180deg) !important; }
+        </style>
+        """
+        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
+        return HTMLResponse(content=content)
 
     # TEMPORARY: Simplified middleware stack to isolate CORS issue
     app.add_middleware(GZipMiddleware, minimum_size=500)
