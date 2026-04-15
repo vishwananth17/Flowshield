@@ -21,19 +21,16 @@ logger = logging.getLogger("streamguard")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings = get_settings()
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
+    # Startup: Initialize Database Tables for Render
+    from app.models.base import Base
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("✅ Database tables successfully initialized")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {str(e)}")
 
-        
-    # from app.core.kafka import kafka_streamer
-    # await kafka_streamer.connect()
-    
     yield
-    
-    # await kafka_streamer.close()
     await engine.dispose()
 
 
@@ -55,17 +52,7 @@ def create_app() -> FastAPI:
     # CORS MUST be outermost (last added)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173", 
-            "http://localhost:5174", 
-            "http://localhost:5175", 
-            "http://localhost:5176",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:5174",
-            "http://127.0.0.1:5175",
-            "http://127.0.0.1:5176",
-            "http://127.0.0.1:8000"
-        ],
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
