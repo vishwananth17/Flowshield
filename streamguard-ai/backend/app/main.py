@@ -50,10 +50,19 @@ def create_app() -> FastAPI:
     # TEMPORARY: Simplified middleware stack to isolate CORS issue
     app.add_middleware(GZipMiddleware, minimum_size=500)
     
-    # CORS MUST be outermost (last added)
+    # CORS Configuration
+    origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://flowshieldai.com",
+        "https://www.flowshieldai.com",
+    ]
+    
+    # Allow all vercel subdomains for preview deployments
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=origins,
+        allow_origin_regex="https://.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
