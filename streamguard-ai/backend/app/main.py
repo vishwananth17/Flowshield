@@ -211,6 +211,7 @@ Automate your checkout logic with high-fidelity system signals:
             observer.observe(document.body, { childList: true, subtree: true });
             window.onload = addCopyButtons;
         </script>
+        """
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
 
