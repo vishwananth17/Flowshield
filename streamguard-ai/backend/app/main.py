@@ -200,12 +200,24 @@ def create_app() -> FastAPI:
             .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--zinc-200) !important; box-shadow: none !important; padding: 40px 0 !important; }
             .swagger-ui .btn.authorize { background: var(--zinc-900) !important; color: white !important; border: none !important; border-radius: 8px !important; font-weight: 700 !important; font-size: 14px !important; }
 
-            /* Models & Schemas */
-            .swagger-ui section.models { border: 1px solid var(--zinc-200) !important; border-radius: 12px !important; background: var(--zinc-50) !important; margin-top: 40px !important; }
-            .swagger-ui section.models h4 { color: var(--zinc-900) !important; }
-            .swagger-ui .model-title { color: var(--zinc-900) !important; font-weight: 700 !important; }
+            /* Models & Schemas: Industrial Fidelity Update */
+            .swagger-ui section.models { border: 1px solid var(--zinc-200) !important; border-radius: 12px !important; background: transparent !important; margin-top: 80px !important; padding: 0 !important; overflow: hidden !important; box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important; }
+            .swagger-ui section.models h4 { color: var(--zinc-900) !important; padding: 24px !important; font-size: 18px !important; font-weight: 800 !important; border-bottom: 1px solid var(--zinc-200) !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+            .swagger-ui section.models h4 svg { fill: var(--zinc-500) !important; }
 
-            /* Scrollbar */
+            .swagger-ui .model-container { background: white !important; padding: 20px !important; border-bottom: 1px solid var(--zinc-100) !important; transition: background 150ms !important; }
+            .swagger-ui .model-container:last-child { border-bottom: none !important; }
+            .swagger-ui .model-container:hover { background: var(--zinc-50) !important; }
+            
+            .swagger-ui .model-box { background: transparent !important; padding: 0 !important; }
+            .swagger-ui .model-title { color: var(--zinc-900) !important; font-weight: 700 !important; font-size: 14px !important; }
+            .swagger-ui .model-hint { color: var(--zinc-500) !important; font-size: 12px !important; }
+            
+            /* High-Contrast Actions */
+            .swagger-ui .expand-all { color: var(--zinc-500) !important; font-weight: 600 !important; font-size: 12px !important; text-decoration: none !important; }
+            .swagger-ui .expand-all:hover { color: var(--zinc-900) !important; }
+            .swagger-ui .model-toggle::after { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center !important; display: inline-block !important; width: 14px !important; height: 14px !important; }
+
             ::-webkit-scrollbar { width: 8px; }
             ::-webkit-scrollbar-track { background: var(--bg); }
             ::-webkit-scrollbar-thumb { background: var(--zinc-200); border-radius: 4px; }
