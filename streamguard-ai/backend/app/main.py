@@ -187,6 +187,13 @@ Automate your checkout logic with high-fidelity system signals:
             .swagger-ui section.models h4 { color: #FFFFFF !important; padding: 20px !important; font-weight: 800 !important; border-bottom: 1px solid var(--border) !important; }
             .swagger-ui .model-title { color: #FFFFFF !important; }
 
+            /* SURGICAL HIDE: Remove internal utility tags */
+            .swagger-ui .opblock-tag-section[data-tag="Health"],
+            .swagger-ui .opblock-tag-section[data-tag="auth"],
+            .swagger-ui .opblock-tag-section[data-tag="default"] {
+                display: none !important;
+            }
+
             body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
         
