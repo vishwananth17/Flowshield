@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
 
 ---
 
-## 🚀 The Three-Step Integration Protocol
+## The Three-Step Integration Protocol
 Connecting your business to Flowshield AI is streamlined into three deliberate phases:
 
 1.  **Provision Credentials**: Generate your unique `sg_live_` secret key from the [Developer Console](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
@@ -60,10 +60,10 @@ Connecting your business to Flowshield AI is streamlined into three deliberate p
 
 ---
 
-## 🏛️ Integration Architectures
+## Integration Architectures
 Choose your environment to see copy-paste ready connectivity logic.
 
-### 🌐 1. Modern Web & Node.js
+### 1. Modern Web & Node.js
 Deploy for high-scale e-commerce and digital storefronts.
 ```javascript
 // Professional implementation
@@ -82,7 +82,7 @@ const response = await fetch('https://flowshield-backend-ani8.onrender.com/api/v
 });
 ```
 
-### 🍎 2. iOS / Swift
+### 2. iOS / Swift
 Secure native Apple platform transactions with zero friction.
 ```swift
 let url = URL(string: "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze")!
@@ -92,7 +92,7 @@ request.setValue("YOUR_API_KEY", forHTTPHeaderField: "X-API-Key")
 request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 ```
 
-### 🤖 3. Android / Kotlin
+### 3. Android / Kotlin
 Industrial-level fraud protection for your mobile user base.
 ```kotlin
 val client = OkHttpClient()
@@ -103,7 +103,7 @@ val request = Request.Builder()
   .build()
 ```
 
-### 🐍 4. Python / Data Science
+### 4. Python / Data Science
 Integrate into your data pipeline for post-analysis or real-time verification.
 ```python
 import requests
@@ -111,7 +111,7 @@ headers = {"X-API-Key": "YOUR_API_KEY"}
 response = requests.post(URL, json=data, headers=headers)
 ```
 
-### 🐹 5. Go / Backend Systems
+### 5. Go / Backend Systems
 High-concurrency systems requiring ultra-low latency verification.
 ```go
 req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
@@ -121,12 +121,12 @@ req.Header.Set("Content-Type", "application/json")
 
 ---
 
-## 🧠 Intelligence Parameters
+## Intelligence Parameters
 Flowshield AI utilizes an ensemble of **Isolation Forests** and **Deep-Neural Recurrent Patterns** (RNPs) to identify sophisticated fraud patterns including velocity anomalies, geographic mismatches, and blacklisted device fingerprints.
 
 ---
 
-## 💡 System Decisions
+## System Decisions
 Our engine returns a deterministic decision to automate your checkout logic:
 - **`allow`**: Safe to process. Zero risk detected.
 - **`review`**: Potential anomaly. Recommended manual audit.
