@@ -40,30 +40,33 @@ def create_app() -> FastAPI:
     settings = get_settings()
     is_prod = settings.environment == "production"
     description = """
-# Flowshield AI Integration Guide
-
-Welcome to the Flowshield AI Real-Time Fraud Detection API. 
-Integrate enterprise-grade security into your business operations.
-
----
-
-## Authentication
-All requests must include your API Key in the `X-API-Key` header.
-Manage your keys via the [Flowshield Dashboard](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
-
-```bash
-X-API-Key: sg_live_xxxxxxxxxxxxxxxxxxxxxxxx
-```
+<div align="center">
+  <img src="https://frontend-blue-one-42.vercel.app/favicon.ico" width="80" height="80" style="margin-bottom: 20px;" />
+  <h1 style="color: white; border: none; font-size: 3.5em; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 10px;">The Guardian of Finance</h1>
+  <p style="font-size: 1.25em; color: #94A3B8; max-width: 800px; margin: 0 auto 40px auto; line-height: 1.6;">
+    Flowshield AI is an enterprise-grade, autonomous fraud intelligence layer designed to protect digital economies. 
+    Intercept threats, mitigate risk, and secure every transaction with sub-100ms precision.
+  </p>
+</div>
 
 ---
 
-## Integration Examples
+## 🚀 The Three-Step Integration Protocol
+Connecting your business to Flowshield AI is streamlined into three deliberate phases:
 
-### 1. Web / Backend (Node.js/Javascript)
-Standard implementation for e-commerce and digital checkouts.
+1.  **Provision Credentials**: Generate your unique `sg_live_` secret key from the [Developer Console](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
+2.  **Initialize Handshake**: Securely embed your API key into your backend environment headers.
+3.  **Deploy Analysis**: Transmit transaction metadata to our inference engine for real-time risk scoring.
 
+---
+
+## 🏛️ Integration Architectures
+Choose your environment to see copy-paste ready connectivity logic.
+
+### 🌐 1. Modern Web & Node.js
+Deploy for high-scale e-commerce and digital storefronts.
 ```javascript
-// Example analysis call
+// Professional implementation
 const response = await fetch('https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze', {
   method: 'POST',
   headers: {
@@ -71,61 +74,69 @@ const response = await fetch('https://flowshield-backend-ani8.onrender.com/api/v
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    amount: 150.00,
+    amount: 149.99,
     currency: 'USD',
-    merchant_name: 'Enterprise Store',
+    merchant_name: 'App Store',
     customer: { email: 'client@business.com', ip: '192.168.1.5' }
   })
 });
-
-const result = await response.json();
-if (result.decision === 'block') {
-  console.log('Transaction declined by Flowshield AI.');
-}
 ```
 
-### 2. Mobile / App (Python/Swift/Kotlin)
-Connect your mobile application directly to the fraud detection layer.
+### 🍎 2. iOS / Swift
+Secure native Apple platform transactions with zero friction.
+```swift
+let url = URL(string: "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze")!
+var request = URLRequest(url: url)
+request.httpMethod = "POST"
+request.setValue("YOUR_API_KEY", forHTTPHeaderField: "X-API-Key")
+request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+```
 
+### 🤖 3. Android / Kotlin
+Industrial-level fraud protection for your mobile user base.
+```kotlin
+val client = OkHttpClient()
+val request = Request.Builder()
+  .url("https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze")
+  .post(body)
+  .addHeader("X-API-Key", "YOUR_API_KEY")
+  .build()
+```
+
+### 🐍 4. Python / Data Science
+Integrate into your data pipeline for post-analysis or real-time verification.
 ```python
 import requests
-
-def verify_transaction(tx_data):
-    headers = {"X-API-Key": "YOUR_API_KEY"}
-    url = "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze"
-    
-    response = requests.post(url, json=tx_data, headers=headers)
-    return response.json()
+headers = {"X-API-Key": "YOUR_API_KEY"}
+response = requests.post(URL, json=data, headers=headers)
 ```
 
-### 3. Terminal / cURL
-Validate your integration credentials via terminal.
-
-```bash
-curl -X POST https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze \\
-  -H "X-API-Key: YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"amount": 100.0, "currency": "USD", "merchant_name": "API Test"}'
+### 🐹 5. Go / Backend Systems
+High-concurrency systems requiring ultra-low latency verification.
+```go
+req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+req.Header.Set("X-API-Key", "YOUR_API_KEY")
+req.Header.Set("Content-Type", "application/json")
 ```
 
 ---
 
-## Technical Specifications
-Flowshield AI utilizes ensemble machine learning models including Isolation Forests and custom heuristics for high-accuracy transaction scoring.
+## 🧠 Intelligence Parameters
+Flowshield AI utilizes an ensemble of **Isolation Forests** and **Deep-Neural Recurrent Patterns** (RNPs) to identify sophisticated fraud patterns including velocity anomalies, geographic mismatches, and blacklisted device fingerprints.
 
 ---
 
-## Response Schema
-Each analysis returns a risk score (0-1) and a system decision:
-- allow: Transaction authorized.
-- review: Flagged for manual audit.
-- block: Transaction rejected (High risk).
+## 💡 System Decisions
+Our engine returns a deterministic decision to automate your checkout logic:
+- **`allow`**: Safe to process. Zero risk detected.
+- **`review`**: Potential anomaly. Recommended manual audit.
+- **`block`**: High-fidelity fraud detected. Transaction rejected.
 """
 
     app = FastAPI(
-        title="Flowshield AI | Developer Documentation",
+        title="Flowshield AI | Documentation Suite",
         description=description,
-        version="2.5.0",
+        version="4.0.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
