@@ -155,7 +155,7 @@ Our engine returns a deterministic decision to automate your checkout logic:
             swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
         )
         
-        # Inject custom theme (CoderPro Mac Edition)
+        # Inject custom premium theme (CoderPro Master Edition)
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -176,6 +176,14 @@ Our engine returns a deterministic decision to automate your checkout logic:
             .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 20px !important; }
             .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: var(--text-muted) !important; font-size: 16px !important; line-height: 1.7 !important; }
             
+            /* The Authorize/Scheme Container Fix */
+            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; margin-top: 40px !important; padding: 30px 0 !important; }
+            .swagger-ui .auth-wrapper { justify-content: flex-end !important; }
+            .swagger-ui .btn.authorize { background-color: transparent !important; color: var(--secondary) !important; border: 2px solid var(--secondary) !important; border-radius: 12px !important; font-weight: 700 !important; transition: all 0.2s !important; }
+            .swagger-ui .btn.authorize:hover { background-color: var(--secondary) !important; color: white !important; }
+            .swagger-ui .btn.authorize svg { fill: var(--secondary) !important; }
+            .swagger-ui .btn.authorize:hover svg { fill: white !important; }
+
             /* Mac-Style Code Blocks */
             .swagger-ui pre { 
                 background: #0f172a !important; 
@@ -183,8 +191,7 @@ Our engine returns a deterministic decision to automate your checkout logic:
                 border-radius: 16px !important; 
                 padding: 50px 20px 20px 20px !important; 
                 position: relative !important;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
-                overflow: visible !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
                 margin: 24px 0 !important;
             }
             .swagger-ui pre::before {
@@ -197,33 +204,54 @@ Our engine returns a deterministic decision to automate your checkout logic:
                 border-radius: 50%;
                 background: #ff5f56;
                 box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
-                z-index: 10;
             }
             .swagger-ui code { font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; color: #3b82f6 !important; }
             
-            /* Copy Button Style */
+            /* Copy Button */
             .copy-btn {
                 position: absolute;
                 top: 12px;
                 right: 12px;
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                color: #94a3b8;
-                padding: 4px 10px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid var(--border);
+                color: var(--text-muted);
+                padding: 4px 12px;
                 border-radius: 8px;
                 font-size: 10px;
                 font-weight: 700;
                 cursor: pointer;
                 transition: all 0.2s;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                z-index: 20;
             }
-            .copy-btn:hover { background: rgba(59, 130, 246, 0.2); color: white; border-color: #3b82f6; }
-            .copy-btn.copied { background: #10b981; color: white; border-color: #10b981; }
+            .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-bottom: 16px !important; overflow: hidden !important; }
-            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border-radius: 12px !important; font-weight: 700 !important; }
+            /* API Blocks & Operations */
+            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-bottom: 20px !important; overflow: hidden !important; transition: border-color 0.2s !important; }
+            .swagger-ui .opblock:hover { border-color: var(--primary) !important; }
+            .swagger-ui .opblock-summary { padding: 16px 24px !important; border-bottom: none !important; }
+            .swagger-ui .opblock-summary-method { border-radius: 10px !important; }
+            
+            /* Inputs & Dialogs */
+            .swagger-ui input, .swagger-ui select, .swagger-ui textarea { background: var(--bg-deep) !important; border: 1px solid var(--border) !important; color: white !important; border-radius: 12px !important; }
+            .swagger-ui .dialog-ux .modal-ux { background: var(--bg-surface) !important; border: 1px solid var(--border) !important; border-radius: 24px !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5) !important; }
+            .swagger-ui .dialog-ux .modal-ux-header { border-bottom: 1px solid var(--border) !important; padding: 20px !important; }
+            .swagger-ui .dialog-ux .modal-ux-header h3 { color: white !important; font-weight: 800 !important; }
+            .swagger-ui .dialog-ux .modal-ux-content { padding: 20px !important; }
+
+            /* Schemas & Models Fix */
+            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-top: 40px !important; }
+            .swagger-ui section.models h4 { color: white !important; border-bottom: 1px solid var(--border) !important; padding: 20px !important; }
+            .swagger-ui .model-box { background: transparent !important; }
+            .swagger-ui .model { color: var(--text-muted) !important; }
+            .swagger-ui .model-title { color: var(--text-main) !important; font-weight: 700 !important; }
+            .swagger-ui .prop-type { color: var(--primary) !important; }
+            .swagger-ui .prop-format { color: var(--text-muted) !important; }
+            
+            /* Scrollbar */
+            ::-webkit-scrollbar { width: 10px; }
+            ::-webkit-scrollbar-track { background: var(--bg-deep); }
+            ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+            ::-webkit-scrollbar-thumb:hover { background: #334155; }
+            
             body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
         
@@ -232,31 +260,22 @@ Our engine returns a deterministic decision to automate your checkout logic:
                 const blocks = document.querySelectorAll('pre');
                 blocks.forEach((block) => {
                     if (block.querySelector('.copy-btn')) return;
-                    
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
                     button.className = 'copy-btn';
-                    
-                    button.onclick = () => {
+                    button.onclick = (e) => {
+                        e.stopPropagation();
                         const code = block.innerText.replace('Copy', '').trim();
                         navigator.clipboard.writeText(code).then(() => {
                             button.innerText = 'Copied!';
-                            button.classList.add('copied');
-                            setTimeout(() => {
-                                button.innerText = 'Copy';
-                                button.classList.remove('copied');
-                            }, 2000);
+                            setTimeout(() => { button.innerText = 'Copy'; }, 2000);
                         });
                     };
-                    
                     block.appendChild(button);
                 });
             }
-            
-            // Watch for changes in the DOM as Swagger renders asynchronously
             const observer = new MutationObserver(() => addCopyButtons());
             observer.observe(document.body, { childList: true, subtree: true });
-            
             window.onload = addCopyButtons;
         </script>
         """
