@@ -38,23 +38,23 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     description = """
-<div align="center" style="margin-bottom: 60px;">
-  <h1 style="color: #FFFFFF !important; font-size: 56px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 12px; border: none !important;">The Guardian of Finance</h1>
-  <p style="color: #94A3B8 !important; font-size: 18px !important; max-width: 800px; line-height: 1.6; margin: 0 auto 40px auto;">
+<div align="center" style="margin-bottom: 80px; padding: 40px 0;">
+  <h1 style="color: #FFFFFF !important; font-size: 64px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 24px; border: none !important; line-height: 1.1 !important;">The Guardian of Finance</h1>
+  <p style="color: #94A3B8 !important; font-size: 20px !important; max-width: 800px; line-height: 1.7; margin: 0 auto 48px auto;">
     Flowshield AI is an enterprise-grade, autonomous fraud intelligence layer. 
     Intercept threats, mitigate risk, and secure every transaction with sub-100ms precision.
   </p>
   
-  <div style="display: flex; justify-content: center; gap: 40px; margin-top: 20px;">
-     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[01]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Provision Credentials</span></div>
-     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[02]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Initialize Handshake</span></div>
-     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[03]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Deploy Analysis</span></div>
+  <div style="display: flex; justify-content: center; gap: 60px; margin-top: 40px;">
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 15px; margin-right: 8px;">[01]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 15px; letter-spacing: 0.05em;">PROVISION</span></div>
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 15px; margin-right: 8px;">[02]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 15px; letter-spacing: 0.05em;">INITIALIZE</span></div>
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 15px; margin-right: 8px;">[03]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 15px; letter-spacing: 0.05em;">DEPLOY</span></div>
   </div>
 </div>
 
 ---
 
-## 🏛️ Integration Architectures
+## Integration Architectures
 Examine our low-latency connectivity logic across all major platforms. Manage your keys in the [Developer Console](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
 
 ### Web & Node.js
@@ -75,17 +75,17 @@ request.setValue("YOUR_API_KEY", forHTTPHeaderField: "X-API-Key")
 
 ---
 
-## 💡 Engine Decisions
+## Intelligence Signals
 Automate your checkout logic with high-fidelity system signals:
-- **allow**: Safe to process.
-- **review**: Manual verification recommended.
-- **block**: High risk detected. Reject transaction.
+- **allow**: Safe to process. Zero risk detected.
+- **review**: Manual verification recommended. Anomaly detected.
+- **block**: High risk detected. Transaction rejected autonomously.
 """
 
     app = FastAPI(
         title="Flowshield AI | Technical Reference",
         description=description,
-        version="6.0.0",
+        version="7.0.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -104,7 +104,7 @@ Automate your checkout logic with high-fidelity system signals:
             swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
         )
         
-        # Inject custom ultra-premium theme (Executive Final Edition)
+        # Inject custom ultra-premium theme (Surgical Master Edition)
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,56 +121,57 @@ Automate your checkout logic with high-fidelity system signals:
             }
             .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info { margin: 80px auto !important; max-width: 1000px !important; text-align: left !important; }
-            .swagger-ui .info .title { color: white !important; font-size: 40px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 40px !important; border: none !important; }
+            .swagger-ui .info { margin: 80px auto !important; max-width: 1000px !important; text-align: left !important; position: relative; }
+            .swagger-ui .info .title { color: #FFFFFF !important; font-size: 42px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 40px !important; border: none !important; display: flex !important; align-items: center !important; }
             
-            /* Clean Version Badges (No dots) */
-            .swagger-ui .info .title small { background: var(--border) !important; border-radius: 8px !important; padding: 4px 10px !important; color: white !important; font-size: 12px !important; position: static !important; display: inline-block !important; margin-left: 10px !important; top: 0 !important; }
-            .swagger-ui .info .title small::before { content: none !important; } /* Kill potential dots */
+            /* SURGICAL FIX: Isolate Version Badges */
+            .swagger-ui .info .title small { line-height: 1 !important; height: auto !important; width: auto !important; background: var(--border) !important; border-radius: 8px !important; padding: 6px 12px !important; color: white !important; font-size: 12px !important; position: static !important; display: inline-block !important; margin-left: 12px !important; border: none !important; box-shadow: none !important; }
+            .swagger-ui .info .title small::before, .swagger-ui .info .title small::after { content: none !important; display: none !important; }
             .swagger-ui .info .title small.version-stamp { background: var(--primary) !important; }
 
             .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: var(--text-muted) !important; font-size: 16px !important; line-height: 1.7 !important; }
-            .swagger-ui h2, .swagger-ui h3 { color: white !important; font-weight: 800 !important; margin-top: 40px !important; border-bottom: none !important; }
+            .swagger-ui h2, .swagger-ui h3 { color: #FFFFFF !important; font-weight: 800 !important; margin-top: 50px !important; border-bottom: none !important; letter-spacing: -0.02em !important; }
             
-            /* The Authorize Bar */
-            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 30px 0 !important; }
-            .swagger-ui .btn.authorize { color: var(--secondary) !important; border-color: var(--secondary) !important; border-radius: 8px !important; background: transparent !important; }
+            /* The Authorize Bar Fix */
+            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 40px 0 !important; }
+            .swagger-ui .btn.authorize { color: var(--secondary) !important; border-color: var(--secondary) !important; border-radius: 8px !important; background: transparent !important; height: 40px !important; font-weight: 700 !important; }
             .swagger-ui .btn.authorize svg { fill: var(--secondary) !important; }
 
-            /* Industrial Mac Window Code Blocks */
+            /* SURGICAL FIX: Re-certified Mac Blocks */
             .swagger-ui pre { 
                 background: #0f172a !important; 
                 border: 1px solid var(--border) !important; 
                 border-radius: 16px !important; 
-                padding: 45px 20px 20px 20px !important; 
+                padding: 48px 24px 24px 24px !important; 
                 position: relative !important;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
-                margin: 24px 0 !important;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
+                margin: 32px 0 !important;
                 overflow: hidden !important;
             }
+            /* Strictly target only code window dots */
             .swagger-ui pre::before {
                 content: '';
                 position: absolute;
-                top: 18px;
-                left: 18px;
+                top: 20px;
+                left: 20px;
                 width: 10px;
                 height: 10px;
                 border-radius: 50%;
                 background: #ff5f56;
-                box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
-                z-index: 10;
+                box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+                z-index: 50 !important;
             }
             .swagger-ui code { font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; color: #60a5fa !important; }
             
             /* Copy Button */
             .copy-btn {
                 position: absolute;
-                top: 12px;
-                right: 12px;
+                top: 14px;
+                right: 20px;
                 background: rgba(255,255,255,0.05);
                 border: 1px solid var(--border);
                 color: var(--text-muted);
-                padding: 4px 10px;
+                padding: 5px 12px;
                 border-radius: 6px;
                 font-size: 10px;
                 font-weight: 700;
@@ -179,17 +180,12 @@ Automate your checkout logic with high-fidelity system signals:
             }
             .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-            /* API Operations */
-            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 12px !important; background: var(--bg-surface) !important; margin-bottom: 16px !important; overflow: hidden !important; }
-            .swagger-ui .opblock-summary { padding: 12px 20px !important; }
-            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-weight: 600 !important; }
-            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border-radius: 8px !important; font-weight: 700 !important; }
-
-            /* Schemas */
-            .swagger-ui section.models { background: var(--bg-surface) !important; border-radius: 16px !important; border: 1px solid var(--border) !important; margin-top: 60px !important; }
-            .swagger-ui section.models h4 { color: white !important; padding: 20px !important; font-weight: 800 !important; }
-            .swagger-ui .model-box { background: transparent !important; }
-            .swagger-ui .model-title { color: white !important; }
+            /* Operations & Schemas */
+            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 14px !important; background: var(--bg-surface) !important; margin-bottom: 20px !important; overflow: hidden !important; }
+            .swagger-ui .opblock .opblock-summary-path { color: #FFFFFF !important; font-weight: 600 !important; }
+            .swagger-ui section.models { background: var(--bg-surface) !important; border-radius: 16px !important; border: 1px solid var(--border) !important; margin-top: 60px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
+            .swagger-ui section.models h4 { color: #FFFFFF !important; padding: 20px !important; font-weight: 800 !important; border-bottom: 1px solid var(--border) !important; }
+            .swagger-ui .model-title { color: #FFFFFF !important; }
 
             body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
@@ -215,16 +211,10 @@ Automate your checkout logic with high-fidelity system signals:
             observer.observe(document.body, { childList: true, subtree: true });
             window.onload = addCopyButtons;
         </script>
-        """
-        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
-        return HTMLResponse(content=content)
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
 
-    # TEMPORARY: Simplified middleware stack to isolate CORS issue
-    app.add_middleware(GZipMiddleware, minimum_size=500)
-    
-    # CORS Configuration
+    # Global Middleware & CORS Consistency Configuration
     origins = [
         "http://localhost:5173",
         "http://localhost:3000",
@@ -233,11 +223,11 @@ Automate your checkout logic with high-fidelity system signals:
         "https://frontend-blue-one-42.vercel.app",
     ]
     
-    # Allow all vercel subdomains for preview deployments
+    app.add_middleware(GZipMiddleware, minimum_size=500)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_origin_regex="https://.*\-.*\.vercel\.app", # Corrected regex for vercel subdomains
+        allow_origin_regex="https://.*\-.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
