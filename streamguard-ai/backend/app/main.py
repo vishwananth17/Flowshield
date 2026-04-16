@@ -37,44 +37,27 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    settings = get_settings()
-    is_prod = settings.environment == "production"
     description = """
-<div class="executive-header">
-  <div class="header-content">
-    <h1 class="main-title">Guardian of Finance</h1>
-    <p class="main-subtitle">
-      Flowshield AI is an enterprise-grade, autonomous fraud intelligence layer designed to protect digital economies. 
-      Intercept threats, mitigate risk, and secure every transaction with sub-100ms precision.
-    </p>
-    <div class="protocol-steps">
-       <div class="step"><span>01</span> Provision Credentials</div>
-       <div class="step"><span>02</span> Initialize Handshake</div>
-       <div class="step"><span>03</span> Deploy Analysis</div>
-    </div>
-  </div>
-  <div class="header-featured">
-    <div class="mac-window-featured">
-       <div class="mac-dots"><span></span><span></span><span></span></div>
-       <div class="mac-copy" onclick="copyFeaturedCode()">DOCS</div>
-       <pre id="featured-code"><code># Analyze a transaction
-curl -X POST https://api.flowshield.ai/v1/analyze \\
-  -H "X-API-Key: fs_live_xxx" \\
-  -d {
-    "amount": 149.99,
-    "currency": "USD",
-    "customer_ip": "1.2.3.4"
-  }</code></pre>
-    </div>
+<div align="center" style="margin-bottom: 60px;">
+  <h1 style="color: #FFFFFF !important; font-size: 56px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 12px; border: none !important;">The Guardian of Finance</h1>
+  <p style="color: #94A3B8 !important; font-size: 18px !important; max-width: 800px; line-height: 1.6; margin: 0 auto 40px auto;">
+    Flowshield AI is an enterprise-grade, autonomous fraud intelligence layer. 
+    Intercept threats, mitigate risk, and secure every transaction with sub-100ms precision.
+  </p>
+  
+  <div style="display: flex; justify-content: center; gap: 40px; margin-top: 20px;">
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[01]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Provision Credentials</span></div>
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[02]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Initialize Handshake</span></div>
+     <div style="text-align: left;"><span style="color: #3b82f6; font-family: monospace; font-weight: 800; font-size: 14px;">[03]</span> <span style="color: #F8FAFC; font-weight: 600; font-size: 14px;">Deploy Analysis</span></div>
   </div>
 </div>
 
 ---
 
-## Technical Integration Suite
-Examine our low-latency connectivity logic across all major platforms.
+## 🏛️ Integration Architectures
+Examine our low-latency connectivity logic across all major platforms. Manage your keys in the [Developer Console](https://frontend-blue-one-42.vercel.app/dashboard/api-keys).
 
-### 🌐 1. Modern Web & Node.js
+### Web & Node.js
 ```javascript
 const response = await fetch('/api/v1/transactions/analyze', {
   method: 'POST',
@@ -83,7 +66,7 @@ const response = await fetch('/api/v1/transactions/analyze', {
 });
 ```
 
-### 🍎 2. iOS / Swift
+### iOS / Swift
 ```swift
 let url = URL(string: "https://api.flowshield.ai/v1/analyze")!
 var request = URLRequest(url: url)
@@ -92,17 +75,17 @@ request.setValue("YOUR_API_KEY", forHTTPHeaderField: "X-API-Key")
 
 ---
 
-## Intelligent Decision Engine
-Our neural patterns analyze velocity, geography, and fingerprint consistency to return:
-- **`allow`**: Safe to process.
-- **`review`**: Manual audit required.
-- **`block`**: Fraud detected.
+## 💡 Engine Decisions
+Automate your checkout logic with high-fidelity system signals:
+- **allow**: Safe to process.
+- **review**: Manual verification recommended.
+- **block**: High risk detected. Reject transaction.
 """
 
     app = FastAPI(
         title="Flowshield AI | Technical Reference",
         description=description,
-        version="5.0.0",
+        version="6.0.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -121,7 +104,7 @@ Our neural patterns analyze velocity, geography, and fingerprint consistency to 
             swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
         )
         
-        # Inject custom premium theme (CoderPro Master Edition V2)
+        # Inject custom ultra-premium theme (Executive Final Edition)
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,60 +121,87 @@ Our neural patterns analyze velocity, geography, and fingerprint consistency to 
             }
             .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
             .swagger-ui .topbar { display: none !important; }
+            .swagger-ui .info { margin: 80px auto !important; max-width: 1000px !important; text-align: left !important; }
+            .swagger-ui .info .title { color: white !important; font-size: 40px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 40px !important; border: none !important; }
             
-            /* Executive 2-Column Landing */
-            .executive-header { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; margin: 80px auto !important; max-width: 1200px !important; align-items: center; }
-            @media (max-width: 1024px) { .executive-header { grid-template-columns: 1fr; } }
-            
-            .main-title { color: white !important; font-size: 64px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin: 0 0 20px 0 !important; border: none !important; line-height: 1 !important; }
-            .main-subtitle { font-size: 18px !important; line-height: 1.6 !important; color: var(--text-muted) !important; margin-bottom: 40px !important; }
-            
-            .protocol-steps { display: flex; flex-direction: column; gap: 12px; }
-            .step { display: flex; items-center: center; gap: 12px; font-size: 14px; font-weight: 700; color: white; opacity: 0.8; }
-            .step span { color: var(--primary); font-family: 'JetBrains Mono'; }
+            /* Clean Version Badges (No dots) */
+            .swagger-ui .info .title small { background: var(--border) !important; border-radius: 8px !important; padding: 4px 10px !important; color: white !important; font-size: 12px !important; position: static !important; display: inline-block !important; margin-left: 10px !important; top: 0 !important; }
+            .swagger-ui .info .title small::before { content: none !important; } /* Kill potential dots */
+            .swagger-ui .info .title small.version-stamp { background: var(--primary) !important; }
 
-            /* Featured Mac Window */
-            .header-featured { position: relative; }
-            .mac-window-featured { background: #0f172a; border: 1px solid var(--border); border-radius: 24px; padding: 60px 24px 24px 24px; position: relative; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.5); }
-            .mac-dots { position: absolute; top: 24px; left: 24px; display: flex; gap: 8px; }
-            .mac-dots span { width: 12px; height: 12px; border-radius: 50%; }
-            .mac-dots span:nth-child(1) { background: #ff5f56; }
-            .mac-dots span:nth-child(2) { background: #ffbd2e; }
-            .mac-dots span:nth-child(3) { background: #27c93f; }
-            .mac-copy { position: absolute; top: 20px; right: 24px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: var(--primary); padding: 4px 12px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
-            .mac-copy:hover { background: var(--primary); color: white; }
+            .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: var(--text-muted) !important; font-size: 16px !important; line-height: 1.7 !important; }
+            .swagger-ui h2, .swagger-ui h3 { color: white !important; font-weight: 800 !important; margin-top: 40px !important; border-bottom: none !important; }
             
-            .header-featured pre { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
-            .header-featured code { font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; color: var(--text-main) !important; line-height: 1.6 !important; }
+            /* The Authorize Bar */
+            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 30px 0 !important; }
+            .swagger-ui .btn.authorize { color: var(--secondary) !important; border-color: var(--secondary) !important; border-radius: 8px !important; background: transparent !important; }
+            .swagger-ui .btn.authorize svg { fill: var(--secondary) !important; }
 
-            /* Standard Pre Blocks */
-            .swagger-ui pre { background: var(--bg-surface) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; padding: 40px 20px 20px 20px !important; position: relative; margin: 20px 0 !important; }
-            .swagger-ui pre::before { content: ''; position: absolute; top: 16px; left: 16px; width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; box-shadow: 14px 0 0 #ffbd2e, 28px 0 0 #27c93f; }
-
-            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; }
-            .swagger-ui .btn.authorize { color: var(--secondary) !important; border-color: var(--secondary) !important; border-radius: 12px !important; }
-            .swagger-ui section.models { background: var(--bg-surface) !important; border-radius: 20px !important; border: 1px solid var(--border) !important; }
+            /* Industrial Mac Window Code Blocks */
+            .swagger-ui pre { 
+                background: #0f172a !important; 
+                border: 1px solid var(--border) !important; 
+                border-radius: 16px !important; 
+                padding: 45px 20px 20px 20px !important; 
+                position: relative !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+                margin: 24px 0 !important;
+                overflow: hidden !important;
+            }
+            .swagger-ui pre::before {
+                content: '';
+                position: absolute;
+                top: 18px;
+                left: 18px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff5f56;
+                box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
+                z-index: 10;
+            }
+            .swagger-ui code { font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; color: #60a5fa !important; }
             
+            /* Copy Button */
+            .copy-btn {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid var(--border);
+                color: var(--text-muted);
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 10px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+            /* API Operations */
+            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 12px !important; background: var(--bg-surface) !important; margin-bottom: 16px !important; overflow: hidden !important; }
+            .swagger-ui .opblock-summary { padding: 12px 20px !important; }
+            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-weight: 600 !important; }
+            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border-radius: 8px !important; font-weight: 700 !important; }
+
+            /* Schemas */
+            .swagger-ui section.models { background: var(--bg-surface) !important; border-radius: 16px !important; border: 1px solid var(--border) !important; margin-top: 60px !important; }
+            .swagger-ui section.models h4 { color: white !important; padding: 20px !important; font-weight: 800 !important; }
+            .swagger-ui .model-box { background: transparent !important; }
+            .swagger-ui .model-title { color: white !important; }
+
             body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
         
         <script>
-            function copyFeaturedCode() {
-                const code = document.getElementById('featured-code').innerText;
-                navigator.clipboard.writeText(code);
-                const btn = document.querySelector('.mac-copy');
-                btn.innerText = 'COPIED!';
-                setTimeout(() => { btn.innerText = 'DOCS'; }, 2000);
-            }
-            
-            function addGlobalCopyButtons() {
-                const blocks = document.querySelectorAll('pre:not(#featured-code)');
+            function addCopyButtons() {
+                const blocks = document.querySelectorAll('pre');
                 blocks.forEach((block) => {
                     if (block.querySelector('.copy-btn')) return;
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
                     button.className = 'copy-btn';
-                    button.style.cssText = "position:absolute; top:12px; right:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-muted); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:700; cursor:pointer;";
                     button.onclick = (e) => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(block.innerText.replace('Copy', '').trim());
@@ -201,11 +211,13 @@ Our neural patterns analyze velocity, geography, and fingerprint consistency to 
                     block.appendChild(button);
                 });
             }
-            const observer = new MutationObserver(() => addGlobalCopyButtons());
+            const observer = new MutationObserver(() => addCopyButtons());
             observer.observe(document.body, { childList: true, subtree: true });
-            window.onload = () => { addGlobalCopyButtons(); };
+            window.onload = addCopyButtons;
         </script>
         """
+        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
+        return HTMLResponse(content=content)
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
 
