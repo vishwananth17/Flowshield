@@ -144,37 +144,55 @@ Each analysis returns a risk score (0-1) and a system decision:
             swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
         )
         
-        # Inject custom enterprise dark CSS (Executive Theme)
+        # Inject custom theme (CoderPro Unified Style)
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            .swagger-ui { background-color: #020617 !important; color: #94A3B8 !important; font-family: 'Inter', sans-serif !important; }
+            :root {
+                --bg-deep: #050811;
+                --bg-surface: #0a0e1a;
+                --primary: #3b82f6;
+                --secondary: #10b981;
+                --border: #1e293b;
+                --text-main: #f1f5f9;
+                --text-muted: #94a3b8;
+            }
+            .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info { margin-bottom: 50px !important; }
-            .swagger-ui .info .title { color: #F1F5F9 !important; font-size: 42px !important; font-weight: 700 !important; tracking: -0.025em !important; }
-            .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: #94A3B8 !important; font-size: 15px !important; line-height: 1.6 !important; }
-            .swagger-ui .opblock { border: 1px solid #1E293B !important; border-radius: 12px !important; background: #0F172A !important; box-shadow: none !important; margin-bottom: 12px !important; transition: all 0.2s ease !important; }
-            .swagger-ui .opblock:hover { border-color: #334155 !important; }
-            .swagger-ui .opblock .opblock-summary { padding: 12px 16px !important; }
-            .swagger-ui .opblock .opblock-summary-method { border-radius: 6px !important; font-size: 11px !important; font-weight: 700 !important; padding: 6px 12px !important; text-transform: uppercase !important; }
-            .swagger-ui .opblock-get { border-color: #1E293B !important; }
-            .swagger-ui .opblock-get .opblock-summary-method { background: #3B82F6 !important; color: #FFFFFF !important; }
-            .swagger-ui .opblock-post { border-color: #1E293B !important; }
-            .swagger-ui .opblock-post .opblock-summary-method { background: #10B981 !important; color: #FFFFFF !important; }
-            .swagger-ui .opblock .opblock-summary-path { color: #E2E8F0 !important; font-weight: 600 !important; font-family: 'JetBrains Mono', monospace !important; }
-            .swagger-ui label { color: #94A3B8 !important; }
-            .swagger-ui .model-box { background: #020617 !important; border-radius: 8px !important; padding: 12px !important; }
-            .swagger-ui select, .swagger-ui input, .swagger-ui textarea { background: #020617 !important; border: 1px solid #1E293B !important; color: #F1F5F9 !important; border-radius: 8px !important; }
-            .swagger-ui .btn.execute { background-color: #3B82F6 !important; color: #FFFFFF !important; border-radius: 8px !important; font-weight: 600 !important; }
-            .swagger-ui .btn.authorize { color: #10B981 !important; border-color: #10B981 !important; border-radius: 8px !important; }
-            .swagger-ui .btn.authorize svg { fill: #10B981 !important; }
-            body { background-color: #020617 !important; margin: 0; }
-            .swagger-ui .scheme-container { background: #020617 !important; border-top: 1px solid #1E293B !important; box-shadow: none !important; }
-            .swagger-ui .expand-operation { fill: #64748B !important; }
-            .swagger-ui section.models { border: 1px solid #1E293B !important; border-radius: 12px !important; background: #0F172A !important; }
-            .swagger-ui section.models h4 { color: #F1F5F9 !important; }
+            .swagger-ui .info { margin: 60px auto !important; max-width: 1000px !important; text-align: left !important; position: relative; }
+            .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 20px !important; }
+            .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: var(--text-muted) !important; font-size: 16px !important; line-height: 1.7 !important; }
+            .swagger-ui .title small { background: var(--primary) !important; border-radius: 8px !important; padding: 4px 10px !important; top: -10px !important; }
+            
+            /* API Blocks */
+            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important; margin-bottom: 16px !important; overflow: hidden !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+            .swagger-ui .opblock:hover { border-color: var(--primary) !important; transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(59,130,246,0.1) !important; }
+            
+            .swagger-ui .opblock .opblock-summary { padding: 16px 24px !important; height: auto !important; }
+            .swagger-ui .opblock .opblock-summary-method { border-radius: 10px !important; font-size: 12px !important; font-weight: 800 !important; padding: 8px 16px !important; text-transform: uppercase !important; min-width: 100px !important; text-align: center !important; }
+            
+            .swagger-ui .opblock-get .opblock-summary-method { background: var(--primary) !important; }
+            .swagger-ui .opblock-post .opblock-summary-method { background: var(--secondary) !important; }
+            
+            .swagger-ui .opblock .opblock-summary-path { color: var(--text-main) !important; font-weight: 600 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 15px !important; }
+            .swagger-ui .opblock .opblock-summary-description { color: var(--text-muted) !important; font-size: 14px !important; }
+            
+            /* Inputs & Forms */
+            .swagger-ui input, .swagger-ui select, .swagger-ui textarea { background: var(--bg-deep) !important; border: 1px solid var(--border) !important; color: white !important; border-radius: 12px !important; padding: 10px 15px !important; }
+            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; padding: 12px 40px !important; font-size: 14px !important; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.4) !important; transition: all 0.2s !important; }
+            .swagger-ui .btn.execute:hover { background-color: #2563eb !important; transform: scale(1.02); }
+            
+            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; margin-top: 40px !important; }
+            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 20px !important; padding: 20px !important; background: var(--bg-surface) !important; }
+            .swagger-ui section.models h4 { color: white !important; font-size: 20px !important; font-weight: 700 !important; }
+            
+            ::-webkit-scrollbar { width: 8px; }
+            ::-webkit-scrollbar-track { background: var(--bg-deep); }
+            ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+            
+            body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
         """
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
