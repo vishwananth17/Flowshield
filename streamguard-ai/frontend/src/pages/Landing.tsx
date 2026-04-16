@@ -113,7 +113,7 @@ export default function Landing() {
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
           <a href="/#features" className="hover:text-blue-400 transition-colors">Features</a>
           <a href="/#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
-          <a href="https://flowshield-backend-ani8.onrender.com/docs" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Documentation</a>
+          <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
         </div>
         <div className="flex items-center space-x-4">
           <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Log in</Link>

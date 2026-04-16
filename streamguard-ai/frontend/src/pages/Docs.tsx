@@ -53,7 +53,8 @@ const DOC_CATEGORIES = [
     description: 'Deep dive into the /v1/analyze transaction endpoint and parameters.',
     icon: Terminal,
     color: 'bg-amber-500',
-    link: '#api'
+    link: 'https://flowshield-backend-ani8.onrender.com/docs',
+    external: true
   },
   {
     id: 'payments',
@@ -175,13 +176,20 @@ export default function Docs() {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {DOC_CATEGORIES.map((cat) => (
-            <motion.div
-              key={cat.id}
-              variants={itemVariants}
-              whileHover={{ y: -10, transition: { duration: 0.2 } }}
-              className="group relative h-[250px] bg-slate-900 border border-slate-800 rounded-[32px] p-8 hover:border-blue-500/50 hover:bg-slate-900/50 transition-all cursor-pointer overflow-hidden"
-            >
+            {DOC_CATEGORIES.map((cat) => (
+              <motion.div
+                key={cat.id}
+                variants={itemVariants}
+                whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                onClick={() => {
+                  if (cat.external) {
+                    window.open(cat.link, '_blank');
+                  } else {
+                    document.querySelector(cat.link)?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="group relative h-[250px] bg-slate-900 border border-slate-800 rounded-[32px] p-8 hover:border-blue-500/50 hover:bg-slate-900/50 transition-all cursor-pointer overflow-hidden"
+              >
               {/* Card Detail */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-all" />
               
