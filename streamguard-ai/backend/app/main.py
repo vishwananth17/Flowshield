@@ -38,79 +38,54 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     description = """
-<div class="integration-path">
+<div class="master-dark-path">
   <div class="hero-section">
-    <h1 class="hero-title">Core Infrastructure Reference</h1>
-    <p class="hero-subtitle">
+    <h1 style="color: #FFFFFF !important; font-size: 56px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 16px; border: none !important;">Core Infrastructure Reference</h1>
+    <p style="color: #94A3B8 !important; font-size: 18px !important; max-width: 750px; line-height: 1.7; margin-bottom: 60px;">
       Flowshield AI provides an autonomous fraud intelligence layer for modern digital economies. 
       This technical manual details the secure implementation of our real-time inference engine within your stack.
     </p>
   </div>
 
-  <section class="fast-path">
-    <h2 class="section-title">Startup Integration Protocol</h2>
-    <p class="section-context">Follow this high-velocity path to validate connectivity and deploy the analysis engine in under three minutes.</p>
-
+  <section class="integration-suite">
+    <h2 style="color: #FFFFFF !important; font-size: 24px !important; font-weight: 700 !important; margin-bottom: 32px; letter-spacing: -0.02em;">Integration Protocol</h2>
+    
     <div class="protocol-grid">
       <div class="protocol-card">
-        <h3>Step 1: Authentication</h3>
-        <p>Generate a production-grade secret key in the Developer Console. Authenticate all requests using a standard Bearer token header.</p>
-        <pre class="code-light"><code>Authorization: Bearer fs_live_****************</code></pre>
+        <span class="step-label">01</span>
+        <h3>Provision</h3>
+        <p>Generate production credentials in the Developer Console. Authenticate via Bearer token.</p>
+        <pre class="mac-code"><code>Authorization: Bearer fs_live_***</code></pre>
       </div>
 
       <div class="protocol-card">
-        <h3>Step 2: Environment</h3>
-        <p>Inject your credentials into your secure environment configuration to ensure zero-exposure of secrets in your source code.</p>
-        <pre class="code-light"><code>FLOWSHIELD_API_KEY=fs_live_your_key_here</code></pre>
+        <span class="step-label">02</span>
+        <h3>Initialize</h3>
+        <p>Inject credentials into your environment. Zero-exposure implementation required.</p>
+        <pre class="mac-code"><code>FLOWSHIELD_API_KEY=fs_live_***</code></pre>
       </div>
 
       <div class="protocol-card">
-        <h3>Step 3: Validation</h3>
-        <p>Execute the following cURL command to verify real-time handshake with the Flowshield inference cloud.</p>
-        <pre class="code-light" id="first-call"><code>curl -X POST https://api.flowshield.ai/v1/analyze \\
-  -H "Authorization: Bearer fs_live_xxx" \\
-  -H "Content-Type: application/json" \\
-  -d '{"amount": 100.00, "currency": "USD"}'</code></pre>
+        <span class="step-label">03</span>
+        <h3>Deploy</h3>
+        <p>Execute validation handshake with the Flowshield inference cloud.</p>
+        <pre class="mac-code"><code>curl -X POST https://api.flowshield.ai/v1/analyze \\
+  -H "Authorization: Bearer fs_live_xxx"</code></pre>
       </div>
     </div>
   </section>
 
-  <section class="error-handling">
-    <h2 class="section-title">System Response Protocols</h2>
-    <table class="error-table">
+  <section class="system-responses">
+    <h2 style="color: #FFFFFF !important; font-size: 24px !important; font-weight: 700 !important; margin-bottom: 24px;">Response Protocols</h2>
+    <table class="dark-table">
       <thead>
-        <tr>
-          <th>HTTP Code</th>
-          <th>Definition</th>
-          <th>Implementation Note</th>
-        </tr>
+        <tr><th>HTTP Code</th><th>Definition</th><th>Implementation Note</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td>200 OK</td>
-          <td>Success</td>
-          <td>Analysis session was successful. Process the returned risk score.</td>
-        </tr>
-        <tr>
-          <td>400 BAD REQUEST</td>
-          <td>Invalid Payload</td>
-          <td>Request schema validation failed. Check parameter types and integrity.</td>
-        </tr>
-        <tr>
-          <td>401 UNAUTHORIZED</td>
-          <td>Authentication Failed</td>
-          <td>Invalid or expired API key. Verify Bearer token in headers.</td>
-        </tr>
-        <tr>
-          <td>429 TOO MANY REQUESTS</td>
-          <td>Rate Limit Exceeded</td>
-          <td>Concurrency limit reached for your current tier. Implement back-off.</td>
-        </tr>
-        <tr>
-          <td>500 INTERNAL ERROR</td>
-          <td>System Fault</td>
-          <td>Autonomous failure in the inference engine. Contact support if persistent.</td>
-        </tr>
+        <tr><td>200 OK</td><td>Success</td><td>Session successful. Process risk score.</td></tr>
+        <tr><td>401 UNAUTHORIZED</td><td>Auth Failure</td><td>Invalid key. Check Bearer token.</td></tr>
+        <tr><td>429 TOO MANY</td><td>Limit Exceeded</td><td>Tier limit reached. Implement back-off.</td></tr>
+        <tr><td>500 FAULT</td><td>System Error</td><td>Autonomous fault. Contact support.</td></tr>
       </tbody>
     </table>
   </section>
@@ -118,9 +93,9 @@ def create_app() -> FastAPI:
 """
 
     app = FastAPI(
-        title="Flowshield AI Technical Documentation",
+        title="Flowshield AI | Technical Reference",
         description=description,
-        version="8.0.0",
+        version="9.0.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -145,93 +120,66 @@ def create_app() -> FastAPI:
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
         <style>
             :root {
-                --zinc-50: #fafafa;
-                --zinc-100: #f4f4f5;
-                --zinc-200: #e4e4e7;
-                --zinc-500: #71717a;
-                --zinc-900: #09090b;
-                --emerald-600: #059669;
-                --blue-600: #2563eb;
-                --border: #e4e4e7;
-                --bg: #ffffff;
-                --text: #09090b;
-                --text-muted: #71717a;
+                --bg-deep: #050811;
+                --bg-surface: #0a0e1a;
+                --primary: #3b82f6;
+                --border: #1e293b;
+                --text-main: #f1f5f9;
+                --text-muted: #94a3b8;
             }
-            body { background-color: var(--bg) !important; margin: 0; scroll-behavior: smooth; }
-            .swagger-ui { background-color: var(--bg) !important; color: var(--text) !important; font-family: 'Inter', sans-serif !important; opacity: 0; transition: opacity 0.5s ease-in; }
+            body { background-color: var(--bg-deep) !important; margin: 0; }
+            .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info { max-width: 900px !important; margin: 0 auto !important; padding: 100px 24px !important; }
-            .swagger-ui .info .title { font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; color: var(--zinc-900) !important; margin-bottom: 24px !important; border: none !important; }
-            .swagger-ui .info .title small { background: var(--zinc-100) !important; border: 1px solid var(--zinc-200) !important; border-radius: 99px !important; color: var(--zinc-900) !important; padding: 4px 12px !important; font-size: 11px !important; font-weight: 700 !important; position: static !important; display: inline-block !important; margin-left: 12px !important; }
+            .swagger-ui .info { margin: 80px auto !important; max-width: 1000px !important; text-align: left !important; }
+            .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 24px !important; border: none !important; }
+            .swagger-ui .info .title small { background: var(--primary) !important; border-radius: 99px !important; color: white !important; padding: 4px 12px !important; font-size: 11px !important; font-weight: 700 !important; position: static !important; display: inline-block !important; margin-left: 12px !important; }
 
-            .hero-title { font-size: 48px; font-weight: 800; letter-spacing: -0.05em; color: var(--zinc-900); margin-bottom: 12px; }
-            .hero-subtitle { font-size: 18px; color: var(--text-muted); line-height: 1.6; max-width: 700px; margin-bottom: 60px; }
-            .section-title { font-size: 24px; font-weight: 700; color: var(--zinc-900); margin: 60px 0 16px 0; letter-spacing: -0.02em; }
-            .section-context { color: var(--text-muted); margin-bottom: 32px; font-size: 15px; }
+            /* Detailed Protocol Styles */
+            .protocol-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-bottom: 80px; }
+            .protocol-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: relative; }
+            .step-label { color: var(--primary); font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 12px; display: block; opacity: 0.8; }
+            .protocol-card h3 { color: white !important; font-size: 18px !important; font-weight: 700 !important; margin-bottom: 12px !important; }
+            .protocol-card p { font-size: 15px !important; color: var(--text-muted) !important; line-height: 1.6 !important; }
 
-            /* Three-Step Protocol */
-            .protocol-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 80px; }
-            .protocol-card { background: var(--zinc-50); border: 1px solid var(--zinc-200); border-radius: 12px; padding: 24px; transition: all 150ms; }
-            .protocol-card:hover { border-color: var(--zinc-900); }
-            .protocol-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--zinc-900); }
-            .protocol-card p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+            /* Mac Code Windows */
+            .mac-code { background: #000000 !important; border-radius: 12px !important; padding: 40px 16px 16px 16px !important; position: relative !important; margin-top: 20px !important; }
+            .mac-code::before { content: ''; position: absolute; top: 14px; left: 14px; width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; box-shadow: 14px 0 0 #ffbd2e, 28px 0 0 #27c93f; }
+            .mac-code code { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; color: #60a5fa !important; }
 
-            /* Code Blocks Minimal */
-            pre.code-light { background: #18181b !important; border-radius: 8px !important; padding: 16px !important; position: relative !important; width: 100% !important; overflow-x: auto !important; }
-            pre.code-light code { font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; color: #e4e4e7 !important; line-height: 1.6 !important; }
-            
-            .copy-btn-minimal { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #a1a1aa; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; transition: 150ms; }
-            .copy-btn-minimal:hover { background: #FFFFFF; color: #000000; }
+            /* Response Table */
+            .dark-table { width: 100%; border-collapse: collapse; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+            .dark-table th { background: rgba(59,130,246,0.05); padding: 16px; text-align: left; color: white; border-bottom: 1px solid var(--border); }
+            .dark-table td { padding: 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 14px; }
 
-            /* Error Table */
-            .error-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; border: 1px solid var(--zinc-200); border-radius: 12px; overflow: hidden; }
-            .error-table th { background: var(--zinc-50); border-bottom: 1px solid var(--zinc-200); padding: 16px; text-align: left; font-weight: 700; color: var(--zinc-900); }
-            .error-table td { padding: 16px; border-bottom: 1px solid var(--zinc-200); color: var(--text-muted); }
-            .error-table tr:last-child td { border-bottom: none; }
+            /* API Blocks */
+            .swagger-ui .opblock { border-radius: 16px !important; border: 1px solid var(--border) !important; background: var(--bg-surface) !important; margin-bottom: 24px !important; overflow: hidden !important; }
+            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-weight: 600 !important; }
+            .swagger-ui .opblock-summary-method { border-radius: 10px !important; font-weight: 800 !important; }
 
-            /* Operations */
-            .swagger-ui .opblock { border-radius: 12px !important; border: 1px solid var(--zinc-200) !important; background: var(--bg) !important; margin-bottom: 16px !important; box-shadow: none !important; scroll-margin-top: 100px; }
-            .swagger-ui .opblock-summary { padding: 12px 16px !important; }
-            .swagger-ui .opblock .opblock-summary-path { color: var(--zinc-900) !important; font-weight: 600 !important; }
-            .swagger-ui .opblock-summary-method { border-radius: 6px !important; font-weight: 700 !important; font-size: 11px !important; }
-            .swagger-ui .opblock-get .opblock-summary-method { background: #ecfdf5 !important; color: #059669 !important; border: 1px solid #d1fae5 !important; }
-            .swagger-ui .opblock-post .opblock-summary-method { background: #eff6ff !important; color: #2563eb !important; border: 1px solid #dbeafe !important; }
+            .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 40px 0 !important; }
+            .swagger-ui .btn.authorize { background: var(--primary) !important; color: white !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; }
 
-            .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--zinc-200) !important; box-shadow: none !important; padding: 40px 0 !important; }
-            .swagger-ui .btn.authorize { background: var(--zinc-900) !important; color: white !important; border: none !important; border-radius: 8px !important; font-weight: 700 !important; font-size: 14px !important; }
+            /* Models */
+            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-top: 60px !important; }
+            .swagger-ui section.models h4 { color: white !important; padding: 20px !important; border-bottom: 1px solid var(--border) !important; }
+            .swagger-ui .model-title { color: white !important; font-weight: 700 !important; }
 
-            /* Models & Schemas: Industrial Fidelity Update */
-            .swagger-ui section.models { border: 1px solid var(--zinc-200) !important; border-radius: 12px !important; background: transparent !important; margin-top: 80px !important; padding: 0 !important; overflow: hidden !important; box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important; }
-            .swagger-ui section.models h4 { color: var(--zinc-900) !important; padding: 24px !important; font-size: 18px !important; font-weight: 800 !important; border-bottom: 1px solid var(--zinc-200) !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
-            .swagger-ui section.models h4 svg { fill: var(--zinc-500) !important; }
+            .copy-btn-master { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+            .copy-btn-master:hover { background: var(--primary); color: white; }
 
-            .swagger-ui .model-container { background: white !important; padding: 20px !important; border-bottom: 1px solid var(--zinc-100) !important; transition: background 150ms !important; }
-            .swagger-ui .model-container:last-child { border-bottom: none !important; }
-            .swagger-ui .model-container:hover { background: var(--zinc-50) !important; }
-            
-            .swagger-ui .model-box { background: transparent !important; padding: 0 !important; }
-            .swagger-ui .model-title { color: var(--zinc-900) !important; font-weight: 700 !important; font-size: 14px !important; }
-            .swagger-ui .model-hint { color: var(--zinc-500) !important; font-size: 12px !important; }
-            
-            /* High-Contrast Actions */
-            .swagger-ui .expand-all { color: var(--zinc-500) !important; font-weight: 600 !important; font-size: 12px !important; text-decoration: none !important; }
-            .swagger-ui .expand-all:hover { color: var(--zinc-900) !important; }
-            .swagger-ui .model-toggle::after { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center !important; display: inline-block !important; width: 14px !important; height: 14px !important; }
-
-            ::-webkit-scrollbar { width: 8px; }
-            ::-webkit-scrollbar-track { background: var(--bg); }
-            ::-webkit-scrollbar-thumb { background: var(--zinc-200); border-radius: 4px; }
-            ::-webkit-scrollbar-thumb:hover { background: var(--zinc-500); }
+            ::-webkit-scrollbar { width: 10px; }
+            ::-webkit-scrollbar-track { background: var(--bg-deep); }
+            ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         </style>
         
         <script>
             function addCopyButtons() {
                 const blocks = document.querySelectorAll('pre');
                 blocks.forEach((block) => {
-                    if (block.querySelector('.copy-btn-minimal')) return;
+                    if (block.querySelector('.copy-btn-master')) return;
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
-                    button.className = 'copy-btn-minimal';
+                    button.className = 'copy-btn-master';
                     button.onclick = (e) => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(block.innerText.replace('Copy', '').trim());
@@ -241,14 +189,13 @@ def create_app() -> FastAPI:
                     block.appendChild(button);
                 });
             }
-            window.onload = () => {
-                document.querySelector('.swagger-ui').style.opacity = '1';
-                addCopyButtons();
-            };
             const observer = new MutationObserver(() => addCopyButtons());
             observer.observe(document.body, { childList: true, subtree: true });
+            window.onload = addCopyButtons;
         </script>
         """
+        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
+        return HTMLResponse(content=content)
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
 
