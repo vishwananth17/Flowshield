@@ -38,64 +38,78 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     description = """
-<div class="master-dark-path">
-  <div class="hero-section">
-    <h1 style="color: #FFFFFF !important; font-size: 56px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 16px; border: none !important;">Core Infrastructure Reference</h1>
-    <p style="color: #94A3B8 !important; font-size: 18px !important; max-width: 750px; line-height: 1.7; margin-bottom: 60px;">
-      Flowshield AI provides an autonomous fraud intelligence layer for modern digital economies. 
-      This technical manual details the secure implementation of our real-time inference engine within your stack.
+<div class="master-elite-reference">
+  <div class="header-hero" style="animation: fadeInUp 0.8s ease-out forwards; opacity: 0; padding: 40px 0 80px 0;">
+    <h1 style="color: #FFFFFF !important; font-size: 64px !important; font-weight: 800 !important; letter-spacing: -0.06em !important; margin-bottom: 24px; line-height: 1.05 !important;">Core Infrastructure Reference</h1>
+    <p style="color: #94A3B8 !important; font-size: 20px !important; max-width: 800px; line-height: 1.7; margin-bottom: 0;">
+      Flowshield AI provides an autonomous, sub-100ms fraud intelligence layer. This manual details the protocol for secure, real-time connectivity between your transaction stack and our inference core.
     </p>
   </div>
 
-  <section class="integration-suite">
-    <h2 style="color: #FFFFFF !important; font-size: 24px !important; font-weight: 700 !important; margin-bottom: 32px; letter-spacing: -0.02em;">Integration Protocol</h2>
+  <section class="suite-container" style="animation: fadeInUp 0.8s ease-out 0.2s forwards; opacity: 0;">
+    <h2 style="color: #FFFFFF !important; font-size: 28px !important; font-weight: 700 !important; margin-bottom: 40px; letter-spacing: -0.03em;">Integration Protocol</h2>
     
-    <div class="protocol-grid">
-      <div class="protocol-card">
-        <span class="step-label">01</span>
-        <h3>Provision</h3>
-        <p>Generate production credentials in the Developer Console. Authenticate via Bearer token.</p>
-        <pre class="mac-code"><code>Authorization: Bearer fs_live_***</code></pre>
+    <div class="protocol-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; margin-bottom: 100px;">
+      <div class="protocol-card" style="background: rgba(10,14,26,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[01] PROVISION</span>
+        <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Authentication Key</h3>
+        <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Generate an enterprise-grade secret key and authenticate all requests via standard Bearer token implementation.</p>
+        <pre class="mac-box"><code>Authorization: Bearer fs_live_secret</code></pre>
       </div>
 
-      <div class="protocol-card">
-        <span class="step-label">02</span>
-        <h3>Initialize</h3>
-        <p>Inject credentials into your environment. Zero-exposure implementation required.</p>
-        <pre class="mac-code"><code>FLOWSHIELD_API_KEY=fs_live_***</code></pre>
+      <div class="protocol-card" style="background: rgba(10,14,26,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[02] INITIALIZE</span>
+        <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Environment Layer</h3>
+        <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Establish your secure environment layer. Ensure credential isolation to prevent upstream exposure.</p>
+        <pre class="mac-box"><code>FLOWSHIELD_API_KEY=fs_live_***</code></pre>
       </div>
 
-      <div class="protocol-card">
-        <span class="step-label">03</span>
-        <h3>Deploy</h3>
-        <p>Execute validation handshake with the Flowshield inference cloud.</p>
-        <pre class="mac-code"><code>curl -X POST https://api.flowshield.ai/v1/analyze \\
-  -H "Authorization: Bearer fs_live_xxx"</code></pre>
+      <div class="protocol-card" style="background: rgba(10,14,26,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[03] VALIDATE</span>
+        <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Production Handshake</h3>
+        <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Validate real-time connectivity with the inference cloud via our health-check or sample analysis endpoint.</p>
+        <pre class="mac-box"><code>curl -X POST /api/v1/analyze</code></pre>
       </div>
     </div>
   </section>
 
-  <section class="system-responses">
-    <h2 style="color: #FFFFFF !important; font-size: 24px !important; font-weight: 700 !important; margin-bottom: 24px;">Response Protocols</h2>
-    <table class="dark-table">
+  <section class="response-grid" style="animation: fadeInUp 0.8s ease-out 0.4s forwards; opacity: 0;">
+    <h2 style="color: #FFFFFF !important; font-size: 28px !important; font-weight: 700 !important; margin-bottom: 32px; letter-spacing: -0.03em;">System Response Protocols</h2>
+    <table class="protocol-table">
       <thead>
-        <tr><th>HTTP Code</th><th>Definition</th><th>Implementation Note</th></tr>
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <th style="padding: 20px; text-align: left; color: white; font-weight: 700;">HTTP Code</th>
+          <th style="padding: 20px; text-align: left; color: white; font-weight: 700;">Definition</th>
+          <th style="padding: 20px; text-align: left; color: white; font-weight: 700;">Logic Note</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td>200 OK</td><td>Success</td><td>Session successful. Process risk score.</td></tr>
-        <tr><td>401 UNAUTHORIZED</td><td>Auth Failure</td><td>Invalid key. Check Bearer token.</td></tr>
-        <tr><td>429 TOO MANY</td><td>Limit Exceeded</td><td>Tier limit reached. Implement back-off.</td></tr>
-        <tr><td>500 FAULT</td><td>System Error</td><td>Autonomous fault. Contact support.</td></tr>
+        <tr><td>200 OK</td><td>SUCCESS</td><td>Operation validated. Risk score returned.</td></tr>
+        <tr><td>401 UNAUTHORIZED</td><td>AUTH_ERROR</td><td>Invalid API Credentials.</td></tr>
+        <tr><td>429 TOO MANY</td><td>RATE_ERROR</td><td>Tier concurrency limit exceeded.</td></tr>
       </tbody>
     </table>
   </section>
 </div>
+
+<style>
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.protocol-card:hover { transform: translateY(-8px) scale(1.02); border-color: rgba(59, 130, 246, 0.5) !important; background: rgba(10,14,26,0.95) !important; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.protocol-table { width: 100%; border-collapse: collapse; background: rgba(10,14,26,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; }
+.protocol-table td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #94A3B8; font-size: 15px; }
+.mac-box { background: #000000 !important; border-radius: 12px !important; padding: 32px 16px 16px 16px !important; position: relative !important; margin: 0 !important; }
+.mac-box::before { content: ''; position: absolute; top: 12px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: #ff5f56; box-shadow: 12px 0 0 #ffbd2e, 24px 0 0 #27c93f; }
+.mac-box code { font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; color: #60a5fa !important; }
+</style>
 """
 
     app = FastAPI(
-        title="Flowshield AI | Technical Reference",
+        title="Flowshield AI Technical Reference",
         description=description,
-        version="9.0.0",
+        version="10.0.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -130,56 +144,40 @@ def create_app() -> FastAPI:
             body { background-color: var(--bg-deep) !important; margin: 0; }
             .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info { margin: 80px auto !important; max-width: 1000px !important; text-align: left !important; }
+            .swagger-ui .info { margin: 80px auto !important; max-width: 1100px !important; text-align: left !important; }
             .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 24px !important; border: none !important; }
             .swagger-ui .info .title small { background: var(--primary) !important; border-radius: 99px !important; color: white !important; padding: 4px 12px !important; font-size: 11px !important; font-weight: 700 !important; position: static !important; display: inline-block !important; margin-left: 12px !important; }
-
-            /* Detailed Protocol Styles */
-            .protocol-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-bottom: 80px; }
-            .protocol-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: relative; }
-            .step-label { color: var(--primary); font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 12px; display: block; opacity: 0.8; }
-            .protocol-card h3 { color: white !important; font-size: 18px !important; font-weight: 700 !important; margin-bottom: 12px !important; }
-            .protocol-card p { font-size: 15px !important; color: var(--text-muted) !important; line-height: 1.6 !important; }
-
-            /* Mac Code Windows */
-            .mac-code { background: #000000 !important; border-radius: 12px !important; padding: 40px 16px 16px 16px !important; position: relative !important; margin-top: 20px !important; }
-            .mac-code::before { content: ''; position: absolute; top: 14px; left: 14px; width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; box-shadow: 14px 0 0 #ffbd2e, 28px 0 0 #27c93f; }
-            .mac-code code { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; color: #60a5fa !important; }
-
-            /* Response Table */
-            .dark-table { width: 100%; border-collapse: collapse; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-            .dark-table th { background: rgba(59,130,246,0.05); padding: 16px; text-align: left; color: white; border-bottom: 1px solid var(--border); }
-            .dark-table td { padding: 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 14px; }
-
-            /* API Blocks */
-            .swagger-ui .opblock { border-radius: 16px !important; border: 1px solid var(--border) !important; background: var(--bg-surface) !important; margin-bottom: 24px !important; overflow: hidden !important; }
-            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-weight: 600 !important; }
-            .swagger-ui .opblock-summary-method { border-radius: 10px !important; font-weight: 800 !important; }
+            
+            /* API Selection Blocks */
+            .swagger-ui .opblock { border-radius: 20px !important; border: 1px solid var(--border) !important; background: var(--bg-surface) !important; margin-bottom: 32px !important; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; overflow: hidden !important; }
+            .swagger-ui .opblock:hover { transform: scale(1.01); border-color: var(--primary) !important; }
+            
+            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-size: 16px !important; font-weight: 600 !important; }
+            .swagger-ui .opblock-summary-method { border-radius: 12px !important; font-weight: 800 !important; padding: 8px 16px !important; }
 
             .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 40px 0 !important; }
-            .swagger-ui .btn.authorize { background: var(--primary) !important; color: white !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; }
+            .swagger-ui .btn.authorize { background: var(--primary) !important; color: white !important; border: none !important; border-radius: 14px !important; font-weight: 800 !important; padding: 12px 28px !important; letter-spacing: 0.05em !important; }
 
-            /* Models */
-            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-top: 60px !important; }
-            .swagger-ui section.models h4 { color: white !important; padding: 20px !important; border-bottom: 1px solid var(--border) !important; }
+            /* Modern Models Section */
+            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 24px !important; background: var(--bg-surface) !important; margin-top: 80px !important; padding: 20px !important; }
+            .swagger-ui section.models h4 { color: white !important; font-size: 20px !important; font-weight: 800 !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 20px !important; }
             .swagger-ui .model-title { color: white !important; font-weight: 700 !important; }
 
-            .copy-btn-master { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-            .copy-btn-master:hover { background: var(--primary); color: white; }
+            .copy-btn-elite { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #94A3B8; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+            .copy-btn-elite:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-            ::-webkit-scrollbar { width: 10px; }
-            ::-webkit-scrollbar-track { background: var(--bg-deep); }
-            ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+            /* Hide raw styles from the top of the body if any */
+            style { display: none; }
         </style>
         
         <script>
             function addCopyButtons() {
                 const blocks = document.querySelectorAll('pre');
                 blocks.forEach((block) => {
-                    if (block.querySelector('.copy-btn-master')) return;
+                    if (block.querySelector('.copy-btn-elite')) return;
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
-                    button.className = 'copy-btn-master';
+                    button.className = 'copy-btn-elite';
                     button.onclick = (e) => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(block.innerText.replace('Copy', '').trim());
@@ -194,6 +192,8 @@ def create_app() -> FastAPI:
             window.onload = addCopyButtons;
         </script>
         """
+        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
+        return HTMLResponse(content=content)
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
