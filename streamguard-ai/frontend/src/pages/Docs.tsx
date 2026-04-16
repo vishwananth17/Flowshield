@@ -17,7 +17,8 @@ import {
   ExternalLink,
   MessageSquare,
   FileCode,
-  CreditCard
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -268,6 +269,149 @@ export default function Docs() {
           </motion.div>
         </div>
       </section>
+
+      {/* TECHNICAL DOCUMENTATION SECTIONS */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pb-40 space-y-32">
+        
+        {/* INTRODUCTION SECTION */}
+        <section id="introduction" className="pt-20 scroll-mt-32 space-y-8">
+           <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                 <Globe className="text-blue-500 h-6 w-6" />
+              </div>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Introduction</h2>
+           </div>
+           <div className="max-w-3xl space-y-6">
+              <p className="text-slate-400 text-lg leading-relaxed">
+                Flowshield AI is the world's most advanced autonomous fraud detection engine for modern finance. Our infrastructure is designed to sit between your transaction sources and your core processing layer, providing sub-100ms risk mitigation without impacting user experience.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 {[
+                   { title: 'Sub-100ms Latency', desc: 'P99 response times under 85ms globally.' },
+                   { title: 'Bank-Grade Security', desc: 'PCI-DSS and SOC2 compliant architecture.' },
+                   { title: 'AI-First Engine', desc: 'Real-time Gradient Boosted trees and Isolation Forests.' },
+                   { title: 'Zero Config SDKs', desc: 'Drop-in support for all major languages.' },
+                 ].map(feat => (
+                   <div key={feat.title} className="p-6 bg-slate-900 border border-slate-800 rounded-3xl">
+                      <h4 className="text-white font-bold mb-1">{feat.title}</h4>
+                      <p className="text-slate-500 text-xs">{feat.desc}</p>
+                   </div>
+                 ))}
+              </div>
+           </div>
+        </section>
+
+        {/* AUTHENTICATION SECTION */}
+        <section id="authentication" className="scroll-mt-32 space-y-8">
+           <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                 <Key className="text-indigo-500 h-6 w-6" />
+              </div>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Authentication</h2>
+           </div>
+           <div className="max-w-3xl space-y-6">
+              <p className="text-slate-400 text-lg leading-relaxed">
+                All requests to the Flowshield API must be authenticated with your Organization Secret Key. Include the key in the <code className="text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded font-mono">X-API-Key</code> header of every request.
+              </p>
+              <div className="p-6 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-between font-mono text-sm group">
+                 <span className="text-slate-500">X-API-Key: <span className="text-indigo-400">fs_live_************************</span></span>
+                 <Button variant="ghost" size="sm" className="text-slate-500 hover:text-white" onClick={() => navigator.clipboard.writeText('YOUR_API_KEY')}>
+                    <FileCode className="h-4 w-4" />
+                 </Button>
+              </div>
+           </div>
+        </section>
+
+        {/* INTEGRATIONS SECTION */}
+        <section id="integrate" className="scroll-mt-32 space-y-12">
+           <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                 <Zap className="text-emerald-500 h-6 w-6" />
+              </div>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Integrations</h2>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-6">
+                 <h3 className="text-2xl font-bold">Standard Web Checkout</h3>
+                 <p className="text-slate-400 text-sm leading-relaxed">
+                    Capture the transaction fingerprint on the frontend using our secure beacon, then perform the analysis call from your Node.js or Python backend before capturing funds.
+                 </p>
+                 <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
+                    <div className="flex items-center space-x-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                       <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                       <span>Recommended Protocol</span>
+                    </div>
+                    <ul className="space-y-3 text-sm text-slate-300">
+                       <li>1. User initiates checkout</li>
+                       <li>2. Backend calls <code className="text-blue-400">/v1/analyze</code></li>
+                       <li>3. Check <code className="text-emerald-400">decision === 'ACCEPT'</code></li>
+                       <li>4. Complete Payment</li>
+                    </ul>
+                 </div>
+              </div>
+              <div className="bg-slate-950 border border-slate-800 rounded-[32px] p-8 overflow-hidden">
+                 <pre className="text-xs font-mono leading-loose text-indigo-400">
+                    <span className="text-slate-600">// Analysis Logic</span><br/>
+                    const res = await fs.analyze({'{'}<br/>
+                    &nbsp;&nbsp;amount: 250.00,<br/>
+                    &nbsp;&nbsp;customer: {'{'}<br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;ip: '1.2.3.4',<br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;email: 'user@bank.com'<br/>
+                    &nbsp;&nbsp;{'}'}<br/>
+                    {'}'});<br/>
+                    if (res.decision === 'BLOCK') {'{'}<br/>
+                    &nbsp;&nbsp;throw new Error("Fraud Detected");<br/>
+                    {'}'}
+                 </pre>
+              </div>
+           </div>
+        </section>
+
+        {/* PAYMENTS SECTION */}
+        <section id="payments" className="scroll-mt-32 space-y-8">
+           <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-pink-500/10 rounded-2xl flex items-center justify-center border border-pink-500/20">
+                 <CreditCard className="text-pink-500 h-6 w-6" />
+              </div>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Payments</h2>
+           </div>
+           <div className="max-w-3xl space-y-6">
+              <p className="text-slate-400 text-lg leading-relaxed">
+                Flowshield AI integrates natively with **Razorpay**, **Stripe**, and **PayPal**. We handle the technical heavy lifting of verifying payment signatures and processing refunds automatically.
+              </p>
+           </div>
+        </section>
+
+        {/* SDKS SECTION */}
+        <section id="sdks" className="scroll-mt-32 space-y-12">
+           <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-purple-500/10 rounded-2xl flex items-center justify-center border border-purple-500/20">
+                 <Layers className="text-purple-500 h-6 w-6" />
+              </div>
+              <h2 className="text-4xl font-black text-white tracking-tighter">Official SDKs</h2>
+           </div>
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { name: 'Node.js', lang: 'JavaScript', install: 'npm install @flowshield/sdk' },
+                { name: 'Python', lang: 'Python 3.8+', install: 'pip install flowshield-ai' },
+                { name: 'Go', lang: 'Go 1.18+', install: 'go get github.com/fs/go' },
+                { name: 'Ruby', lang: 'Rails / Sinatra', install: 'gem install flowshield' },
+              ].map(sdk => (
+                <div key={sdk.name} className="p-8 bg-slate-900 border border-slate-800 rounded-[32px] space-y-4 group hover:border-purple-500/50 transition-all">
+                   <div>
+                      <h4 className="text-lg font-bold">{sdk.name}</h4>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">{sdk.lang}</p>
+                   </div>
+                   <code className="text-[10px] text-purple-400 bg-black/40 p-3 rounded-xl block border border-slate-800">
+                      {sdk.install}
+                   </code>
+                </div>
+              ))}
+           </div>
+        </section>
+
+      </div>
 
       {/* FOOTER CALL TO ACTION */}
       <section className="py-24 px-6 text-center">
