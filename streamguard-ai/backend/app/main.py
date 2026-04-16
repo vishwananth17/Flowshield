@@ -155,7 +155,7 @@ Our engine returns a deterministic decision to automate your checkout logic:
             swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
         )
         
-        # Inject custom theme (CoderPro Unified Style)
+        # Inject custom theme (CoderPro Mac Edition)
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -175,36 +175,90 @@ Our engine returns a deterministic decision to automate your checkout logic:
             .swagger-ui .info { margin: 60px auto !important; max-width: 1000px !important; text-align: left !important; position: relative; }
             .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.04em !important; margin-bottom: 20px !important; }
             .swagger-ui .info p, .swagger-ui .info li, .swagger-ui .info td { color: var(--text-muted) !important; font-size: 16px !important; line-height: 1.7 !important; }
-            .swagger-ui .title small { background: var(--primary) !important; border-radius: 8px !important; padding: 4px 10px !important; top: -10px !important; }
             
-            /* API Blocks */
-            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important; margin-bottom: 16px !important; overflow: hidden !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-            .swagger-ui .opblock:hover { border-color: var(--primary) !important; transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(59,130,246,0.1) !important; }
+            /* Mac-Style Code Blocks */
+            .swagger-ui pre { 
+                background: #0f172a !important; 
+                border: 1px solid var(--border) !important; 
+                border-radius: 16px !important; 
+                padding: 50px 20px 20px 20px !important; 
+                position: relative !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+                overflow: visible !important;
+                margin: 24px 0 !important;
+            }
+            .swagger-ui pre::before {
+                content: '';
+                position: absolute;
+                top: 18px;
+                left: 18px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff5f56;
+                box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
+                z-index: 10;
+            }
+            .swagger-ui code { font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; color: #3b82f6 !important; }
             
-            .swagger-ui .opblock .opblock-summary { padding: 16px 24px !important; height: auto !important; }
-            .swagger-ui .opblock .opblock-summary-method { border-radius: 10px !important; font-size: 12px !important; font-weight: 800 !important; padding: 8px 16px !important; text-transform: uppercase !important; min-width: 100px !important; text-align: center !important; }
-            
-            .swagger-ui .opblock-get .opblock-summary-method { background: var(--primary) !important; }
-            .swagger-ui .opblock-post .opblock-summary-method { background: var(--secondary) !important; }
-            
-            .swagger-ui .opblock .opblock-summary-path { color: var(--text-main) !important; font-weight: 600 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 15px !important; }
-            .swagger-ui .opblock .opblock-summary-description { color: var(--text-muted) !important; font-size: 14px !important; }
-            
-            /* Inputs & Forms */
-            .swagger-ui input, .swagger-ui select, .swagger-ui textarea { background: var(--bg-deep) !important; border: 1px solid var(--border) !important; color: white !important; border-radius: 12px !important; padding: 10px 15px !important; }
-            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; padding: 12px 40px !important; font-size: 14px !important; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.4) !important; transition: all 0.2s !important; }
-            .swagger-ui .btn.execute:hover { background-color: #2563eb !important; transform: scale(1.02); }
-            
-            .swagger-ui .scheme-container { background: var(--bg-deep) !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; margin-top: 40px !important; }
-            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 20px !important; padding: 20px !important; background: var(--bg-surface) !important; }
-            .swagger-ui section.models h4 { color: white !important; font-size: 20px !important; font-weight: 700 !important; }
-            
-            ::-webkit-scrollbar { width: 8px; }
-            ::-webkit-scrollbar-track { background: var(--bg-deep); }
-            ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-            
+            /* Copy Button Style */
+            .copy-btn {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: #94a3b8;
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                z-index: 20;
+            }
+            .copy-btn:hover { background: rgba(59, 130, 246, 0.2); color: white; border-color: #3b82f6; }
+            .copy-btn.copied { background: #10b981; color: white; border-color: #10b981; }
+
+            .swagger-ui .opblock { border: 1px solid var(--border) !important; border-radius: 20px !important; background: var(--bg-surface) !important; margin-bottom: 16px !important; overflow: hidden !important; }
+            .swagger-ui .btn.execute { background-color: var(--primary) !important; color: white !important; border-radius: 12px !important; font-weight: 700 !important; }
             body { background-color: var(--bg-deep) !important; margin: 0; }
         </style>
+        
+        <script>
+            function addCopyButtons() {
+                const blocks = document.querySelectorAll('pre');
+                blocks.forEach((block) => {
+                    if (block.querySelector('.copy-btn')) return;
+                    
+                    const button = document.createElement('button');
+                    button.innerText = 'Copy';
+                    button.className = 'copy-btn';
+                    
+                    button.onclick = () => {
+                        const code = block.innerText.replace('Copy', '').trim();
+                        navigator.clipboard.writeText(code).then(() => {
+                            button.innerText = 'Copied!';
+                            button.classList.add('copied');
+                            setTimeout(() => {
+                                button.innerText = 'Copy';
+                                button.classList.remove('copied');
+                            }, 2000);
+                        });
+                    };
+                    
+                    block.appendChild(button);
+                });
+            }
+            
+            // Watch for changes in the DOM as Swagger renders asynchronously
+            const observer = new MutationObserver(() => addCopyButtons());
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            window.onload = addCopyButtons;
+        </script>
         """
         content = html.body.decode().replace("</head>", f"{custom_css}</head>")
         return HTMLResponse(content=content)
