@@ -132,8 +132,17 @@ def create_app() -> FastAPI:
         </style>
         """
 
-        injection_script = """
+        injection_script = \"\"\"
         <script>
+            function injectEliteDesign() {
+                const desc = document.querySelector('.info .description') || document.querySelector('.info .markdown');
+                if (desc && !desc.getAttribute('data-elite-injected')) {
+                    desc.innerHTML = `[[MASTER_JS]]`;
+                    desc.setAttribute('data-elite-injected', 'true');
+                    console.log('✅ [ELITE] Documentation suite successfully injected.');
+                }
+            }
+            
             function addCopyButtons() {
                 const blocks = document.querySelectorAll('pre');
                 blocks.forEach((block) => {
@@ -150,15 +159,20 @@ def create_app() -> FastAPI:
                     block.appendChild(button);
                 });
             }
-            const observer = new MutationObserver(() => addCopyButtons());
-            observer.observe(document.body, { childList: true, subtree: true });
-            window.onload = () => {
+
+            const observer = new MutationObserver(() => {
                 addCopyButtons();
-                const desc = document.querySelector('.info .description');
-                if (desc) { desc.innerHTML = `[[MASTER_JS]]`; }
-            };
+                injectEliteDesign();
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+            window.addEventListener('load', () => {
+                injectEliteDesign();
+                setTimeout(injectEliteDesign, 1000);
+                setTimeout(injectEliteDesign, 3000);
+            });
         </script>
-        """.replace('[[MASTER_JS]]', master_js_safe)
+        \"\"\".replace('[[MASTER_JS]]', master_js_safe)
         
         logger.info(f"DEBUG: CSS length: {len(custom_css)}, JS length: {len(injection_script)}")
         
