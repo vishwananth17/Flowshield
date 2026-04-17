@@ -209,7 +209,7 @@ def create_app() -> FastAPI:
         </script>
         """.replace('[[MASTER_JS]]', master_js_safe)
         
-        content = html.body.decode().replace("</head>", f"{custom_css}{injection_script}</head>")
+        content = html.body.decode().replace("</head>", custom_css + injection_script + "</head>")
         return HTMLResponse(content=content)
 
     @app.get("/", include_in_schema=False)
