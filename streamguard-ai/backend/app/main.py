@@ -50,18 +50,13 @@ def create_app() -> FastAPI:
     )
 
     @app.get("/docs", include_in_schema=False)
-    async def custom_swagger_ui_html():
+    def custom_swagger_ui_html():
         from fastapi.responses import HTMLResponse
-        html = get_swagger_ui_html(
-            openapi_url=app.openapi_url,
-            title=app.title,
-            oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-            swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-            swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
-        )
+        from fastapi.openapi.docs import get_swagger_ui_html
         
-        # Define high-fidelity content separately to inject via JS
+        logger.info("🛠️ [DOCS] Commencing high-fidelity documentation assembly...")
+        
+        # High-fidelity design suite
         master_html = """
 <div class="master-elite-reference">
   <div class="header-hero" style="animation: fadeInUp 0.8s ease-out forwards; opacity: 0; padding: 40px 0 80px 0;">
@@ -117,66 +112,26 @@ def create_app() -> FastAPI:
   </section>
 </div>
 """
-
-    @app.get("/docs", include_in_schema=False)
-    async def custom_swagger_ui_html():
-        from fastapi.responses import HTMLResponse
-        html = get_swagger_ui_html(
-            openapi_url=app.openapi_url,
-            title=app.title,
-            oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-            swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-            swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
-        )
+        master_js_safe = master_html.replace('`', '\\`').replace('$', '\\$')
         
         custom_css = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
         <style>
-            :root {
-                --bg-deep: #050811;
-                --bg-surface: #0a0e1a;
-                --primary: #3b82f6;
-                --border: #1e293b;
-                --text-main: #f1f5f9;
-                --text-muted: #94a3b8;
-            }
+            :root { --bg-deep: #050811; --bg-surface: #0a0e1a; --primary: #3b82f6; --border: #1e293b; --text-muted: #94a3b8; }
             body { background-color: var(--bg-deep) !important; margin: 0; }
-            .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; padding-bottom: 100px !important; }
+            .swagger-ui { background-color: var(--bg-deep) !important; color: var(--text-muted) !important; font-family: 'Inter', sans-serif !important; }
             .swagger-ui .topbar { display: none !important; }
-            .swagger-ui .info { margin: 80px auto !important; max-width: 1100px !important; text-align: left !important; }
-            .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; letter-spacing: -0.05em !important; margin-bottom: 24px !important; border: none !important; }
-            .swagger-ui .info .title small { background: var(--primary) !important; border-radius: 99px !important; color: white !important; padding: 4px 12px !important; font-size: 11px !important; font-weight: 700 !important; position: static !important; display: inline-block !important; margin-left: 12px !important; }
-            
-            /* API Selection Blocks */
-            .swagger-ui .opblock { border-radius: 20px !important; border: 1px solid var(--border) !important; background: var(--bg-surface) !important; margin-bottom: 32px !important; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; overflow: hidden !important; }
-            .swagger-ui .opblock:hover { transform: scale(1.01); border-color: var(--primary) !important; }
-            
-            .swagger-ui .opblock .opblock-summary-path { color: white !important; font-size: 16px !important; font-weight: 600 !important; }
-            .swagger-ui .opblock-summary-method { border-radius: 12px !important; font-weight: 800 !important; padding: 8px 16px !important; }
-
-            .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; padding: 40px 0 !important; }
-            .swagger-ui .btn.authorize { background: var(--primary) !important; color: white !important; border: none !important; border-radius: 14px !important; font-weight: 800 !important; padding: 12px 28px !important; letter-spacing: 0.05em !important; }
-
-            /* Modern Models Section */
-            .swagger-ui section.models { border: 1px solid var(--border) !important; border-radius: 24px !important; background: var(--bg-surface) !important; margin-top: 80px !important; padding: 20px !important; }
-            .swagger-ui section.models h4 { color: white !important; font-size: 20px !important; font-weight: 800 !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 20px !important; }
-            .swagger-ui .model-title { color: white !important; font-weight: 700 !important; }
-
-            .copy-btn-elite { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #94A3B8; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-            .copy-btn-elite:hover { background: var(--primary); color: white; border-color: var(--primary); }
-
-            /* Hide raw styles from the top of the body if any */
+            .swagger-ui .info { margin: 80px auto !important; max-width: 1100px !important; }
+            .swagger-ui .info .title { color: white !important; font-size: 48px !important; font-weight: 800 !important; border: none !important; }
+            .swagger-ui .opblock { border-radius: 20px !important; border: 1px solid var(--border) !important; background: var(--bg-surface) !important; margin-bottom: 24px !important; }
+            .swagger-ui .scheme-container { background: transparent !important; border-top: 1px solid var(--border) !important; box-shadow: none !important; }
+            .swagger-ui .btn.authorize { background: var(--primary) !important; color: white !important; border-radius: 12px !important; font-weight: 700 !important; }
+            .copy-btn-elite { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #94A3B8; padding: 4px 12px; border-radius: 8px; font-size: 10px; cursor: pointer; }
             style { display: none; }
         </style>
         """
-        
-        # Core JavaScript Injection to bypass Markdown and force World-Class visuals
-        master_js_safe = master_html.replace('`', '\\\\`').replace('$', '\\\\$')
-        
-        # We use a standard string and .replace to avoid f-string interpolation traps
+
         injection_script = """
         <script>
             function addCopyButtons() {
@@ -195,22 +150,29 @@ def create_app() -> FastAPI:
                     block.appendChild(button);
                 });
             }
-            
             const observer = new MutationObserver(() => addCopyButtons());
             observer.observe(document.body, { childList: true, subtree: true });
-            
             window.onload = () => {
                 addCopyButtons();
                 const desc = document.querySelector('.info .description');
-                if (desc) {
-                    desc.innerHTML = `[[MASTER_JS]]`;
-                }
+                if (desc) { desc.innerHTML = `[[MASTER_JS]]`; }
             };
         </script>
         """.replace('[[MASTER_JS]]', master_js_safe)
         
-        content = html.body.decode().replace("</head>", custom_css + injection_script + "</head>")
-        return HTMLResponse(content=content)
+        logger.info(f"DEBUG: CSS length: {len(custom_css)}, JS length: {len(injection_script)}")
+        
+        html_res = get_swagger_ui_html(
+            openapi_url=app.openapi_url,
+            title=app.title,
+            swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+            swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
+        )
+        
+        final_body = html_res.body.decode().replace("</head>", custom_css + injection_script + "</head>")
+        logger.info(f"✅ [DOCS] Assembly complete. Body length: {len(final_body)}")
+        return HTMLResponse(content=final_body)
 
     @app.get("/", include_in_schema=False)
     async def root_health_check():
