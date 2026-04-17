@@ -25,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CodeBlock } from '../components/CodeBlock';
-import { searchDocs, DocEntry } from '../utils/docsSearch';
+import { searchDocs, type DocEntry } from '../utils/docsSearch';
 import { useReveal } from '../hooks/useReveal';
 import { useActiveSection } from '../hooks/useActiveSection';
 
