@@ -125,13 +125,14 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">Engineered for Indian Fintech</span>
+          <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">v2.0 Beta now live</span>
           <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9]">
-            The New Standard in <br />
-            <span className="text-blue-500">Fraud Detection</span>
+            Secure your payments with <br />
+            <span className="text-blue-500">Autonomous AI</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-slate-400 mb-12">
-            Scale with confidence. Flowshield AI provides sub-100ms risk analysis tailored for the Indian payment landscape.
+            Flowshield AI monitors every transaction in real-time, detecting complex fraud behavior 
+            before it hits your balance. Built for high-volume marketplaces and fintech.
           </p>
           {!isJoined ? (
             <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
