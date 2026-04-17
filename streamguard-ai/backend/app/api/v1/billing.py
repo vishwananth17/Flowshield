@@ -9,6 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
+import logging
+logger = logging.getLogger(__name__)
+
 from app.core.dependencies import get_db, CurrentUser
 from app.models.organization import Organization
 from app.core.plan_limits import PLAN_LIMITS, get_limit
