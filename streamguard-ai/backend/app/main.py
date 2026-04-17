@@ -74,6 +74,7 @@ All requests require an API key in the header:
         openapi_url="/api/openapi.json"
     )
 
+    @app.get("/docs", include_in_schema=False)
     @app.get("/api/reference", include_in_schema=False)
     def custom_swagger_ui_html():
         from fastapi.responses import HTMLResponse
