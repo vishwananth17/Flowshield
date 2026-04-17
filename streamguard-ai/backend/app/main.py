@@ -174,8 +174,10 @@ def create_app() -> FastAPI:
         """
         
         # Core JavaScript Injection to bypass Markdown and force World-Class visuals
-        master_js = master_html.replace('`', '\\`').replace('$', '\\$')
-        injection_script = f"""
+        master_js_safe = master_html.replace('`', '\\\\`').replace('$', '\\\\$')
+        
+        # We use a standard string and .replace to avoid f-string interpolation traps
+        injection_script = \"\"\"
         <script>
             function addCopyButtons() {{
                 const blocks = document.querySelectorAll('pre');
@@ -201,13 +203,13 @@ def create_app() -> FastAPI:
                 addCopyButtons();
                 const desc = document.querySelector('.info .description');
                 if (desc) {{
-                    desc.innerHTML = `{master_js}`;
+                    desc.innerHTML = `[[MASTER_JS]]`;
                 }}
             }};
         </script>
-        """
+        \"\"\".replace('[[MASTER_JS]]', master_js_safe)
         
-        content = html.body.decode().replace("</head>", f"{custom_css}{injection_script}</head>")
+        content = html.body.decode().replace(\"</head>\", f\"{custom_css}{injection_script}</head>\")
         return HTMLResponse(content=content)
 
     # Global Middleware & CORS Consistency Configuration
