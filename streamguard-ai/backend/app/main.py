@@ -232,6 +232,17 @@ All requests require an API key in the header:
     
     app.add_middleware(GZipMiddleware, minimum_size=500)
 
+    @app.middleware("http")
+    async def add_cors_headers(request: Request, call_next):
+        response = await call_next(request)
+        origin = request.headers.get("origin")
+        if origin and (origin in ["https://flowshield-inky.vercel.app", "https://flowshieldai.com", "http://localhost:5173", "http://127.0.0.1:5173"] or origin.endswith(".vercel.app")):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
+
     app.include_router(api_router, prefix="/api/v1")
     
     from fastapi.staticfiles import StaticFiles
