@@ -7,10 +7,13 @@ const defaultBaseURL = isProduction
   ? 'https://flowshield-backend-ani8.onrender.com' 
   : (window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8002' : 'http://localhost:8002');
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || defaultBaseURL;
+// Force the Render backend in production to override stale environment variables
+export const API_BASE_URL = isProduction 
+  ? 'https://flowshield-backend-ani8.onrender.com' 
+  : (import.meta.env.VITE_API_URL || defaultBaseURL);
 
 const api = axios.create({
-  baseURL: API_BASE_URL + '/api/v1',
+  baseURL: `${API_BASE_URL}/api/v1`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
