@@ -86,13 +86,29 @@ async def create_subscription(
     try:
         # 1. Create Razorpay customer if not exists
         if not org.razorpay_customer_id:
-            customer = client.customer.create({
-                "name": user.full_name or user.email,
-                "email": user.email,
-                "contact": "" # User model doesn't have phone yet, can add if needed
-            })
-            org.razorpay_customer_id = customer["id"]
-            await db.commit()
+            try:
+                customer = client.customer.create({
+                    "name": user.full_name or user.email,
+                    "email": user.email,
+                    "contact": "" 
+                })
+                org.razorpay_customer_id = customer["id"]
+                await db.commit()
+            except Exception as e:
+                # If customer already exists, try to fetch them or just proceed if possible
+                if "already exists" in str(e).lower():
+                    try:
+                        # Search for customer by email
+                        customers = client.customer.all({"email": user.email})
+                        if customers["items"]:
+                            org.razorpay_customer_id = customers["items"][0]["id"]
+                            await db.commit()
+                    except:
+                        pass # Proceed to subscription creation with plan_id only if needed
+                else:
+                    logger.error(f"Razorpay customer creation failed: {str(e)}")
+                    # Don't block if we can't create customer, subscription might still work with plan_id
+                    pass 
         
         # 2. Create Razorpay subscription
         subscription_data = {
