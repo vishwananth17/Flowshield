@@ -35,7 +35,7 @@ def _classify(score: float) -> tuple[str, str]:
 class FraudDetectionService:
     """Phase-3 Ensemble Scorer coupling Isolation Forest anomaly patterns with static rules."""
 
-    def analyze(self, tx: TransactionAnalyzeRequest) -> FraudResult:
+    def analyze(self, tx: TransactionAnalyzeRequest, plan: str = "free") -> FraudResult:
         reasons: list[str] = []
         weights: dict[str, float] = {}
         
@@ -45,7 +45,11 @@ class FraudDetectionService:
         email_len = len(tx.customer.email) if tx.customer.email else 0
         
         # Invoke Sci-Kit Learn Model
-        ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
+        ml_score = 0.0
+        if plan != "free":
+            ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
+        else:
+            reasons.append("ML ensemble disabled on Free plan (rules only)")
         
         # Start base score with ML insights
         score = ml_score

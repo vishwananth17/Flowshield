@@ -62,7 +62,7 @@ async def analyze_transaction(
     start_time = time.perf_counter()
     
     # 2. Run analysis (ML + Rules Engine)
-    result = _fraud.analyze(body)
+    result = _fraud.analyze(body, plan=auth.plan)
     
     # 3. Calculate latency
     latency_ms = int((time.perf_counter() - start_time) * 1000)

@@ -1,166 +1,302 @@
 import os
+import hmac
+import hashlib
+import razorpay
 from datetime import datetime, UTC
-from typing import Annotated
-
-import stripe
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from typing import Annotated, Any
+from fastapi import APIRouter, Depends, HTTPException, Request, Header, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel
 
 from app.core.dependencies import get_db, CurrentUser
 from app.models.organization import Organization
+from app.core.plan_limits import PLAN_LIMITS, get_limit
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-GROWTH_PRICE_ID = os.getenv("STRIPE_GROWTH_PRICE_ID")
-WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+# Razorpay Configuration
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")  # Set this in Razorpay dashboard
 
+# Plan IDs from environment
+PLANS = {
+    "basic": {
+        "monthly": os.getenv("RAZORPAY_PLAN_BASIC_MONTHLY"),
+        "annual": os.getenv("RAZORPAY_PLAN_BASIC_ANNUAL"),
+        "price": 999
+    },
+    "standard": {
+        "monthly": os.getenv("RAZORPAY_PLAN_GROWTH_MONTHLY"),
+        "annual": os.getenv("RAZORPAY_PLAN_GROWTH_ANNUAL"),
+        "price": 2999
+    },
+    "premium": {
+        "monthly": os.getenv("RAZORPAY_PLAN_PREMIUM_MONTHLY"),
+        "annual": os.getenv("RAZORPAY_PLAN_PREMIUM_ANNUAL"),
+        "price": 7999
+    }
+}
 
-@router.post("/create-checkout-session")
-async def create_checkout_session(
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+class SubscriptionRequest(BaseModel):
+    plan: str
+    interval: str
+
+class VerifyPaymentRequest(BaseModel):
+    razorpay_payment_id: str
+    razorpay_subscription_id: str
+    razorpay_signature: str
+
+class EnterpriseContactRequest(BaseModel):
+    name: str
+    email: str
+    company: str
+    monthly_volume: str
+    message: str | None = None
+
+@router.post("/create-subscription")
+async def create_subscription(
+    req: SubscriptionRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
-    """
-    Creates a Stripe Checkout session for the Growth plan ($99/mo).
-    """
-    # Fetch organization
+    if req.plan not in PLANS:
+        raise HTTPException(status_code=400, detail="Invalid plan selected")
+    if req.interval not in ["monthly", "annual"]:
+        raise HTTPException(status_code=400, detail="Invalid interval selected")
+
+    plan_id = PLANS[req.plan][req.interval]
+    if not plan_id:
+        raise HTTPException(status_code=500, detail=f"Razorpay Plan ID not configured for {req.plan} {req.interval}")
+
     org = await db.get(Organization, user.org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
     try:
-        # Create or retrieve customer
-        if not org.stripe_customer_id:
-            customer = stripe.Customer.create(
-                email=user.email,
-                metadata={"org_id": str(org.id), "org_name": org.name}
-            )
-            org.stripe_customer_id = customer.id
+        # 1. Create Razorpay customer if not exists
+        if not org.razorpay_customer_id:
+            customer = client.customer.create({
+                "name": f"{user.first_name} {user.last_name}".strip() or user.email,
+                "email": user.email,
+                "contact": "" # User model doesn't have phone yet, can add if needed
+            })
+            org.razorpay_customer_id = customer["id"]
             await db.commit()
-        else:
-            customer_id = org.stripe_customer_id
-
-        session = stripe.checkout.Session.create(
-            customer=org.stripe_customer_id,
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price": GROWTH_PRICE_ID,
-                    "quantity": 1,
-                },
-            ],
-            mode="subscription",
-            success_url=f"{FRONTEND_URL}/dashboard/billing?success=true&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{FRONTEND_URL}/dashboard/billing?canceled=true",
-            client_reference_id=str(org.id),
-            metadata={"org_id": str(org.id)},
-            subscription_data={
-                "metadata": {"org_id": str(org.id)}
-            },
-        )
-        return {"checkout_url": session.url}
+        
+        # 2. Create Razorpay subscription
+        subscription_data = {
+            "plan_id": plan_id,
+            "customer_notify": 1,
+            "quantity": 1,
+            "total_count": 1200 if req.interval == "annual" else 1200, # Razorpay total_count is max cycles
+            "addons": [],
+            "notes": {
+                "org_id": str(org.id),
+                "plan": req.plan,
+                "interval": req.interval
+            }
+        }
+        
+        sub = client.subscription.create(subscription_data)
+        
+        return {
+            "subscription_id": sub["id"],
+            "razorpay_key_id": RAZORPAY_KEY_ID,
+            "amount": PLANS[req.plan]["price"] * 100,
+            "currency": "INR"
+        }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+@router.post("/verify-payment")
+async def verify_payment(
+    req: VerifyPaymentRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser
+):
+    # 1. Verify HMAC-SHA256 signature
+    message = f"{req.razorpay_payment_id}|{req.razorpay_subscription_id}"
+    generated_signature = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        message.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if generated_signature != req.razorpay_signature:
+        raise HTTPException(status_code=400, detail="Invalid payment signature")
+
+    # 2. Upgrade organization plan in DB
+    org = await db.get(Organization, user.org_id)
+    
+    # We need to find which plan was purchased. 
+    # Usually we'd fetch the subscription from Razorpay to be sure.
+    sub = client.subscription.fetch(req.razorpay_subscription_id)
+    plan_id = sub["plan_id"]
+    
+    # Reverse lookup plan name
+    plan_name = "free"
+    interval = "monthly"
+    for p_name, intervals in PLANS.items():
+        if intervals["monthly"] == plan_id:
+            plan_name = p_name
+            interval = "monthly"
+            break
+        if intervals["annual"] == plan_id:
+            plan_name = p_name
+            interval = "annual"
+            break
+
+    org.plan = plan_name
+    org.plan_interval = interval
+    org.razorpay_subscription_id = req.razorpay_subscription_id
+    org.subscription_status = "active"
+    org.monthly_request_limit = PLAN_LIMITS[plan_name]["requests"]
+    org.subscription_start = datetime.fromtimestamp(sub["start_at"], tz=UTC) if sub.get("start_at") else datetime.now(UTC)
+    org.subscription_end = datetime.fromtimestamp(sub["end_at"], tz=UTC) if sub.get("end_at") else None
+    
+    await db.commit()
+    return {"success": True, "plan": plan_name}
 
 @router.post("/webhook", include_in_schema=False)
-async def stripe_webhook(
+async def razorpay_webhook(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
-    stripe_signature: str = Header(None)
+    x_razorpay_signature: Annotated[str | None, Header()] = None
 ):
-    """
-    Stripe webhook listener to handle subscription lifecycle events.
-    """
-    if not stripe_signature:
-        raise HTTPException(status_code=400, detail="Missing stripe-signature header")
-
-    payload = await request.body()
+    if not x_razorpay_signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+    
+    body = await request.body()
+    
+    # Verification
+    # Razorpay recommends using their utility but manual is fine too if secret is set
     try:
-        event = stripe.Webhook.construct_event(
-            payload, stripe_signature, WEBHOOK_SECRET
-        )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        client.utility.verify_webhook_signature(body.decode(), x_razorpay_signature, WEBHOOK_SECRET)
+    except:
+         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    event_type = event["type"]
-    data_object = event["data"]["object"]
+    event_data = await request.json()
+    event = event_data.get("event")
+    payload = event_data.get("payload", {})
+    sub_payload = payload.get("subscription", {}).get("entity", {})
+    sub_id = sub_payload.get("id")
 
-    if event_type == "checkout.session.completed":
-        # Upgrade organization to 'growth'
-        org_id = data_object.get("client_reference_id") or data_object.get("metadata", {}).get("org_id")
-        
-        if not org_id:
-            # Fallback to customer lookup if metadata is missing in the session itself
-            # The subscription object might have it
-            subscription_id = data_object.get("subscription")
-            if subscription_id:
-                subscription = stripe.Subscription.retrieve(subscription_id)
-                org_id = subscription.get("metadata", {}).get("org_id")
+    if not sub_id:
+        return {"status": "ignored"}
 
-        if org_id:
-            result = await db.execute(select(Organization).filter(Organization.id == org_id))
-            org = result.scalar_one_or_none()
-            if org:
-                org.plan = "growth"
-                org.monthly_request_limit = 100000
-                org.stripe_subscription_id = data_object.get("subscription")
-                org.billing_period_start = datetime.now(UTC)
-                await db.commit()
+    # Find organization by subscription ID
+    result = await db.execute(select(Organization).where(Organization.razorpay_subscription_id == sub_id))
+    org = result.scalar_one_or_none()
+    
+    if not org:
+        return {"status": "org_not_found"}
 
-    elif event_type == "customer.subscription.deleted":
-        # Downgrade organization back to 'starter'
-        org_id = data_object.get("metadata", {}).get("org_id")
-        if org_id:
-            result = await db.execute(select(Organization).filter(Organization.id == org_id))
-            org = result.scalar_one_or_none()
-            if org:
-                org.plan = "starter"
-                org.monthly_request_limit = 1000
-                org.stripe_subscription_id = None
-                await db.commit()
+    if event == "subscription.activated":
+        org.subscription_status = "active"
+    elif event == "subscription.charged":
+        org.monthly_request_count = 0
+        org.subscription_status = "active"
+        if sub_payload.get("current_end"):
+            org.subscription_end = datetime.fromtimestamp(sub_payload["current_end"], tz=UTC)
+    elif event == "subscription.cancelled":
+        # Downgrade happens at period end logic usually handled by subscription_end
+        org.subscription_status = "cancelled"
+    elif event == "subscription.halted":
+        org.subscription_status = "past_due"
+    elif event == "payment.failed":
+        # Log failure, maybe send email
+        pass
 
-    elif event_type == "invoice.payment_failed":
-        # Log payment failure
-        customer_id = data_object.get("customer")
-        print(f"PAYMENT FAILED for customer {customer_id}")
-
+    await db.commit()
     return {"status": "success"}
-
 
 @router.get("/subscription")
 async def get_subscription(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
-    """
-    Returns current subscription details and a management portal link.
-    """
     org = await db.get(Organization, user.org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    portal_url = None
-    if org.stripe_customer_id:
-        try:
-            portal_session = stripe.billing_portal.Session.create(
-                customer=org.stripe_customer_id,
-                return_url=f"{FRONTEND_URL}/dashboard/billing"
-            )
-            portal_url = portal_session.url
-        except Exception:
-            portal_url = None
+    plan = org.plan or "free"
+    limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
+    
+    # Calculate usage
+    usage_percent = 0
+    if org.monthly_request_limit > 0:
+        usage_percent = round((org.monthly_request_count / org.monthly_request_limit) * 100, 2)
+    elif org.monthly_request_limit == -1:
+        usage_percent = 0 # Unlimited
 
     return {
-        "plan": org.plan,
-        "monthly_request_count": org.monthly_request_count,
-        "monthly_request_limit": org.monthly_request_limit,
-        "percentage_used": round((org.monthly_request_count / org.monthly_request_limit) * 100, 2) if org.monthly_request_limit > 0 else 0,
-        "billing_period_start": org.billing_period_start,
-        "stripe_portal_url": portal_url
+        "plan": plan,
+        "interval": org.plan_interval or "monthly",
+        "status": org.subscription_status,
+        "amount_inr": PLANS.get(plan, {}).get("price", 0),
+        "requests_used": org.monthly_request_count,
+        "requests_limit": org.monthly_request_limit,
+        "usage_percent": usage_percent,
+        "next_billing_date": org.subscription_end.date().isoformat() if org.subscription_end else None,
+        "subscription_id": org.razorpay_subscription_id,
+        "features": limits
     }
+
+@router.post("/cancel")
+async def cancel_subscription(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser
+):
+    org = await db.get(Organization, user.org_id)
+    if not org or not org.razorpay_subscription_id:
+        raise HTTPException(status_code=400, detail="No active subscription to cancel")
+
+    try:
+        # Cancel at cycle end
+        client.subscription.cancel(org.razorpay_subscription_id, {"cancel_at_cycle_end": 1})
+        org.subscription_status = "cancelled" # Or "cancelling" as per user request
+        await db.commit()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/invoices")
+async def get_invoices(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser
+):
+    org = await db.get(Organization, user.org_id)
+    if not org or not org.razorpay_subscription_id:
+        return []
+
+    try:
+        # Fetch payments for this subscription
+        payments = client.subscription.fetch_all_payments(org.razorpay_subscription_id)
+        # Transform for frontend
+        invoices = []
+        for p in payments.get("items", []):
+            invoices.append({
+                "id": p["id"],
+                "date": datetime.fromtimestamp(p["created_at"], tz=UTC).date().isoformat(),
+                "amount": p["amount"] / 100,
+                "status": p["status"], # captured, failed, etc.
+                "method": p.get("method")
+            })
+        return invoices
+    except Exception:
+        return []
+
+@router.post("/contact-enterprise")
+async def contact_enterprise(
+    req: EnterpriseContactRequest,
+    user: CurrentUser
+):
+    # In a real app, send email via Resend or similar
+    # For now, we simulate success
+    print(f"ENTERPRISE LEAD: {req.name} <{req.email}> from {req.company}")
+    print(f"Volume: {req.monthly_volume}, Message: {req.message}")
+    return {"success": True}

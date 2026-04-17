@@ -1,349 +1,282 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
   Zap, 
   BarChart3, 
   ChevronRight, 
   Lock, 
-  Globe, 
+  CheckCircle2,
   ArrowRight,
-  CheckCircle2
+  Globe,
+  X,
+  CreditCard,
+  Building2,
+  ShieldCheck,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import api from '@/services/api';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { createPaymentOrder, loadRazorpayCheckout, verifyPayment } from '@/services/payment';
+import { Link, useNavigate } from 'react-router-dom';
+import EnterpriseModal from '@/components/EnterpriseModal';
 
 export default function Landing() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
-
-  useEffect(() => {
-    // Analytics/Init logic can go here
-  }, []);
+  const [isAnnual, setIsAnnual] = useState(false);
+  const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleWaitlistManual = async () => {
     if (!email) {
-      alert("Please enter an email first!");
+      toast.error("Please enter an email first!");
       return;
     }
-
-    console.log("🚀 Subscription attempt for:", email);
     setIsSubmitting(true);
     try {
-      const response = await api.post('/waitlist', { email });
-      console.log("✅ Success:", response.data);
+      await api.post('/waitlist', { email });
       setIsJoined(true);
-      toast.success("Welcome to the front of the line!", {
-        description: "We'll notify you as soon as early access opens up."
-      });
+      toast.success("Welcome to the front of the line!");
     } catch (error: any) {
-      console.error("❌ Waitlist Error:", error);
-      const msg = error.response?.data?.error?.message || "Failed to join waitlist. Please try again.";
+      const msg = error.response?.data?.error?.message || "Failed to join waitlist.";
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePremiumPayment = async () => {
-    setIsSubmitting(true);
-    try {
-      // 📝 Create order on backend (9900 paise = ₹99)
-      const order = await createPaymentOrder("Pro Plan", 9900);
-      
-      const options = {
-        key: "rzp_live_SdsJqiWHvpIz79", // Your live key
-        amount: order.amount,
-        currency: order.currency,
-        name: "Flowshield AI",
-        description: "Early Access Pro Plan",
-        order_id: order.id,
-        handler: async function (response: any) {
-          try {
-            await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
-            });
-            toast.success("Payment Received!", {
-              description: "You are now a Priority Launch Partner."
-            });
-          } catch (err) {
-            toast.error("Verification failed. Contact support.");
-          }
-        },
-        prefill: {
-          email: email || "user@example.com"
-        },
-        theme: {
-          color: "#2563eb"
-        }
-      };
-      
-      loadRazorpayCheckout(options);
-    } catch (error) {
-      toast.error("Failed to start payment. Try again later.");
-    } finally {
-      setIsSubmitting(false);
+  const plans = [
+    {
+      name: 'Free',
+      id: 'free',
+      price: 0,
+      requests: '1,000',
+      description: 'Starter',
+      features: ['Basic fraud scoring', '7-day history', '1 API key', 'Dashboard access'],
+      missing: ['ML Ensemble', 'Webhooks', 'Analytics', 'Alerts'],
+      cta: 'Start Free — No Card Required',
+      badge: null,
+      color: 'gray'
+    },
+    {
+      name: 'Builder',
+      id: 'basic',
+      price: isAnnual ? 799 : 999,
+      requests: '25,000',
+      description: 'Basic',
+      features: ['Everything in Free', 'ML Ensemble (IF+XGB)', 'SHAP Explainability', '1 Webhook', 'Alerts page', '30-day history', 'Email Support'],
+      missing: ['Advanced Analytics', 'Cross-network signals'],
+      cta: 'Start Builder',
+      badge: null,
+      color: 'blue'
+    },
+    {
+      name: 'Growth',
+      id: 'standard',
+      price: isAnnual ? 2399 : 2999,
+      requests: '1,00,000',
+      description: 'Standard',
+      badge: 'MOST POPULAR',
+      features: ['Everything in Basic', 'Full ML Ensemble', 'Cross-network signals', 'Full Analytics', '10 Keys / 5 Webhooks', 'Merchant Intelligence', 'Monthly Fraud Reports'],
+      missing: ['Dedicated Model'],
+      cta: 'Start Growth — Most Popular',
+      color: 'emerald'
+    },
+    {
+      name: 'Enterprise',
+      id: 'premium',
+      price: isAnnual ? 6399 : 7999,
+      requests: 'Unlimited',
+      description: 'Premium',
+      badge: 'ENTERPRISE',
+      features: ['Unlimited everything', 'Dedicated ML model', '99.9% uptime SLA', 'Dedicated Slack', 'Custom Integrations', 'Onboarding with Founder'],
+      missing: [],
+      cta: 'Contact Sales',
+      color: 'purple'
     }
-  };
+  ];
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-50 selection:bg-blue-500/30 overflow-x-hidden">
-      {/* Abstract Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 blur-[120px] rounded-full" />
-        <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-emerald-600/5 blur-[100px] rounded-full" />
-      </div>
-
       {/* Nav */}
-      <nav className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto border-b border-slate-800/50 backdrop-blur-md sticky top-0">
+      <nav className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto backdrop-blur-md sticky top-0 border-b border-white/5">
         <div className="flex items-center space-x-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
+          <div className="bg-blue-600 p-1.5 rounded-lg">
             <Shield className="h-6 w-6 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight">Flowshield AI</span>
         </div>
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
-          <a href="/#features" className="hover:text-blue-400 transition-colors">Features</a>
-          <a href="/#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
+          <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
+          <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
           <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
         </div>
         <div className="flex items-center space-x-4">
           <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Log in</Link>
-          <Button asChild className="bg-blue-600 hover:bg-blue-500 border-none shadow-lg shadow-blue-500/20">
-            <Link to="/register">Get Started <ChevronRight className="ml-1 h-4 w-4" /></Link>
+          <Button asChild className="bg-blue-600 hover:bg-blue-500 rounded-full h-10 px-6 font-bold shadow-lg shadow-blue-500/20">
+            <Link to="/register">Register</Link>
           </Button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="hero" className="relative z-10 pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-xs font-semibold mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-            </span>
-            <span>v2.0 Beta now live</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent">
-            Secure your payments with <br className="hidden md:block" />
-            <span className="text-blue-500">Autonomous AI</span>
+      {/* Hero */}
+      <section className="relative pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">Engineered for Indian Fintech</span>
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9]">
+            The New Standard in <br />
+            <span className="text-blue-500">Fraud Detection</span>
           </h1>
-          
-          <p className="max-w-2xl mx-auto text-lg text-slate-400 mb-10 leading-relaxed">
-            Flowshield AI monitors every transaction in real-time, detecting complex fraud behavior 
-            before it hits your balance. Built for high-volume marketplaces and fintech.
+          <p className="max-w-2xl mx-auto text-lg text-slate-400 mb-12">
+            Scale with confidence. Flowshield AI provides sub-100ms risk analysis tailored for the Indian payment landscape.
           </p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.8 }}
-          >
-            {!isJoined ? (
-              <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 mb-12">
-                <Input 
-                  type="email" 
-                  placeholder="Enter your work email" 
-                  className="bg-slate-900/50 border-slate-700 focus:border-blue-500 h-12"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <Button 
-                  type="button" 
-                  disabled={isSubmitting}
-                  onClick={handleWaitlistManual}
-                  className="bg-white text-slate-950 hover:bg-slate-200 h-12 px-8 font-bold text-base whitespace-nowrap"
-                >
-                  {isSubmitting ? "Joining..." : "Join Waitlist"}
-                </Button>
-              </div>
-            ) : (
-              <motion.div 
-                 initial={{ scale: 0.8, opacity: 0 }}
-                 animate={{ scale: 1, opacity: 1 }}
-                 className="max-w-md mx-auto bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl mb-12 flex items-center justify-center space-x-3 text-emerald-400"
-              >
-              <span className="font-medium">You're on the list! Watch your inbox.</span>
-            </motion.div>
-          )}
-
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale filter invert">
-            {/* Logos Placeholder */}
-            {['Stripe', 'Visa', 'Mastercard', 'Square'].map(brand => (
-              <span key={brand} className="text-xl font-bold tracking-tighter">{brand}</span>
-            ))}
-          </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Hero Image / UI Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-24 relative"
-        >
-          <div className="absolute inset-0 bg-blue-500/20 blur-[100px] -z-10" />
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-2 shadow-2xl overflow-hidden shadow-blue-500/10">
-            <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-               <div className="h-8 border-b border-slate-800 flex items-center px-4 space-x-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-800" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-800" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-800" />
-               </div>
-               <img 
-                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2000" 
-                 alt="Dashboard Preview" 
-                 className="w-full h-auto opacity-80"
-               />
+          {!isJoined ? (
+            <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+              <Input 
+                type="email" 
+                placeholder="Enter work email" 
+                className="bg-white/5 border-white/10 h-14 rounded-2xl" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button onClick={handleWaitlistManual} className="bg-white text-black hover:bg-slate-200 h-14 px-8 rounded-2xl font-black">
+                {isSubmitting ? '...' : 'Join Waitlist'}
+              </Button>
             </div>
-          </div>
+          ) : (
+            <div className="text-emerald-400 font-bold bg-emerald-400/10 py-3 px-6 rounded-2xl inline-block">
+              Welcome! You're on the list.
+            </div>
+          )}
         </motion.div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto border-t border-slate-800/50">
-        <div className="text-center mb-20">
-          <h2 className="text-3xl font-bold mb-4">Industrial-Grade Protection</h2>
-          <p className="text-slate-400">Everything you need to stop fraud at the source.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-           <FeatureCard 
-             icon={<Zap className="h-6 w-6 text-blue-500" />}
-             title="Instant Analysis"
-             description="Sub-50ms latency for every transaction check. Your checkout flow stays lightning fast."
-           />
-           <FeatureCard 
-             icon={<BarChart3 className="h-6 w-6 text-indigo-500" />}
-             title="Ensemble Learning"
-             description="Harnessing Isolation Forests and custom heuristics to catch patterns static rules miss."
-           />
-           <FeatureCard 
-             icon={<Lock className="h-6 w-6 text-emerald-500" />}
-             title="Secure by Design"
-             description="PCI-compliant architecture. We never store full card details, keeping your liability low."
-           />
+      <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard title="Real-time ML" icon={<Zap className="text-blue-500" />} desc="Latency-optimized XGBoost models process checks in under 100ms." />
+            <FeatureCard title="SHAP Insights" icon={<BarChart3 className="text-emerald-500" />} desc="Every decision comes with human-readable explanations of top fraud markers." />
+            <FeatureCard title="Razorpay Ready" icon={<CreditCard className="text-indigo-500" />} desc="Native integration with Razorpay webhooks for instant INR subscriptions." />
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Pricing Toggle */}
       <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Choose Your Shield</h2>
-          <p className="text-slate-400">Join the waitlist or get priority early access.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Tier */}
-          <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 flex flex-col h-full">
-            <h3 className="text-xl font-bold mb-2">Standard</h3>
-            <div className="text-4xl font-bold mb-6">Free</div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex items-center text-slate-400 text-sm">
-                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Waitlist queuing
-              </li>
-              <li className="flex items-center text-slate-400 text-sm">
-                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Basic Fraud Dashboard
-              </li>
-              <li className="flex items-center text-slate-400 text-sm">
-                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Community support
-              </li>
-            </ul>
-            <Button variant="outline" className="w-full h-12 border-slate-700 font-bold" onClick={() => (document.querySelector('input') as HTMLElement)?.focus()}>
-              Sign Up
-            </Button>
-          </div>
-
-          {/* Pro Tier */}
-          <div className="p-8 rounded-3xl bg-blue-600/10 border-2 border-blue-500 relative flex flex-col h-full overflow-hidden">
-            <div className="absolute top-4 right-4 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</div>
-            <h3 className="text-xl font-bold mb-2">Pro Access</h3>
-            <div className="text-4xl font-bold mb-6">₹99 <span className="text-sm font-normal text-slate-400">/ one-time</span></div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex items-center text-slate-100 text-sm">
-                <Zap className="h-4 w-4 mr-2 text-yellow-400" /> <b>Priority Launch Access</b>
-              </li>
-              <li className="flex items-center text-slate-100 text-sm">
-                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> Real-time Protection
-              </li>
-              <li className="flex items-center text-slate-100 text-sm">
-                <CheckCircle2 className="h-4 w-4 mr-2 text-blue-500" /> 24/7 Premium Support
-              </li>
-            </ul>
-            <Button className="w-full h-12 bg-blue-600 hover:bg-blue-500 font-bold shadow-lg shadow-blue-500/20" onClick={handlePremiumPayment}>
-              Get Priority Now
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA section */}
-      <section className="py-24 px-6 mb-24 max-w-5xl mx-auto text-center relative">
-        <div className="absolute inset-0 bg-indigo-600/5 blur-[80px] -z-10 rounded-full" />
-        <div className="bg-[#111827] border border-slate-800 p-12 rounded-3xl">
-          <h2 className="text-4xl font-bold mb-6">Ready to shield your flow?</h2>
-          <p className="text-slate-400 mb-10 max-w-xl mx-auto">
-            Join the elite teams using Flowshield to maintain zero-loss operations. 
-            Access is currently limited.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button 
-              size="lg" 
-              className="bg-white text-slate-950 hover:bg-slate-200 px-10"
-              onClick={() => {
-                document.querySelector('input[type="email"]')?.scrollIntoView({ behavior: 'smooth' });
-                (document.querySelector('input[type="email"]') as HTMLInputElement)?.focus();
-              }}
+          <h2 className="text-4xl md:text-5xl font-black mb-6">Choose Your Plan</h2>
+          <div className="flex items-center justify-center space-x-4">
+            <span className={`text-sm font-bold ${!isAnnual ? 'text-white' : 'text-slate-500'}`}>Monthly</span>
+            <button 
+              onClick={() => setIsAnnual(!isAnnual)}
+              className="w-12 h-6 bg-blue-600 rounded-full relative transition-all"
             >
-              Start for Free
-            </Button>
-            <Button size="lg" variant="outline" className="border-slate-700 hover:bg-slate-800 px-10" onClick={handlePremiumPayment}>Go Pro</Button>
+              <motion.div 
+                animate={{ x: isAnnual ? 24 : 0 }}
+                className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full"
+              />
+            </button>
+            <span className={`text-sm font-bold flex items-center ${isAnnual ? 'text-white' : 'text-slate-500'}`}>
+              Annual <span className="ml-2 text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded uppercase font-black">Save 20%</span>
+            </span>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((p) => (
+            <PricingCard 
+                key={p.name} 
+                {...p} 
+                isAnnual={isAnnual} 
+                onEnterprise={() => setIsEnterpriseModalOpen(true)}
+                onSelect={() => navigate(`/register?plan=${p.id}`)}
+            />
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-slate-900/50 px-6 max-w-7xl mx-auto text-center">
-        <div className="flex items-center justify-center space-x-2 mb-8">
-          <Shield className="h-5 w-5 text-blue-500" />
-          <span className="font-bold">Flowshield AI</span>
-        </div>
-        <p className="text-slate-500 text-sm mb-8">© {new Date().getFullYear()} Flowshield AI. All rights reserved.</p>
-        <div className="flex justify-center space-x-6 text-sm text-slate-400">
-           <a href="#" className="hover:text-white transition-colors">Privacy</a>
-           <a href="#" className="hover:text-white transition-colors">Terms</a>
-           <a href="#" className="hover:text-white transition-colors">Twitter</a>
-           <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-        </div>
-      </footer>
+      <EnterpriseModal isOpen={isEnterpriseModalOpen} onClose={() => setIsEnterpriseModalOpen(false)} />
     </div>
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function PricingCard({ name, id, price, requests, features, missing, cta, badge, color, isAnnual, onEnterprise, onSelect }: any) {
+  const isSelected = id === 'standard';
+  const isEnterprise = id === 'premium';
+  const isFree = id === 'free';
+
+  const getBtnStyle = () => {
+    if (id === 'free') return 'bg-transparent border border-white/10 hover:bg-white/5';
+    if (id === 'basic') return 'bg-blue-600 hover:bg-blue-500 text-white';
+    if (id === 'standard') return 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 scale-105';
+    if (id === 'premium') return 'bg-purple-600 hover:bg-purple-500 text-white';
+    return '';
+  };
+
+  const getBgStyle = () => {
+    if (id === 'standard') return 'bg-[#1E3A5F] border-[#3B82F6] border-2';
+    if (id === 'premium') return 'bg-[#1A1040] border-[#8B5CF6]';
+    return 'bg-[#111827] border-[#1F2937]';
+  };
+
   return (
-    <div className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all group">
-      <div className="bg-slate-950 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
-        {icon}
+    <div className={`p-8 rounded-[2rem] border transition-all duration-300 flex flex-col h-full relative ${getBgStyle()}`}>
+      {badge && (
+        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black tracking-widest ${
+            id === 'standard' ? 'bg-emerald-500 text-white' : 'bg-purple-600 text-white'
+        }`}>
+            {badge}
+        </div>
+      )}
+      <div className="mb-8">
+        <h3 className="text-xl font-black mb-4 uppercase tracking-tighter">{name}</h3>
+        <div className="flex items-baseline space-x-1 mb-2">
+            <span className="text-4xl font-black tracking-tighter">₹{price.toLocaleString()}</span>
+            {!isFree && <span className="text-slate-500 text-sm italic">/mo</span>}
+        </div>
+        {!isFree && isAnnual && (
+            <div className="text-[10px] text-emerald-400 font-bold mb-4">Billed annually at ₹{(price * 12).toLocaleString()}</div>
+        )}
+        <div className="text-[11px] font-black bg-white/5 px-3 py-1.5 rounded-lg w-fit text-slate-400 border border-white/5">
+            {requests} API REQUESTS
+        </div>
       </div>
-      <h3 className="text-xl font-bold mb-3">{title}</h3>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+
+      <ul className="space-y-4 mb-10 flex-grow">
+        {features.map((f: string) => (
+            <li key={f} className="flex items-start text-xs text-slate-300">
+                <CheckCircle2 className={`w-4 h-4 mr-2 flex-shrink-0 ${id === 'standard' ? 'text-emerald-400' : 'text-blue-500'}`} />
+                <span>{f}</span>
+            </li>
+        ))}
+        {missing.map((f: string) => (
+            <li key={f} className="flex items-start text-xs text-slate-600 line-through">
+                <X className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>{f}</span>
+            </li>
+        ))}
+      </ul>
+
+      <Button 
+        onClick={isEnterprise ? onEnterprise : onSelect}
+        className={`w-full py-6 rounded-2xl font-black text-sm uppercase transition-all ${getBtnStyle()}`}
+      >
+        {cta}
+      </Button>
+    </div>
+  );
+}
+
+function FeatureCard({ title, icon, desc }: any) {
+  return (
+    <div className="bg-white/5 border border-white/10 p-8 rounded-[2.5rem] hover:bg-white/10 transition-colors">
+        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+            {icon}
+        </div>
+        <h3 className="text-lg font-bold mb-3">{title}</h3>
+        <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
     </div>
   );
 }

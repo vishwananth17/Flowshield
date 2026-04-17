@@ -43,8 +43,7 @@ export default function DashboardLayout() {
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
     { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
     { name: 'Team', path: '/dashboard/team', icon: Users },
-    { name: 'Billing', path: '/dashboard/billing', icon: CreditCard },
-    { name: 'Subscription', path: '/dashboard/settings', icon: Settings },
+    { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
   ];
 
   return (
@@ -78,7 +77,7 @@ export default function DashboardLayout() {
                   {item.name === 'Alerts' && (
                     <AlertBadge />
                   )}
-                  {item.name === 'Billing' && (
+                  {item.name === 'Plans & Billing' && (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                       useAuthStore.getState().organization?.plan === 'growth' 
                         ? 'bg-blue-500 text-white' 

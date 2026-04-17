@@ -11,8 +11,23 @@ from app.models.alert import Alert
 from app.models.alert_activity import AlertActivity
 from app.models.transaction import Transaction
 from app.services.alert_service import AlertService
+from app.core.plan_limits import check_feature_access
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
+
+def check_alerts_access(plan: str):
+    if not check_feature_access(plan, "alerts"):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": {
+                    "code": "PLAN_LIMIT",
+                    "message": "Alerts system is available on Builder plan and above.",
+                    "upgrade_url": "/billing"
+                }
+            }
+        )
+
 
 # --- Schemas ---
 
@@ -103,6 +118,7 @@ async def list_alerts(
     Returns paginated list of alerts for the authenticated organization.
     Includes flattened transaction data for the table list view.
     """
+    check_alerts_access(user.plan)
     # Use Service for core logic
     data = await AlertService.get_alerts_paginated(
         db, user.org_id, status=status, severity=severity, page=page, per_page=per_page
@@ -155,6 +171,7 @@ async def get_alert(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    check_alerts_access(user.plan)
     """Fetches full alert details including transaction snapshot and audit timeline."""
     query = select(Alert).where(Alert.id == alert_id, Alert.org_id == user.org_id)
     result = await db.execute(query)
@@ -204,6 +221,7 @@ async def update_alert(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    check_alerts_access(user.plan)
     """Updates alert status and records an audit log entry."""
     updated = await AlertService.update_alert_status(
         db, alert_id, user.org_id, payload.status, user.id, payload.note
@@ -218,6 +236,7 @@ async def bulk_update_alerts(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    check_alerts_access(user.plan)
     """Performs batch status updates for multiple alerts in a single organizational context."""
     count = 0
     for aid in payload.alert_ids:
@@ -233,5 +252,6 @@ async def get_alert_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    check_alerts_access(user.plan)
     """Aggregates organizational health metrics for the alerts dashboard."""
     return await AlertService.get_alert_stats(db, user.org_id)

@@ -56,7 +56,12 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token subject",
         )
-    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.organization))
+        .where(User.id == user_id, User.is_active.is_(True))
+    )
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
@@ -70,9 +75,12 @@ async def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
+from app.models.organization import Organization
+
 @dataclass(frozen=True)
 class AnalyzeAuth:
     org_id: uuid.UUID
+    plan: str
     api_key: ApiKey | None
 
 
@@ -84,6 +92,9 @@ async def get_analyze_auth(
 ) -> AnalyzeAuth:
     """Prefer X-API-Key for programmatic calls; otherwise use JWT (dashboard / testing)."""
     request_id = getattr(request.state, "request_id", "")
+    org_id = None
+    api_key_obj = None
+
     if x_api_key:
         key_hash = hash_api_key(x_api_key.strip())
         result = await db.execute(
@@ -100,36 +111,46 @@ async def get_analyze_auth(
                     "docs_url": "https://docs.flowshield.ai/errors#INVALID_API_KEY",
                 },
             )
-        return AnalyzeAuth(org_id=row.org_id, api_key=row)
+        org_id = row.org_id
+        api_key_obj = row
+    else:
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "code": "UNAUTHORIZED",
+                    "message": "Authentication required (X-API-Key or Bearer token).",
+                    "request_id": request_id,
+                    "docs_url": "https://docs.flowshield.ai/errors#UNAUTHORIZED",
+                },
+            )
+        payload = safe_decode_token(token)
+        if not payload or payload.get("type") != "access":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+            )
+        sub = payload.get("sub")
+        if not sub:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        try:
+            user_id = uuid.UUID(sub)
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        
+        user_result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
+        user = user_result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        org_id = user.org_id
 
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "code": "UNAUTHORIZED",
-                "message": "Authentication required (X-API-Key or Bearer token).",
-                "request_id": request_id,
-                "docs_url": "https://docs.flowshield.ai/errors#UNAUTHORIZED",
-            },
-        )
-    payload = safe_decode_token(token)
-    if not payload or payload.get("type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-        )
-    sub = payload.get("sub")
-    if not sub:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    try:
-        user_id = uuid.UUID(sub)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    return AnalyzeAuth(org_id=user.org_id, api_key=None)
+    # Fetch Organization for plan details
+    org_result = await db.execute(select(Organization).where(Organization.id == org_id))
+    org = org_result.scalar_one_or_none()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization group not found")
+    
+    return AnalyzeAuth(org_id=org_id, plan=org.plan or "free", api_key=api_key_obj)
 
 
 AnalyzeAuthDep = Annotated[AnalyzeAuth, Depends(get_analyze_auth)]

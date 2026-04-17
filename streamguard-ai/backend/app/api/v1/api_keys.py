@@ -43,12 +43,36 @@ async def list_api_keys(
     )
     return result.scalars().all()
 
+from sqlalchemy import func
+from app.core.plan_limits import get_limit
+
 @router.post("", response_model=ApiKeyCreateResponse, summary="Create a new API key")
 async def create_api_key(
     body: ApiKeyCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
 ) -> ApiKeyCreateResponse:
+    # Plan limit enforcement
+    plan = user.organization.plan or "free"
+    limit = get_limit(plan, "api_keys")
+    
+    if limit != -1: # -1 means unlimited
+        count_res = await db.execute(
+            select(func.count(ApiKey.id)).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True))
+        )
+        active_count = count_res.scalar() or 0
+        if active_count >= limit:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": {
+                        "code": "PLAN_LIMIT",
+                        "message": f"Your plan ({plan}) allows a maximum of {limit} active API keys. Please upgrade to Growth or Enterprise for more.",
+                        "upgrade_url": "/billing"
+                    }
+                }
+            )
+
     env = body.environment.lower()
     if env not in ["live", "test"]:
         env = "live"

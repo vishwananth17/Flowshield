@@ -27,14 +27,27 @@ interface AuthStore {
   login: (credentials: any) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   organization: null,
   accessToken: null,
   isAuthenticated: false,
   isLoading: true,
+
+  refreshUser: async () => {
+    try {
+      const res = await api.get('/auth/me');
+      set({ 
+        user: res.data.user, 
+        organization: res.data.organization 
+      });
+    } catch (e) {
+      console.error("Failed to refresh user data", e);
+    }
+  },
 
   checkAuth: async () => {
     try {

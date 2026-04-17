@@ -23,7 +23,12 @@ export default function Register() {
     setLoading(true);
     try {
       await register({ email, password, full_name: fullName, organization_name: orgName });
-      navigate('/dashboard');
+      const plan = new URLSearchParams(window.location.search).get('plan');
+      if (plan && plan !== 'free') {
+        navigate(`/billing?upgrade=${plan}`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err?.response?.data?.detail || err?.response?.data?.error?.message || 'Failed to register account');
     } finally {

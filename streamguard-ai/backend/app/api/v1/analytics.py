@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
@@ -9,8 +9,22 @@ from app.core.dependencies import get_db, CurrentUser
 from app.models.transaction import Transaction
 from app.models.organization import Organization
 from pydantic import BaseModel
+from app.core.plan_limits import check_feature_access
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
+
+def check_analytics_access(plan: str):
+    if not check_feature_access(plan, "analytics"):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": {
+                    "code": "PLAN_LIMIT",
+                    "message": "Analytics is available on Growth plan and above.",
+                    "upgrade_url": "/billing"
+                }
+            }
+        )
 
 class AnalyticsStats(BaseModel):
     total_analyzed: int
@@ -25,6 +39,8 @@ async def get_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    check_analytics_access(user.plan)
+    
     # Total analyzed
     total_result = await db.execute(
         select(func.count(Transaction.id))
@@ -87,6 +103,8 @@ async def get_time_series(
     user: CurrentUser,
     days: int = 7
 ):
+    check_analytics_access(user.plan)
+    
     start_date = datetime.utcnow() - timedelta(days=days)
     
     # Group by day
