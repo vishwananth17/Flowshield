@@ -132,7 +132,7 @@ def create_app() -> FastAPI:
         </style>
         """
 
-        injection_script = \"\"\"
+        injection_script = """
         <script>
             function injectEliteDesign() {
                 const desc = document.querySelector('.info .description') || document.querySelector('.info .markdown');
@@ -172,7 +172,7 @@ def create_app() -> FastAPI:
                 setTimeout(injectEliteDesign, 3000);
             });
         </script>
-        \"\"\".replace('[[MASTER_JS]]', master_js_safe)
+        """.replace('[[MASTER_JS]]', master_js_safe)
         
         logger.info(f"DEBUG: CSS length: {len(custom_css)}, JS length: {len(injection_script)}")
         
