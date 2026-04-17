@@ -1,0 +1,113 @@
+:root {
+  --bg-deep: #0A0E1A;
+  --bg-nav: #0D1B2A;
+  --text-main: #F9FAFB;
+  --text-muted: #9CA3AF;
+  --get-color: #3B82F6;
+  --post-color: #10B981;
+  --delete-color: #EF4444;
+  --patch-color: #F59E0B;
+  --code-bg: #111827;
+  --border: #1F2937;
+}
+
+body {
+  background-color: var(--bg-deep) !important;
+  color: var(--text-main) !important;
+}
+
+/* Navbar */
+.swagger-ui .topbar {
+  background-color: var(--bg-nav) !important;
+}
+.swagger-ui .topbar .link img {
+  display: none !important;
+}
+.swagger-ui .topbar .link::after {
+  content: "Flowshield AI";
+  color: var(--text-main);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Hide authorize / contact block entirely if desired, but we only hide email/personal info */
+.swagger-ui .info a[href^="mailto:"] {
+  display: none !important;
+}
+
+.swagger-ui .info,
+.swagger-ui .info .title,
+.swagger-ui .info p,
+.swagger-ui .info h1,
+.swagger-ui .info h2,
+.swagger-ui .info h3,
+.swagger-ui .info h4,
+.swagger-ui .info h5 {
+  color: var(--text-main) !important;
+}
+
+/* Endpoints */
+.swagger-ui .opblock {
+  border: 1px solid var(--border) !important;
+  background-color: rgba(17, 24, 39, 0.4) !important;
+}
+
+.swagger-ui .opblock-summary-method {
+  color: #fff !important;
+}
+.swagger-ui .opblock-get .opblock-summary-method { background: var(--get-color) !important; }
+.swagger-ui .opblock-post .opblock-summary-method { background: var(--post-color) !important; }
+.swagger-ui .opblock-delete .opblock-summary-method { background: var(--delete-color) !important; }
+.swagger-ui .opblock-patch .opblock-summary-method { background: var(--patch-color) !important; }
+
+.swagger-ui .opblock-get { border-color: var(--get-color) !important; }
+.swagger-ui .opblock-post { border-color: var(--post-color) !important; }
+.swagger-ui .opblock-delete { border-color: var(--delete-color) !important; }
+.swagger-ui .opblock-patch { border-color: var(--patch-color) !important; }
+
+.swagger-ui .opblock .opblock-summary-path {
+  color: var(--text-main) !important;
+}
+.swagger-ui .opblock .opblock-summary-description {
+  color: var(--text-muted) !important;
+}
+
+/* Code Blocks */
+.swagger-ui .highlight-code > .microlight,
+.swagger-ui pre {
+  background-color: var(--code-bg) !important;
+  color: var(--text-main) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+.swagger-ui .model {
+  color: var(--text-main) !important;
+}
+.swagger-ui .model-title {
+  color: var(--text-main) !important;
+}
+.swagger-ui select {
+  background-color: var(--code-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border) !important;
+}
+.swagger-ui input {
+  background-color: var(--code-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border) !important;
+}
+.swagger-ui .btn {
+  border: 1px solid var(--border) !important;
+  color: var(--text-main) !important;
+}
+
+/* Collapsible Schemas */
+.swagger-ui section.models {
+  background-color: var(--bg-deep) !important;
+  border: 1px solid var(--border) !important;
+}
+.swagger-ui section.models h4 {
+  color: var(--text-main) !important;
+}
+.swagger-ui .models-control {
+  border-bottom: 1px solid var(--border) !important;
+}

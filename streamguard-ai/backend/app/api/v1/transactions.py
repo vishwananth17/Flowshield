@@ -49,6 +49,15 @@ async def analyze_transaction(
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
+    """
+    Analyze a transaction for fraud risk in real-time.
+
+    Returns a risk score (0.0-1.0), fraud label, decision,
+    and SHAP-powered explanation of top fraud signals.
+
+    **Response time:** < 100ms P99
+    **Authentication:** X-API-Key header required
+    """
     # 1. Start timer for latency tracking
     start_time = time.perf_counter()
     
@@ -141,7 +150,7 @@ async def list_transactions(
             )
         )
     return out
-@router.post("/simulate", summary="Trigger synthetic traffic burst (Demo Only)")
+@router.post("/simulate", summary="Trigger synthetic traffic burst (Demo Only)", include_in_schema=False)
 async def simulate_traffic(
     auth: AnalyzeAuthDep,
     db: Annotated[AsyncSession, Depends(get_db)],

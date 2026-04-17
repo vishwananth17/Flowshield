@@ -13,7 +13,7 @@ router = APIRouter()
 
 start_time = time.time()
 
-@router.get("/status", status_code=status.HTTP_200_OK)
+@router.get("/status", status_code=status.HTTP_200_OK, include_in_schema=False)
 async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     settings = get_settings()
     health_status: dict[str, Any] = {

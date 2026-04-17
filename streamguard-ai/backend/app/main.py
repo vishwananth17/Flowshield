@@ -37,19 +37,44 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    description = "Core Infrastructure Reference Manual"
-
     app = FastAPI(
-        title="Flowshield AI Technical Reference",
-        description=description,
-        version="11.0.0",
+        title="Flowshield AI API",
+        description="""
+## Flowshield AI — Real-Time Fraud Detection API
+
+Protect your payments with sub-100ms ML-powered fraud detection.
+Works with any payment gateway — Razorpay, Stripe, Adyen, or custom.
+
+### Base URL
+`https://api.flowshieldai.com/v1`
+
+### Authentication
+All requests require an API key in the header:
+`X-API-Key: fs_live_your_key_here`
+
+### Rate Limits
+- Free: 1,000 requests/month
+- Basic: 25,000 requests/month
+- Growth: 1,00,000 requests/month
+- Enterprise: Unlimited
+        """,
+        version="1.0.0",
+        contact={
+          "name": "Flowshield AI Support",
+          "email": "support@flowshieldai.com",
+          "url": "https://flowshieldai.com"
+        },
+        license_info={
+          "name": "Commercial License",
+          "url": "https://flowshieldai.com/terms"
+        },
         lifespan=lifespan,
-        docs_url=None,
-        redoc_url=None,
-        openapi_url="/openapi.json",
+        docs_url=None, # Keep None because we use custom HTML
+        redoc_url="/api/redoc",
+        openapi_url="/api/openapi.json"
     )
 
-    @app.get("/docs", include_in_schema=False)
+    @app.get("/api/reference", include_in_schema=False)
     def custom_swagger_ui_html():
         from fastapi.responses import HTMLResponse
         from fastapi.openapi.docs import get_swagger_ui_html
@@ -180,8 +205,8 @@ def create_app() -> FastAPI:
             openapi_url=app.openapi_url,
             title=app.title,
             swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-            swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
+            swagger_css_url="/static/swagger-dark.css",
+            swagger_favicon_url="/static/favicon.ico",
         )
         
         final_body = html_res.body.decode().replace("</head>", custom_css + injection_script + "</head>")
@@ -210,6 +235,13 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(api_router, prefix="/api/v1")
+    
+    from fastapi.staticfiles import StaticFiles
+    import os
+    if os.path.exists(os.path.join(os.path.dirname(__file__), "..", "static")):
+        app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "static")), name="static")
 
     # Commenting out for isolation
 
