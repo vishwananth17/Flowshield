@@ -29,7 +29,7 @@ Write-Host "🚀 Backend deploying to Railway..." -ForegroundColor Green
 Write-Host "🎨 Configuring Vercel Frontend..." -ForegroundColor Yellow
 Set-Location frontend
 vercel --prod `
-  --env VITE_API_URL=https://api.flowshieldai.com `
+  --env VITE_API_URL=https://flowshieldai-backend-production.up.railway.app `
   --yes --force
 Set-Location ..
 Write-Host "🚀 Frontend deploying to Vercel..." -ForegroundColor Green
