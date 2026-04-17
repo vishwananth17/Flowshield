@@ -115,7 +115,7 @@ async def create_subscription(
             "plan_id": plan_id,
             "customer_notify": 1,
             "quantity": 1,
-            "total_count": 1200 if req.interval == "annual" else 1200, # Razorpay total_count is max cycles
+            "total_count": 12 if req.interval == "annual" else 12, # Razorpay total_count is max cycles
             "addons": [],
             "notes": {
                 "org_id": str(org.id),
