@@ -23,7 +23,10 @@ export default function Login() {
       await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.response?.data?.error?.message || 'Invalid email or password');
+      const msg = err.response 
+        ? (err.response.data?.detail || err.response.data?.error?.message || 'Invalid email or password')
+        : 'Network Error: Backend is currently unreachable. Please check your connection or redeploy.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }

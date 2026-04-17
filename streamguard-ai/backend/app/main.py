@@ -219,19 +219,13 @@ All requests require an API key in the header:
         return {"status": "healthy", "service": "Flowshield AI Inference Core", "version": "1.0.0"}
 
     # Global Middleware & CORS Consistency Configuration
-    origins = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://flowshieldai.com",
-        "https://www.flowshieldai.com",
-        "https://frontend-blue-one-42.vercel.app",
-    ]
+    settings = get_settings()
     
     app.add_middleware(GZipMiddleware, minimum_size=500)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
-        allow_origin_regex=r"https://.*\-.*\.vercel\.app",
+        allow_origins=settings.cors_origins.split(",") if settings.cors_origins else ["*"],
+        allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
