@@ -207,7 +207,7 @@ All requests require an API key in the header:
             title=app.title,
             swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
             swagger_css_url="/static/swagger-dark.css",
-            swagger_favicon_url="/static/favicon.ico",
+            swagger_favicon_url="/static/favicon.svg",
         )
         
         final_body = html_res.body.decode().replace("</head>", custom_css + injection_script + "</head>")
