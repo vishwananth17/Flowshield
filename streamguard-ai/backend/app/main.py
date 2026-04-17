@@ -212,6 +212,10 @@ def create_app() -> FastAPI:
         content = html.body.decode().replace("</head>", f"{custom_css}{injection_script}</head>")
         return HTMLResponse(content=content)
 
+    @app.get("/", include_in_schema=False)
+    async def root_health_check():
+        return {"status": "healthy", "service": "Flowshield AI Inference Core", "version": "1.0.0"}
+
     # Global Middleware & CORS Consistency Configuration
     origins = [
         "http://localhost:5173",
@@ -225,7 +229,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_origin_regex="https://.*\-.*\.vercel\.app",
+        allow_origin_regex=r"https://.*\-.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
