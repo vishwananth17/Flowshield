@@ -177,39 +177,39 @@ def create_app() -> FastAPI:
         master_js_safe = master_html.replace('`', '\\\\`').replace('$', '\\\\$')
         
         # We use a standard string and .replace to avoid f-string interpolation traps
-        injection_script = \"\"\"
+        injection_script = """
         <script>
-            function addCopyButtons() {{
+            function addCopyButtons() {
                 const blocks = document.querySelectorAll('pre');
-                blocks.forEach((block) => {{
+                blocks.forEach((block) => {
                     if (block.querySelector('.copy-btn-elite')) return;
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
                     button.className = 'copy-btn-elite';
-                    button.onclick = (e) => {{
+                    button.onclick = (e) => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(block.innerText.replace('Copy', '').trim());
                         button.innerText = 'Copied';
-                        setTimeout(() => {{ button.innerText = 'Copy'; }}, 2000);
-                    }};
+                        setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+                    };
                     block.appendChild(button);
-                }});
-            }}
+                });
+            }
             
             const observer = new MutationObserver(() => addCopyButtons());
-            observer.observe(document.body, {{ childList: true, subtree: true }});
+            observer.observe(document.body, { childList: true, subtree: true });
             
-            window.onload = () => {{
+            window.onload = () => {
                 addCopyButtons();
                 const desc = document.querySelector('.info .description');
-                if (desc) {{
+                if (desc) {
                     desc.innerHTML = `[[MASTER_JS]]`;
-                }}
-            }};
+                }
+            };
         </script>
-        \"\"\".replace('[[MASTER_JS]]', master_js_safe)
+        """.replace('[[MASTER_JS]]', master_js_safe)
         
-        content = html.body.decode().replace(\"</head>\", f\"{custom_css}{injection_script}</head>\")
+        content = html.body.decode().replace("</head>", f"{custom_css}{injection_script}</head>")
         return HTMLResponse(content=content)
 
     # Global Middleware & CORS Consistency Configuration
