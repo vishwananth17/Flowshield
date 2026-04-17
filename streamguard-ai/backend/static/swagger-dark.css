@@ -1,24 +1,45 @@
 :root {
   --bg-deep: #0A0E1A;
   --bg-nav: #0D1B2A;
+  --bg-surface: #111827;
+  --bg-surface-hover: #1F2937;
   --text-main: #F9FAFB;
   --text-muted: #9CA3AF;
-  --get-color: #3B82F6;
-  --post-color: #10B981;
-  --delete-color: #EF4444;
-  --patch-color: #F59E0B;
-  --code-bg: #111827;
+  --text-accent: #3B82F6;
+  --get-color: #3B82F6;     /* blue */
+  --post-color: #10B981;    /* emerald */
+  --delete-color: #EF4444;  /* red */
+  --patch-color: #F59E0B;   /* amber */
+  --put-color: #8B5CF6;     /* violet */
+  --code-bg: #8B5CF610;     /* subtle for dark mode */
   --border: #1F2937;
 }
 
 body {
   background-color: var(--bg-deep) !important;
   color: var(--text-main) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  margin: 0;
+  padding: 0;
+}
+
+.swagger-ui {
+  color: var(--text-main) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+/* Global Container Backgrounds */
+.swagger-ui .scheme-container, 
+.swagger-ui .info,
+.swagger-ui .wrapper,
+html, body {
+  background-color: var(--bg-deep) !important;
 }
 
 /* Navbar */
 .swagger-ui .topbar {
   background-color: var(--bg-nav) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 .swagger-ui .topbar .link img {
   display: none !important;
@@ -26,58 +47,153 @@ body {
 .swagger-ui .topbar .link::after {
   content: "Flowshield AI";
   color: var(--text-main);
-  font-weight: bold;
+  font-weight: 800;
   font-size: 1.5rem;
+  letter-spacing: -0.5px;
 }
 
-/* Hide authorize / contact block entirely if desired, but we only hide email/personal info */
-.swagger-ui .info a[href^="mailto:"] {
-  display: none !important;
-}
-
-.swagger-ui .info,
+/* Base text overrides */
 .swagger-ui .info .title,
-.swagger-ui .info p,
 .swagger-ui .info h1,
 .swagger-ui .info h2,
 .swagger-ui .info h3,
 .swagger-ui .info h4,
-.swagger-ui .info h5 {
+.swagger-ui .info h5,
+.swagger-ui .info p,
+.swagger-ui .info li,
+.swagger-ui .markdown p,
+.swagger-ui .markdown li {
   color: var(--text-main) !important;
 }
 
-/* Endpoints */
-.swagger-ui .opblock {
-  border: 1px solid var(--border) !important;
-  background-color: rgba(17, 24, 39, 0.4) !important;
+/* Links */
+.swagger-ui a,
+.swagger-ui .info a {
+  color: var(--text-accent) !important;
+  text-decoration: none !important;
+}
+.swagger-ui a:hover,
+.swagger-ui .info a:hover {
+  text-decoration: underline !important;
 }
 
-.swagger-ui .opblock-summary-method {
-  color: #fff !important;
+/* Hide email wrapper if needed */
+.swagger-ui .info a[href^="mailto:"] {
+  display: none !important;
 }
+
+/* Tags (e.g. 'auth', 'Billing') */
+.swagger-ui .opblock-tag {
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+}
+.swagger-ui .opblock-tag small {
+  color: var(--text-muted) !important;
+}
+
+/* Operation Blocks (Endpoints) */
+.swagger-ui .opblock {
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background-color: var(--bg-surface) !important;
+  margin-bottom: 20px !important;
+  box-shadow: none !important;
+}
+
+/* Make sure summary backgrounds don't show white */
+.swagger-ui .opblock .opblock-summary {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* HTTP Methods Boxes */
+.swagger-ui .opblock-summary-method {
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+}
+
+/* Operation Block Colors */
 .swagger-ui .opblock-get .opblock-summary-method { background: var(--get-color) !important; }
 .swagger-ui .opblock-post .opblock-summary-method { background: var(--post-color) !important; }
 .swagger-ui .opblock-delete .opblock-summary-method { background: var(--delete-color) !important; }
 .swagger-ui .opblock-patch .opblock-summary-method { background: var(--patch-color) !important; }
+.swagger-ui .opblock-put .opblock-summary-method { background: var(--put-color) !important; }
 
-.swagger-ui .opblock-get { border-color: var(--get-color) !important; }
-.swagger-ui .opblock-post { border-color: var(--post-color) !important; }
-.swagger-ui .opblock-delete { border-color: var(--delete-color) !important; }
-.swagger-ui .opblock-patch { border-color: var(--patch-color) !important; }
+/* Keep very subtle outline/background for the expanded block */
+.swagger-ui .opblock.opblock-get { border-color: rgba(59, 130, 246, 0.3) !important; background: rgba(59, 130, 246, 0.05) !important; }
+.swagger-ui .opblock.opblock-post { border-color: rgba(16, 185, 129, 0.3) !important; background: rgba(16, 185, 129, 0.05) !important; }
+.swagger-ui .opblock.opblock-delete { border-color: rgba(239, 68, 68, 0.3) !important; background: rgba(239, 68, 68, 0.05) !important; }
+.swagger-ui .opblock.opblock-patch { border-color: rgba(245, 158, 11, 0.3) !important; background: rgba(245, 158, 11, 0.05) !important; }
 
+/* Path text */
 .swagger-ui .opblock .opblock-summary-path {
+  color: var(--text-main) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+.swagger-ui .opblock .opblock-summary-path a {
   color: var(--text-main) !important;
 }
 .swagger-ui .opblock .opblock-summary-description {
   color: var(--text-muted) !important;
 }
 
-/* Code Blocks */
+/* Buttons */
+.swagger-ui .btn {
+  border: 1px solid var(--border) !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.swagger-ui .btn:hover {
+  background-color: var(--bg-surface-hover) !important;
+  color: white !important;
+}
+.swagger-ui .btn.authorize {
+  border-color: var(--get-color) !important;
+  color: var(--get-color) !important;
+}
+.swagger-ui .btn.authorize svg {
+  fill: var(--get-color) !important;
+}
+
+/* Operation Content inside */
+.swagger-ui .opblock-body pre.microlight {
+  background-color: var(--bg-deep) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  color: var(--text-muted) !important;
+}
+
+/* Code blocks / Responses */
 .swagger-ui .highlight-code > .microlight,
 .swagger-ui pre {
-  background-color: var(--code-bg) !important;
+  background-color: var(--bg-deep) !important;
   color: var(--text-main) !important;
   font-family: 'JetBrains Mono', monospace !important;
+  border: 1px solid var(--border) !important;
+}
+.swagger-ui .response-col_status, 
+.swagger-ui .response-col_description {
+  color: var(--text-main) !important;
+}
+
+/* Models / Schemas Text */
+.swagger-ui section.models {
+  background-color: var(--bg-deep) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+.swagger-ui section.models h4 {
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 .swagger-ui .model {
   color: var(--text-main) !important;
@@ -85,29 +201,61 @@ body {
 .swagger-ui .model-title {
   color: var(--text-main) !important;
 }
-.swagger-ui select {
-  background-color: var(--code-bg) !important;
-  color: var(--text-main) !important;
-  border: 1px solid var(--border) !important;
+.swagger-ui .prop-type {
+  color: var(--text-accent) !important;
 }
-.swagger-ui input {
-  background-color: var(--code-bg) !important;
+.swagger-ui table thead tr th {
   color: var(--text-main) !important;
-  border: 1px solid var(--border) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
-.swagger-ui .btn {
-  border: 1px solid var(--border) !important;
-  color: var(--text-main) !important;
+.swagger-ui table tbody tr td {
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 
-/* Collapsible Schemas */
-.swagger-ui section.models {
+/* Inputs and Selects */
+.swagger-ui select, .swagger-ui input, .swagger-ui textarea {
   background-color: var(--bg-deep) !important;
+  color: var(--text-main) !important;
   border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  outline: none !important;
 }
-.swagger-ui section.models h4 {
+
+.swagger-ui select:focus, .swagger-ui input:focus, .swagger-ui textarea:focus {
+  border-color: var(--text-accent) !important;
+}
+
+/* SVG icons like arrows and locks */
+.swagger-ui svg {
+  fill: var(--text-muted) !important;
+}
+.swagger-ui .opblock-summary-control svg {
+  fill: var(--text-main) !important;
+}
+
+/* Tables inside params */
+.swagger-ui .parameters-container .parameters-col_name .parameter__name.required,
+.swagger-ui .parameters-container .parameters-col_name .parameter__name {
   color: var(--text-main) !important;
 }
-.swagger-ui .models-control {
-  border-bottom: 1px solid var(--border) !important;
+.swagger-ui .parameters-container .parameters-col_description .parameter__type,
+.swagger-ui .parameters-container .parameters-col_description .parameter__in {
+  color: var(--text-muted) !important;
+}
+
+/* Markdown tables */
+.swagger-ui .markdown table thead tr th,
+.swagger-ui .markdown table tbody tr td {
+  color: var(--text-muted) !important;
+  border-color: var(--border) !important;
+}
+
+/* General fixes */
+.swagger-ui .tab li {
+  color: var(--text-muted) !important;
+}
+.swagger-ui .tab li.active {
+  color: var(--text-main) !important;
+  border-bottom-color: var(--text-main) !important;
 }
