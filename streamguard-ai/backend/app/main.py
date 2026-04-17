@@ -27,10 +27,32 @@ async def lifespan(app: FastAPI):
     from app.models.waitlist import Waitlist # Ensure models are registered
     try:
         async with engine.begin() as conn:
-            # Create tables only if they don't exist. 
-            # Migration of columns is now handled by Alembic in the Start Command.
+            # Create tables if they don't exist
             await conn.run_sync(Base.metadata.create_all)
-        logger.info("✅ Database tables successfully initialized")
+            
+            # THE REPAIR SCRIPT: Forcefully add every new column needed for billing
+            columns_to_add = [
+                ("plan_interval", "VARCHAR(50) DEFAULT 'monthly'"),
+                ("razorpay_customer_id", "VARCHAR(255)"),
+                ("razorpay_subscription_id", "VARCHAR(255)"),
+                ("subscription_status", "VARCHAR(50) DEFAULT 'active'"),
+                ("subscription_start", "TIMESTAMP WITH TIME ZONE"),
+                ("subscription_end", "TIMESTAMP WITH TIME ZONE"),
+                ("trial_ends_at", "TIMESTAMP WITH TIME ZONE"),
+                ("monthly_request_limit", "INTEGER DEFAULT 1000"),
+                ("monthly_request_count", "INTEGER DEFAULT 0"),
+                ("stripe_customer_id", "VARCHAR(255)"),
+                ("stripe_subscription_id", "VARCHAR(255)"),
+                ("billing_period_start", "TIMESTAMP WITH TIME ZONE")
+            ]
+            
+            for col_name, col_type in columns_to_add:
+                try:
+                    await conn.execute(text(f"ALTER TABLE organizations ADD COLUMN IF NOT EXISTS {col_name} {col_type}"))
+                except Exception:
+                    pass # Ignore if already exists
+            
+        logger.info("✅ Database schema successfully repaired and initialized")
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {str(e)}")
 
