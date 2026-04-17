@@ -37,10 +37,35 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    description = """
+    description = "Core Infrastructure Reference Manual"
+
+    app = FastAPI(
+        title="Flowshield AI Technical Reference",
+        description=description,
+        version="11.0.0",
+        lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url="/openapi.json",
+    )
+
+    @app.get("/docs", include_in_schema=False)
+    async def custom_swagger_ui_html():
+        from fastapi.responses import HTMLResponse
+        html = get_swagger_ui_html(
+            openapi_url=app.openapi_url,
+            title=app.title,
+            oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+            swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+            swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+            swagger_favicon_url="https://frontend-blue-one-42.vercel.app/favicon.ico",
+        )
+        
+        # Define high-fidelity content separately to inject via JS
+        master_html = """
 <div class="master-elite-reference">
   <div class="header-hero" style="animation: fadeInUp 0.8s ease-out forwards; opacity: 0; padding: 40px 0 80px 0;">
-    <h1 style="color: #FFFFFF !important; font-size: 64px !important; font-weight: 800 !important; letter-spacing: -0.06em !important; margin-bottom: 24px; line-height: 1.05 !important;">Core Infrastructure Reference</h1>
+    <h1 style="color: #FFFFFF !important; font-size: 64px !important; font-weight: 800 !important; letter-spacing: -0.06em !important; margin-bottom: 24px; line-height: 1.05 !important; border: none !important;">Core Infrastructure Reference</h1>
     <p style="color: #94A3B8 !important; font-size: 20px !important; max-width: 800px; line-height: 1.7; margin-bottom: 0;">
       Flowshield AI provides an autonomous, sub-100ms fraud intelligence layer. This manual details the protocol for secure, real-time connectivity between your transaction stack and our inference core.
     </p>
@@ -54,21 +79,21 @@ def create_app() -> FastAPI:
         <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[01] PROVISION</span>
         <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Authentication Key</h3>
         <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Generate an enterprise-grade secret key and authenticate all requests via standard Bearer token implementation.</p>
-        <pre class="mac-box"><code>Authorization: Bearer fs_live_secret</code></pre>
+        <div class="mac-inline"><code>Authorization: Bearer fs_live_secret</code></div>
       </div>
 
       <div class="protocol-card" style="background: rgba(10,14,26,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
         <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[02] INITIALIZE</span>
         <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Environment Layer</h3>
         <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Establish your secure environment layer. Ensure credential isolation to prevent upstream exposure.</p>
-        <pre class="mac-box"><code>FLOWSHIELD_API_KEY=fs_live_***</code></pre>
+        <div class="mac-inline"><code>FLOWSHIELD_API_KEY=fs_live_***</code></div>
       </div>
 
       <div class="protocol-card" style="background: rgba(10,14,26,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 40px; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
         <span style="color: #3b82f6; font-family: 'JetBrains Mono'; font-weight: 800; font-size: 14px; margin-bottom: 16px; display: block; letter-spacing: 0.1em;">[03] VALIDATE</span>
         <h3 style="color: white !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 12px !important;">Production Handshake</h3>
         <p style="font-size: 15px !important; color: #94A3B8 !important; line-height: 1.6 !important; margin-bottom: 24px !important;">Validate real-time connectivity with the inference cloud via our health-check or sample analysis endpoint.</p>
-        <pre class="mac-box"><code>curl -X POST /api/v1/analyze</code></pre>
+        <div class="mac-inline"><code>curl -X POST /api/v1/analyze</code></div>
       </div>
     </div>
   </section>
@@ -91,30 +116,7 @@ def create_app() -> FastAPI:
     </table>
   </section>
 </div>
-
-<style>
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.protocol-card:hover { transform: translateY(-8px) scale(1.02); border-color: rgba(59, 130, 246, 0.5) !important; background: rgba(10,14,26,0.95) !important; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-.protocol-table { width: 100%; border-collapse: collapse; background: rgba(10,14,26,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; }
-.protocol-table td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #94A3B8; font-size: 15px; }
-.mac-box { background: #000000 !important; border-radius: 12px !important; padding: 32px 16px 16px 16px !important; position: relative !important; margin: 0 !important; }
-.mac-box::before { content: ''; position: absolute; top: 12px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: #ff5f56; box-shadow: 12px 0 0 #ffbd2e, 24px 0 0 #27c93f; }
-.mac-box code { font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; color: #60a5fa !important; }
-</style>
 """
-
-    app = FastAPI(
-        title="Flowshield AI Technical Reference",
-        description=description,
-        version="10.0.0",
-        lifespan=lifespan,
-        docs_url=None,
-        redoc_url=None,
-        openapi_url="/openapi.json",
-    )
 
     @app.get("/docs", include_in_schema=False)
     async def custom_swagger_ui_html():
@@ -169,34 +171,43 @@ def create_app() -> FastAPI:
             /* Hide raw styles from the top of the body if any */
             style { display: none; }
         </style>
+        """
         
+        # Core JavaScript Injection to bypass Markdown and force World-Class visuals
+        master_js = master_html.replace('`', '\\`').replace('$', '\\$')
+        injection_script = f"""
         <script>
-            function addCopyButtons() {
+            function addCopyButtons() {{
                 const blocks = document.querySelectorAll('pre');
-                blocks.forEach((block) => {
+                blocks.forEach((block) => {{
                     if (block.querySelector('.copy-btn-elite')) return;
                     const button = document.createElement('button');
                     button.innerText = 'Copy';
                     button.className = 'copy-btn-elite';
-                    button.onclick = (e) => {
+                    button.onclick = (e) => {{
                         e.stopPropagation();
                         navigator.clipboard.writeText(block.innerText.replace('Copy', '').trim());
                         button.innerText = 'Copied';
-                        setTimeout(() => { button.innerText = 'Copy'; }, 2000);
-                    };
+                        setTimeout(() => {{ button.innerText = 'Copy'; }}, 2000);
+                    }};
                     block.appendChild(button);
-                });
-            }
+                }});
+            }}
+            
             const observer = new MutationObserver(() => addCopyButtons());
-            observer.observe(document.body, { childList: true, subtree: true });
-            window.onload = addCopyButtons;
+            observer.observe(document.body, {{ childList: true, subtree: true }});
+            
+            window.onload = () => {{
+                addCopyButtons();
+                const desc = document.querySelector('.info .description');
+                if (desc) {{
+                    desc.innerHTML = `{master_js}`;
+                }}
+            }};
         </script>
         """
-        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
-        return HTMLResponse(content=content)
-        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
-        return HTMLResponse(content=content)
-        content = html.body.decode().replace("</head>", f"{custom_css}</head>")
+        
+        content = html.body.decode().replace("</head>", f"{custom_css}{injection_script}</head>")
         return HTMLResponse(content=content)
 
     # Global Middleware & CORS Consistency Configuration
