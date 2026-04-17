@@ -221,15 +221,16 @@ All requests require an API key in the header:
     # Global Middleware & CORS Consistency Configuration
     settings = get_settings()
     
-    app.add_middleware(GZipMiddleware, minimum_size=500)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["https://flowshield-inky.vercel.app", "https://flowshieldai.com", "http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=["https://flowshield-inky.vercel.app", "https://flowshieldai.com", "https://flowshield.ai", "http://localhost:5173", "http://127.0.0.1:5173"],
         allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    app.add_middleware(GZipMiddleware, minimum_size=500)
 
     app.include_router(api_router, prefix="/api/v1")
     
