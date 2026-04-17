@@ -27,8 +27,16 @@ async def lifespan(app: FastAPI):
     from app.models.waitlist import Waitlist # Ensure models are registered
     try:
         async with engine.begin() as conn:
+            # Create tables if they don't exist
             await conn.run_sync(Base.metadata.create_all)
-        logger.info("✅ Database tables successfully initialized")
+            
+            # Manually add missing columns for Razorpay migration
+            # We use try/except for each column in case they already exist
+            await conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_interval VARCHAR DEFAULT 'monthly'"))
+            await conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS razorpay_customer_id VARCHAR"))
+            await conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS razorpay_subscription_id VARCHAR"))
+            
+        logger.info("✅ Database tables and columns successfully initialized")
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {str(e)}")
 
