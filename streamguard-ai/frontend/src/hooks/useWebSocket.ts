@@ -12,7 +12,7 @@ export const useWebSocket = () => {
     useEffect(() => {
         const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
         const defaultBaseURL = isProduction 
-            ? 'https://flowshieldai-backend-production.up.railway.app' 
+            ? 'https://flowshield-backend-ani8.onrender.com' 
             : 'http://localhost:8000';
 
         const baseUrl = import.meta.env.VITE_API_URL || defaultBaseURL;

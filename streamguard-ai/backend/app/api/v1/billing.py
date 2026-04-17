@@ -63,12 +63,16 @@ async def create_subscription(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
+    logger.info(f"Creating subscription: plan={req.plan}, interval={req.interval}, user={user.email}")
     if req.plan not in PLANS:
+        logger.error(f"Invalid plan: {req.plan}")
         raise HTTPException(status_code=400, detail="Invalid plan selected")
     if req.interval not in ["monthly", "annual"]:
+        logger.error(f"Invalid interval: {req.interval}")
         raise HTTPException(status_code=400, detail="Invalid interval selected")
 
     plan_id = PLANS[req.plan][req.interval]
+    logger.info(f"Found plan_id: {plan_id}")
     if not plan_id:
         raise HTTPException(status_code=500, detail=f"Razorpay Plan ID not configured for {req.plan} {req.interval}")
 
@@ -80,7 +84,7 @@ async def create_subscription(
         # 1. Create Razorpay customer if not exists
         if not org.razorpay_customer_id:
             customer = client.customer.create({
-                "name": f"{user.first_name} {user.last_name}".strip() or user.email,
+                "name": user.full_name or user.email,
                 "email": user.email,
                 "contact": "" # User model doesn't have phone yet, can add if needed
             })

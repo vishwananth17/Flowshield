@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     
     razorpay_key_id: str | None = Field(default=None, alias="RAZORPAY_KEY_ID")
     razorpay_key_secret: str | None = Field(default=None, alias="RAZORPAY_KEY_SECRET")
+    razorpay_plan_basic_monthly: str | None = Field(default=None, alias="RAZORPAY_PLAN_BASIC_MONTHLY")
+    razorpay_plan_basic_annual: str | None = Field(default=None, alias="RAZORPAY_PLAN_BASIC_ANNUAL")
+    razorpay_plan_growth_monthly: str | None = Field(default=None, alias="RAZORPAY_PLAN_GROWTH_MONTHLY")
+    razorpay_plan_growth_annual: str | None = Field(default=None, alias="RAZORPAY_PLAN_GROWTH_ANNUAL")
+    razorpay_plan_premium_monthly: str | None = Field(default=None, alias="RAZORPAY_PLAN_PREMIUM_MONTHLY")
+    razorpay_plan_premium_annual: str | None = Field(default=None, alias="RAZORPAY_PLAN_PREMIUM_ANNUAL")
+    razorpay_webhook_secret: str | None = Field(default=None, alias="RAZORPAY_WEBHOOK_SECRET")
 
     cookie_secure: bool = Field(default=False, alias="COOKIE_SECURE")
     cookie_domain: str | None = Field(default=None, alias="COOKIE_DOMAIN")

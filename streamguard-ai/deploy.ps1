@@ -12,51 +12,33 @@ try {
 }
 Write-Host "✅ JWT_SECRET generated" -ForegroundColor Green
 
-# Step 2 — Deploy backend to Railway
-Write-Host "📦 Configuring Railway Backend..." -ForegroundColor Yellow
-railway init --name flowshieldai-backend
-railway plugin add redis
-railway variables set `
-  DATABASE_URL="postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require" `
-  JWT_SECRET="$JWT_SECRET" `
-  ENVIRONMENT="production" `
-  CORS_ORIGINS="https://app.flowshieldai.com" `
-  LOG_LEVEL="info"
-railway up --detach
-Write-Host "🚀 Backend deploying to Railway..." -ForegroundColor Green
+# Step 2 — Verify Backend Configuration on Render
+Write-Host "📦 Ensuring Render Backend is ready..." -ForegroundColor Yellow
+Write-Host "⚠️  Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set in your Render dashboard." -ForegroundColor Magenta
 
 # Step 3 — Deploy frontend to Vercel
 Write-Host "🎨 Configuring Vercel Frontend..." -ForegroundColor Yellow
 Set-Location frontend
 vercel --prod `
-  --env VITE_API_URL=https://flowshieldai-backend-production.up.railway.app `
+  --env VITE_API_URL=https://flowshield-backend-ani8.onrender.com `
   --yes --force
 Set-Location ..
 Write-Host "🚀 Frontend deploying to Vercel..." -ForegroundColor Green
 
-# Step 4 — Create Stripe webhook
-Write-Host "💳 Configuring Stripe Webhook..." -ForegroundColor Yellow
-$stripePath = "C:\Users\vishw\AppData\Local\Microsoft\WinGet\Links\stripe.exe"
-if (!(Test-Path $stripePath)) { $stripePath = "stripe" }
-& $stripePath webhooks create `
-  --url="https://api.flowshieldai.com/api/v1/billing/webhook" `
-  --events="checkout.session.completed,customer.subscription.deleted,invoice.payment_failed"
-Write-Host "✅ Stripe webhook created" -ForegroundColor Green
+# Step 4 — Razorpay Webhook Info
+Write-Host "💳 Razorpay Webhook Info..." -ForegroundColor Yellow
+Write-Host "✅ Connect your Razorpay webhook to: https://flowshield-backend-ani8.onrender.com/api/v1/billing/webhook" -ForegroundColor Green
 
 # Step 5 — Print final instructions
 $instr = @"
 
 ======================================
-DEPLOYMENT COMPLETE — DO THESE MANUALLY
+DEPLOYMENT COMPLETE — RENDER + VERCEL
 ======================================
-1. Copy the Stripe webhook secret above
-   Run: railway variables set STRIPE_WEBHOOK_SECRET=whsec_...
-2. Add your Stripe live keys to Railway:
-   railway variables set STRIPE_SECRET_KEY=sk_live_...
-3. Add DNS CNAME records at your domain registrar:
-   api.flowshieldai.com -> your Railway domain
-   app.flowshieldai.com -> your Vercel domain
-4. Verify: curl https://api.flowshieldai.com/health
+1. Your backend is active at Render.
+2. Your frontend is active at Vercel.
+3. Ensure Razorpay Live Keys are in Render Env Vars.
+4. Verify: curl https://flowshield-backend-ani8.onrender.com/health
 ======================================
 "@
 Write-Host $instr -ForegroundColor Cyan

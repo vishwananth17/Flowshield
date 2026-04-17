@@ -224,7 +224,7 @@ All requests require an API key in the header:
     app.add_middleware(GZipMiddleware, minimum_size=500)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins.split(",") if settings.cors_origins else ["*"],
+        allow_origins=["https://flowshield-inky.vercel.app", "https://flowshieldai.com", "http://localhost:5173", "http://127.0.0.1:5173"],
         allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],

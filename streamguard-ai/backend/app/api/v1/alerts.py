@@ -118,7 +118,7 @@ async def list_alerts(
     Returns paginated list of alerts for the authenticated organization.
     Includes flattened transaction data for the table list view.
     """
-    check_alerts_access(user.plan)
+    check_alerts_access(user.organization.plan)
     # Use Service for core logic
     data = await AlertService.get_alerts_paginated(
         db, user.org_id, status=status, severity=severity, page=page, per_page=per_page
