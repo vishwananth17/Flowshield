@@ -34,7 +34,12 @@ class AnalyticsStats(BaseModel):
     total_volume: float
     risk_by_country: dict[str, int]
 
-@router.get("/stats", response_model=AnalyticsStats)
+@router.get(
+    "/stats", 
+    response_model=AnalyticsStats,
+    summary="Core Performance Analytics",
+    description="Retrieve high-level organizational heuristics including total inference volume, blocked fraud capital, and system-wide latency averages."
+)
 async def get_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
@@ -97,11 +102,16 @@ async def get_stats(
         risk_by_country=risk_by_country
     )
 
-@router.get("/time-series")
+
+@router.get(
+    "/time-series",
+    summary="Temporal Risk Trends",
+    description="Retrieve a historical time-series of transaction volume for trend analysis and growth forecasting."
+)
 async def get_time_series(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
-    days: int = 7
+    days: int = Query(7, ge=1, le=90)
 ):
     check_analytics_access(user.plan)
     

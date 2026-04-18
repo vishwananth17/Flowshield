@@ -105,7 +105,12 @@ class BulkUpdate(BaseModel):
 
 # --- Endpoints ---
 
-@router.get("", response_model=AlertPaginatedResponse)
+@router.get(
+    "", 
+    response_model=AlertPaginatedResponse,
+    summary="List Security Alerts",
+    description="Retrieve a paginated collection of high-risk threat alerts identified by the autonomous inference layer."
+)
 async def list_alerts(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
@@ -114,10 +119,6 @@ async def list_alerts(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100)
 ):
-    """
-    Returns paginated list of alerts for the authenticated organization.
-    Includes flattened transaction data for the table list view.
-    """
     check_alerts_access(user.organization.plan)
     # Use Service for core logic
     data = await AlertService.get_alerts_paginated(
@@ -165,14 +166,19 @@ async def list_alerts(
         "unread_count": data["unread_count"]
     }
 
-@router.get("/{alert_id}", response_model=AlertDetailResponse)
+
+@router.get(
+    "/{alert_id}", 
+    response_model=AlertDetailResponse,
+    summary="Get Alert Intelligence",
+    description="Fetch a comprehensive dossier for a specific alert, including transaction snapshots and audit forensic timelines."
+)
 async def get_alert(
     alert_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
     check_alerts_access(user.plan)
-    """Fetches full alert details including transaction snapshot and audit timeline."""
     query = select(Alert).where(Alert.id == alert_id, Alert.org_id == user.org_id)
     result = await db.execute(query)
     alert = result.scalar_one_or_none()
@@ -214,7 +220,12 @@ async def get_alert(
         "activities": activities
     }
 
-@router.patch("/{alert_id}")
+
+@router.patch(
+    "/{alert_id}",
+    summary="Update Alert Protocol",
+    description="Manually transition the status of a security alert. This action is recorded in the immutable audit trail."
+)
 async def update_alert(
     alert_id: uuid.UUID,
     payload: AlertUpdate,
@@ -222,7 +233,6 @@ async def update_alert(
     user: CurrentUser
 ):
     check_alerts_access(user.plan)
-    """Updates alert status and records an audit log entry."""
     updated = await AlertService.update_alert_status(
         db, alert_id, user.org_id, payload.status, user.id, payload.note
     )
@@ -230,14 +240,18 @@ async def update_alert(
         raise HTTPException(status_code=404, detail="Alert not found")
     return {"status": "success", "alert_id": alert_id}
 
-@router.post("/bulk")
+
+@router.post(
+    "/bulk",
+    summary="Strategic Batch Update",
+    description="Perform high-volume status transitions across a filtered collection of organizational alerts."
+)
 async def bulk_update_alerts(
     payload: BulkUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
     check_alerts_access(user.plan)
-    """Performs batch status updates for multiple alerts in a single organizational context."""
     count = 0
     for aid in payload.alert_ids:
         updated = await AlertService.update_alert_status(
@@ -247,11 +261,15 @@ async def bulk_update_alerts(
             count += 1
     return {"updated": count, "failed": len(payload.alert_ids) - count}
 
-@router.get("/stats")
+
+@router.get(
+    "/stats",
+    summary="Aggregate Threat Metrics",
+    description="Retrieve high-level organizational health analytics for real-time security posture monitoring."
+)
 async def get_alert_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
     check_alerts_access(user.plan)
-    """Aggregates organizational health metrics for the alerts dashboard."""
     return await AlertService.get_alert_stats(db, user.org_id)

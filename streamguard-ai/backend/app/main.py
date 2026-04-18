@@ -62,35 +62,28 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="Flowshield AI API",
+        title="Flowshield AI | Global Intelligence API",
         description="""
-## Flowshield AI — Real-Time Fraud Detection API
+### Real-Time Fraud & Risk Intelligence Protocol
+Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern financial stack. 
 
-Protect your payments with sub-100ms ML-powered fraud detection.
-Works with any payment gateway — Razorpay, Stripe, Adyen, or custom.
+#### **Developer Capabilities**
+* **Identity Management**: Secure, JWT-based entity authentication.
+* **Risk Inference**: Real-time ML-driven transaction scoring.
+* **Financial Layer**: Complete Razorpay/Stripe subscription orchestration.
+* **Live Monitoring**: WebSocket-based event streaming for instant threat alerts.
 
-### Base URL
-`https://api.flowshieldai.com/v1`
-
-### Authentication
-All requests require an API key in the header:
-`X-API-Key: fs_live_your_key_here`
-
-### Rate Limits
-- Free: 1,000 requests/month
-- Basic: 25,000 requests/month
-- Growth: 1,00,000 requests/month
-- Enterprise: Unlimited
+> **Production Gateway**: `https://flowshield-backend-ani8.onrender.com/api/v1`
         """,
         version="1.0.0",
         contact={
-          "name": "Flowshield AI Support",
-          "email": "support@flowshieldai.com",
-          "url": "https://flowshieldai.com"
+          "name": "Flowshield Enterprise Engineering",
+          "email": "engineering@flowshield.ai",
+          "url": "https://flowshield.ai"
         },
         license_info={
-          "name": "Commercial License",
-          "url": "https://flowshieldai.com/terms"
+          "name": "Flowshield Proprietary License",
+          "url": "https://flowshield.ai/terms"
         },
         lifespan=lifespan,
         docs_url=None, # Keep None because we use custom HTML

@@ -60,7 +60,11 @@ class EnterpriseContactRequest(BaseModel):
     monthly_volume: str
     message: str | None = None
 
-@router.post("/create-subscription")
+@router.post(
+    "/create-subscription",
+    summary="Initialize Subscription",
+    description="Provision a new recurring billing mandate. Generates a Razorpay-compatible subscription session for checkout orchestration."
+)
 async def create_subscription(
     req: SubscriptionRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -135,7 +139,12 @@ async def create_subscription(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-@router.post("/verify-payment")
+
+@router.post(
+    "/verify-payment", 
+    summary="Validate Transaction Authenticity",
+    description="Verify the SHA256 HMAC signature of a completed checkout session to finalize organization plan upgrades."
+)
 async def verify_payment(
     req: VerifyPaymentRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -183,6 +192,7 @@ async def verify_payment(
     
     await db.commit()
     return {"success": True, "plan": plan_name}
+
 
 @router.post("/webhook", include_in_schema=False)
 async def razorpay_webhook(
@@ -237,7 +247,12 @@ async def razorpay_webhook(
     await db.commit()
     return {"status": "success"}
 
-@router.get("/subscription")
+
+@router.get(
+    "/subscription", 
+    summary="Get Billing Status",
+    description="Retrieve the current organizational plan, billing cycle markers, and transactional usage metrics."
+)
 async def get_subscription(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
@@ -269,7 +284,12 @@ async def get_subscription(
         "features": limits
     }
 
-@router.post("/cancel")
+
+@router.post(
+    "/cancel", 
+    summary="Terminate Subscription",
+    description="Request immediate or cycle-end termination of the active recurring billing mandate."
+)
 async def cancel_subscription(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
@@ -287,7 +307,12 @@ async def cancel_subscription(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/invoices")
+
+@router.get(
+    "/invoices", 
+    summary="List Billing History",
+    description="Retrieve a complete historical record of invoices, successful captures, and payment attempts."
+)
 async def get_invoices(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
@@ -313,7 +338,12 @@ async def get_invoices(
     except Exception:
         return []
 
-@router.post("/contact-enterprise")
+
+@router.post(
+    "/contact-enterprise", 
+    summary="Commercial Integration Request",
+    description="Establish a high-touch communication channel for custom high-throughput enterprise deployments."
+)
 async def contact_enterprise(
     req: EnterpriseContactRequest,
     user: CurrentUser

@@ -71,7 +71,8 @@ def _clear_auth_cookies(response: Response) -> None:
     "/register",
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create account and organization",
+    summary="User Registration",
+    description="Initialize a new user account and enterprise organization. Generates a root API key for immediate inference access."
 )
 async def register(
     body: RegisterRequest,
@@ -126,7 +127,11 @@ async def register(
     )
 
 
-@router.post("/login", summary="Email/password login (sets httpOnly cookies)")
+@router.post(
+    "/login", 
+    summary="User Authentication",
+    description="Exchange email and password for a stateful session. Sets secure, HTTP-only JWT cookies for browser-based orchestration."
+)
 async def login(
     body: LoginRequest,
     response: Response,
@@ -153,7 +158,11 @@ async def login(
     }
 
 
-@router.post("/refresh", summary="Rotate access token using refresh cookie")
+@router.post(
+    "/refresh", 
+    summary="Session Rotation",
+    description="Rotates the current JWT session. This endpoint consumes the refresh cookie and provisions a new authenticated state."
+)
 async def refresh_session(
     request: Request,
     response: Response,
@@ -183,13 +192,22 @@ async def refresh_session(
     return {"status": "ok"}
 
 
-@router.post("/logout", summary="Clear auth cookies")
+@router.post(
+    "/logout", 
+    summary="Session Termination",
+    description="Invalidates the current session cookies and terminates the stateful connection."
+)
 async def logout(response: Response) -> dict[str, str]:
     _clear_auth_cookies(response)
     return {"status": "ok"}
 
 
-@router.get("/me", response_model=AuthMeResponse)
+@router.get(
+    "/me", 
+    response_model=AuthMeResponse,
+    summary="Get Current Identity",
+    description="Retrieve the profile and organizational context of the currently authenticated entity."
+)
 async def me(
     user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],

@@ -41,23 +41,14 @@ class TransactionListItem(BaseModel):
 @router.post(
     "/analyze",
     response_model=TransactionAnalyzeResponse,
-    summary="Score a transaction (ML + Rules)",
-    response_description="Risk assessment with persistence and live dashboard broadcast.",
+    summary="Transaction Risk Analysis",
+    description="Perform high-fidelity heuristic and ML-driven risk assessment on a single transaction. Includes SHAP explainability and immediate event broadcasting."
 )
 async def analyze_transaction(
     body: TransactionAnalyzeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
-    """
-    Analyze a transaction for fraud risk in real-time.
-
-    Returns a risk score (0.0-1.0), fraud label, decision,
-    and SHAP-powered explanation of top fraud signals.
-
-    **Response time:** < 100ms P99
-    **Authentication:** X-API-Key header required
-    """
     # 1. Start timer for latency tracking
     start_time = time.perf_counter()
     
@@ -120,8 +111,12 @@ async def analyze_transaction(
     }
 
 
-
-@router.get("", response_model=list[TransactionListItem], summary="Recent transactions for your org")
+@router.get(
+    "", 
+    response_model=list[TransactionListItem], 
+    summary="List Transaction Audit Log",
+    description="Retrieve a paginated historical log of analyzed transactions within the organizational context."
+)
 async def list_transactions(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
@@ -150,15 +145,19 @@ async def list_transactions(
             )
         )
     return out
-@router.post("/simulate", summary="Trigger synthetic traffic burst (Demo Only)", include_in_schema=False)
+
+
+@router.post(
+    "/simulate", 
+    summary="Generate Synthetic Traffic", 
+    description="Engineered burst of mock transactions for platform demonstration and system stress validation.",
+    include_in_schema=False
+)
 async def simulate_traffic(
     auth: AnalyzeAuthDep,
     db: Annotated[AsyncSession, Depends(get_db)],
     count: int = Query(5, ge=1, le=20)
 ):
-    """
-    Synthesize mock transactions to demonstrate live dashboard updates.
-    """
     from app.schemas.transaction import MerchantIn, CardIn, CustomerIn
     import random
     
