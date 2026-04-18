@@ -44,19 +44,21 @@ class FraudDetectionService:
         is_prepaid = tx.card.type.lower() == "prepaid" if tx.card.type else False
         email_len = len(tx.customer.email) if tx.customer.email else 0
         
-        # Invoke Sci-Kit Learn Model
+        # 1. Logic A: Machine Learning Core (Pattern Recognition)
         ml_score = 0.0
         if plan != "free":
             ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
+            if ml_score > 0.7:
+                reasons.append(f"Autonomous pattern recognition flagged transaction (Risk: {ml_score:.2f})")
         else:
-            reasons.append("ML ensemble disabled on Free plan (rules only)")
+            reasons.append("ML ensemble analysis restricted to premium tiers")
         
         # Start base score with ML insights
         score = ml_score
-        weights["ai_anomaly"] = round(ml_score, 2)
+        weights["ml_pattern_recognition"] = round(ml_score, 2)
         
-        if ml_score > 0.6:
-            reasons.append(f"AI Anomaly Model spotted high deviation (score: {ml_score:.2f})")
+        # 2. Logic B: Heuristic & Rule-Based (The Sentry)
+        # We merge ML scores with existing domain rules for an ensemble decision.
 
         # Digital Footprint: Email Reputation Logic
         if tx.customer.email:

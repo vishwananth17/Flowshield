@@ -28,6 +28,10 @@ COPY --from=builder /install /usr/local
 COPY ./backend/app /app/app
 COPY ./backend/alembic /app/alembic
 COPY ./backend/alembic.ini /app/alembic.ini
+COPY ./backend/train_model.py /app/train_model.py
+
+# Run model calibration (Train and Serialize)
+RUN mkdir -p /app/app/ml_models && python /app/train_model.py && chown -R appuser:appuser /app/app/ml_models
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
