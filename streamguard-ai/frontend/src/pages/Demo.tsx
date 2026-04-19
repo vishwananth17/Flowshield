@@ -101,58 +101,78 @@ export default function Demo() {
 
       setResult(response.data);
       setCurrentPhase('resolved');
-      toast.success('Forensic Analysis Ready');
+      toast.success('Analysis Complete');
     } catch (error: any) {
       console.error(error);
-      toast.error('Garter Protocol Failure: Service Interrupted');
+      toast.error('Protocol Link Interrupted');
       setIsProcessing(false);
       setCurrentPhase('idle');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#02030a] text-slate-100 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+    <div className="min-h-screen bg-[#010208] text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none mix-blend-soft-light"></div>
       
-      <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
+      {/* TACTICAL BACKGROUND GRID */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6366f1 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
+
+      <div className="relative z-10 grid lg:grid-cols-12 h-screen">
         
-        {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
-        <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
+        {/* --- TACTICAL WIRING OVERLAY --- */}
+        <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-             {/* Labels (Pinned to SVG geometry with fixed scale) */}
-             <text x="21" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Merchant SDK</text>
-             <text x="79" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Audit Ledger</text>
+             <defs>
+               <linearGradient id="path-grad" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#6366f1" stopOpacity="0" />
+                 <stop offset="50%" stopColor="#6366f1" stopOpacity="0.1" />
+                 <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+               </linearGradient>
+             </defs>
 
-             <circle cx="21" cy="40" r="0.8" fill="#020617" stroke="#6366f1" strokeWidth="0.1" className="opacity-40" />
-             <circle cx="79" cy="40" r="0.8" fill="#020617" stroke="#818cf8" strokeWidth="0.1" className="opacity-40" />
+             {/* Static Path Traces */}
+             <path d="M 22 40 L 50 40" stroke="url(#path-grad)" strokeWidth="0.15" fill="none" />
+             <path d="M 50 40 L 78 40" stroke="url(#path-grad)" strokeWidth="0.15" fill="none" />
 
-             {/* Data Swarm: Left to Center */}
+             {/* Tactical Anchors */}
+             <g transform="translate(22, 40)">
+                <rect x="-6" y="5" width="12" height="4" rx="1" fill="#020617" stroke="#475569" strokeWidth="0.05" className="opacity-40" />
+                <text y="7.5" textAnchor="middle" fill="#94a3b8" style={{ fontSize: '1px' }} className="font-black tracking-[0.2em] uppercase opacity-60">Merchant SDK</text>
+                <circle r="0.6" fill="#6366f1" className="opacity-20 animate-pulse" />
+             </g>
+
+             <g transform="translate(78, 40)">
+                <rect x="-6" y="5" width="12" height="4" rx="1" fill="#020617" stroke="#475569" strokeWidth="0.05" className="opacity-40" />
+                <text y="7.5" textAnchor="middle" fill="#94a3b8" style={{ fontSize: '1px' }} className="font-black tracking-[0.2em] uppercase opacity-60">Audit Ledger</text>
+                <circle r="0.6" fill="#818cf8" className="opacity-20 animate-pulse" />
+             </g>
+
+             {/* Data Swarm: Pulse Flow */}
              <AnimatePresence>
-               {isProcessing && [0,1,2].map((i) => (
+               {isProcessing && [0,1,2,3].map((i) => (
                   <motion.circle
                     key={`swarm-in-${i}`}
-                    r="0.4"
+                    r="0.35"
                     fill="#6366f1"
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: i*0.4 }}
-                    style={{ offsetPath: `path('M 21 40 Q 36 40 50 40')` }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: "linear", delay: i*0.3 }}
+                    style={{ offsetPath: `path('M 22 40 Q 36 40 50 40')` }}
                     className="shadow-[0_0_15px_#6366f1]"
                   />
                ))}
              </AnimatePresence>
 
-             {/* Data Swarm: Center to Right */}
              <AnimatePresence>
                 {currentPhase === 'resolved' && [0,1,2].map((i) => (
                     <motion.circle
                       key={`swarm-out-${i}`}
-                      r="0.5"
+                      r="0.45"
                       fill="#818cf8"
                       initial={{ offsetDistance: "0%" }}
                       animate={{ offsetDistance: "100%" }}
-                      transition={{ duration: 0.8, ease: "easeOut", delay: i*0.15 }}
-                      style={{ offsetPath: `path('M 50 40 Q 64 40 79 40')` }}
+                      transition={{ duration: 0.8, ease: "circOut", delay: i*0.1 }}
+                      style={{ offsetPath: `path('M 50 40 Q 64 40 78 40')` }}
                       className="shadow-[0_0_15px_#818cf8]"
                     />
                 ))}
@@ -160,36 +180,39 @@ export default function Demo() {
           </svg>
         </div>
 
-        {/* 1. LEFT PANEL: RAW DATA TRIGGER */}
-        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 flex flex-col justify-between">
-          <div className="space-y-8">
+        {/* 1. INPUT PANEL */}
+        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/20 backdrop-blur-3xl p-6 lg:p-8 flex flex-col justify-between relative z-40">
+          <div className="space-y-10">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <ShieldCheck className="text-white w-5 h-5" />
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+                <ShieldCheck className="text-white w-6 h-6" />
               </div>
-              <span className="text-xl font-black tracking-tighter">ORACLE</span>
+              <div>
+                <div className="text-sm font-black tracking-widest text-white uppercase">Flowshield</div>
+                <div className="text-[10px] font-bold text-indigo-400 tracking-[0.3em] uppercase opacity-60">Forensic Lab</div>
+              </div>
             </div>
 
             <div className="space-y-4">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-black mb-2">Scenario Pulse</div>
+              <div className="text-[9px] uppercase tracking-[0.4em] text-slate-500 font-black px-2">Trigger Protocol</div>
               {demoScenarios.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => !isProcessing && handleRunDemo(s)}
                   disabled={isProcessing}
-                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-500 relative overflow-hidden group ${
                     activeScenario?.id === s.id 
-                    ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' 
-                    : 'bg-slate-900/40 border-slate-800/50 hover:border-indigo-500/30'
+                    ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_30px_rgba(99,102,241,0.05)]' 
+                    : 'bg-slate-900/40 border-slate-800/50 hover:bg-slate-900/60 hover:border-indigo-500/30'
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-950 border border-white/5 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-black/60 border border-white/5 group-hover:border-indigo-500/40 transition-colors">
                       {s.icon}
                     </div>
                     <div>
-                      <div className="font-bold text-[13px]">{s.name}</div>
-                      <div className="text-[10px] text-slate-600 uppercase tracking-widest">{s.id.split('_')[0]} context</div>
+                      <div className="font-bold text-[14px] text-slate-200">{s.name}</div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black">{s.currency} gateway</div>
                     </div>
                   </div>
                 </button>
@@ -197,39 +220,44 @@ export default function Demo() {
             </div>
           </div>
 
-          <div className="space-y-4 pt-10 border-t border-white/5">
-             <div className="text-[9px] uppercase font-black text-slate-700 tracking-widest">Input Signals</div>
-             <NeuralIconRow icon={<CreditCard className="w-4 h-4 text-indigo-400" />} label="Payload" />
-             <NeuralIconRow icon={<Globe className="w-4 h-4 text-indigo-400" />} label="Geographic" />
+          <div className="space-y-5 pt-10 border-t border-white/5">
+             <div className="text-[9px] uppercase font-black text-slate-600 tracking-[0.3em] px-2">Telemetrics</div>
+             <NeuralIconRow icon={<CreditCard className="w-4 h-4" />} label="Card Payload" />
+             <NeuralIconRow icon={<Globe className="w-4 h-4" />} label="Geo-Signals" />
           </div>
         </aside>
 
-        {/* 2. MIDDLE PANEL: NEURAL PROCESSOR */}
-        <main className="lg:col-span-5 bg-[#02030a] relative flex flex-col items-center justify-center p-8 lg:p-12 overflow-hidden">
-          <div className="relative z-10 w-full flex flex-col items-center gap-12">
+        {/* 2. NEURAL CORE MAIN */}
+        <main className="lg:col-span-5 bg-[#01030a] relative flex flex-col items-center justify-center p-8 lg:p-12 overflow-hidden">
+          
+          <div className="relative z-10 w-full flex flex-col items-center gap-16">
             {/* Step Narrator */}
-            <div className="h-6">
+            <div className="h-8">
               <AnimatePresence mode="wait">
                 {(isProcessing || currentPhase === 'resolved') && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}
-                    className="bg-slate-950 px-4 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-slate-400 tracking-widest uppercase shadow-2xl"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="bg-slate-950 px-6 py-2 rounded-full border border-white/5 text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase shadow-2xl backdrop-blur-xl"
                   >
-                    {currentPhase === 'normalizing' && "Ingesting Pulse"}
-                    {currentPhase === 'extracting' && "Vectorizing Risk"}
-                    {currentPhase === 'deciding' && "Neural Consensus"}
-                    {currentPhase === 'resolved' && "Forensic Handover"}
+                    {currentPhase === 'normalizing' && "Phase 1: Pulse Ingestion"}
+                    {currentPhase === 'extracting' && "Phase 2: Feature Matrixing"}
+                    {currentPhase === 'deciding' && "Phase 3: Oracle Consensus"}
+                    {currentPhase === 'resolved' && "Forensic Resolution Complete"}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* NEURAL CORE */}
-            <div className="relative w-80 h-80 flex items-center justify-center">
-               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }} className="absolute inset-0 border border-dashed border-white/5 rounded-full" />
+            {/* THE ENGINE ROOM */}
+            <div className="relative w-96 h-96 flex items-center justify-center">
+               {/* Orbital Rings */}
+               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }} className="absolute inset-0 border border-dashed border-white/5 rounded-full" />
+               <motion.div animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 45, ease: "linear" }} className="absolute inset-12 border border-white/[0.02] rounded-full" />
                
-               <div className="relative bg-slate-950 border border-white/10 w-60 h-60 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_80px_rgba(0,0,0,1)]">
-                  <div className="text-[10px] uppercase font-black tracking-[0.3em] text-slate-600 mb-2 font-mono">Processor</div>
+               {/* THE CORE BLOCK */}
+               <div className="relative bg-[#020512] border border-indigo-500/20 w-64 h-64 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_100px_rgba(0,0,0,1),inset_0_0_40px_rgba(99,102,241,0.05)] overflow-hidden">
+                  <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                  <div className="text-[11px] uppercase font-black tracking-[0.4em] text-indigo-400/40 mb-3 font-mono z-10">Zenith Core</div>
                   <NeuralStage label="Understand" active={currentPhase === 'normalizing'} />
                   <NeuralStage label="Structure" active={currentPhase === 'extracting'} />
                   <NeuralStage label="Connect" active={currentPhase === 'deciding' || currentPhase === 'resolved'} />
@@ -238,103 +266,104 @@ export default function Demo() {
           </div>
         </main>
 
-        {/* 3. RIGHT PANEL: STRUCTURED SYSTEMS & VERDICT */}
-        <aside className="lg:col-span-4 bg-slate-950/50 backdrop-blur-3xl border-l border-white/5 p-6 lg:p-10 flex flex-col h-screen overflow-y-auto custom-scrollbar relative z-50">
+        {/* 3. VERDICT & FORENSICS PANEL */}
+        <aside className="lg:col-span-4 bg-slate-950/40 backdrop-blur-3xl border-l border-white/5 p-6 lg:p-10 flex flex-col h-screen overflow-y-auto custom-scrollbar relative z-40">
           
-          {/* VERDICT CONTAINER */}
-          <div className="mb-6 text-center">
+          {/* TACTICAL VERDICT DISPLAY */}
+          <div className="mb-10 text-center">
             <AnimatePresence mode="wait">
               {result ? (
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                  className={`p-6 rounded-[2rem] border flex flex-col items-center gap-2 shadow-2xl ${
-                    result.decision === 'block' ? 'border-rose-500/40 bg-rose-500/5 shadow-rose-500/10' : 'border-emerald-500/40 bg-emerald-500/5 shadow-emerald-500/10'
+                  initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                  className={`p-10 rounded-[3rem] border-2 transition-all duration-1000 flex flex-col items-center gap-3 shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${
+                    result.decision === 'block' ? 'border-rose-500/50 bg-rose-500/5 shadow-rose-500/10' : 'border-emerald-500/50 bg-emerald-500/5 shadow-emerald-500/10'
                   }`}
                 >
-                   <div className={`text-5xl font-black uppercase tracking-tighter ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                   <div className={`text-6xl font-black uppercase tracking-tighter drop-shadow-2xl ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
                       {result.decision}
                    </div>
-                   <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">System Verdict</div>
+                   <div className="text-[11px] font-black text-slate-500 uppercase tracking-[0.5em]">Forensic Verdict</div>
                 </motion.div>
               ) : (
-                <div className="p-8 rounded-[2rem] border border-dashed border-white/5 flex flex-col items-center gap-2 grayscale opacity-20">
-                   <Zap className="text-slate-500 w-5 h-5" />
-                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Awaiting Pulse</span>
+                <div className="p-12 rounded-[3.5rem] border border-dashed border-white/5 flex flex-col items-center gap-4 grayscale opacity-20 bg-slate-950/20 scale-[0.98]">
+                   <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center">
+                      <Zap className="text-slate-500 w-8 h-8" />
+                   </div>
+                   <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em]">Listening for Data</span>
                 </div>
               )}
             </AnimatePresence>
           </div>
 
-          <div className="flex-grow space-y-12">
-            <div className="flex items-center justify-between">
+          <div className="flex-grow space-y-12 pb-20">
+            <div className="flex items-center justify-between px-2">
               <div className="flex items-center gap-3">
                 <BarChart3 className="text-indigo-400 w-5 h-5" />
-                <h3 className="font-black text-[11px] tracking-[0.2em] text-white/90 uppercase">Glass-Box Forensics</h3>
+                <h3 className="font-black text-[12px] tracking-[0.2em] text-white/90 uppercase italic">Glass-Box Report</h3>
               </div>
               {result && (
-                <div className="text-[10px] font-mono text-indigo-400 font-bold bg-indigo-400/10 px-2 py-1 rounded">
+                <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-[10px] font-black text-indigo-400">
                   {result.latency || 12}MS
                 </div>
               )}
             </div>
 
-            {/* FORENSIC WATERFALL */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                {result ? (
-                  (result.forensics || [
-                    { feature: 'High-risk transaction detected', impact: 0.15 },
-                    { feature: 'Foreign card used', impact: 0.30 },
-                    { feature: 'High-risk merchant category', impact: 0.45 }
-                  ]).map((f: any, idx: number) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ x: 20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="p-5 rounded-2xl bg-white/5 border border-white/5 group hover:bg-white/[0.07] transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[12px] font-bold text-white/70">{f.feature || f}</span>
-                        <span className={result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}>
-                          +{Math.round((f.impact || (idx+1)*0.15) * 100)}%
-                        </span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }} animate={{ width: `${(f.impact || (idx+1)*0.15) * 100}%` }}
-                          className={`h-full ${result.decision === 'block' ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]'}`} 
-                        />
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="text-center py-20">
-                     <Terminal className="w-10 h-10 text-slate-800 mx-auto mb-4 opacity-50" />
-                     <p className="text-[11px] text-slate-700 uppercase font-bold tracking-[0.3em]">No active forensics</p>
-                  </div>
-                )}
-              </div>
+            {/* FORENSIC STACK */}
+            <div className="space-y-6">
+              {result ? (
+                (result.forensics || [
+                  { feature: 'High-risk transaction detected', impact: 0.15 },
+                  { feature: 'Foreign card used', impact: 0.30 },
+                  { feature: 'High-risk merchant category', impact: 0.45 }
+                ]).map((f: any, idx: number) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="p-6 rounded-[1.5rem] bg-white/[0.03] border border-white/5 group hover:bg-white/[0.06] transition-all duration-300"
+                  >
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <span className="text-[13px] font-bold text-white/70 tracking-tight">{f.feature || f}</span>
+                      <span className={`text-[12px] font-black ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        +{Math.round((f.impact || (idx+1)*0.15) * 100)}%
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                      <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${(f.impact || (idx+1)*0.15) * 100}%` }}
+                        className={`h-full rounded-full ${result.decision === 'block' ? 'bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.3)]' : 'bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]'}`} 
+                      />
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-24 opacity-30">
+                   <Terminal className="w-12 h-12 text-slate-800 mx-auto mb-5" />
+                   <p className="text-[11px] text-slate-700 uppercase font-black tracking-[0.4em]">Audit Ledger Idle</p>
+                </div>
+              )}
             </div>
           </div>
           
-          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col gap-5">
-             <NeuralIconRow icon={<Database className="w-5 h-5 text-indigo-400" />} label="Audit Ledger" />
-             <NeuralIconRow icon={<BarChart3 className="w-5 h-5 text-indigo-400" />} label="Forensic Dashboard" />
+          <div className="mt-auto pt-8 border-t border-white/5 space-y-5 bg-slate-950/40 p-4 rounded-3xl mb-4">
+             <NeuralIconRow icon={<Database className="w-5 h-5 text-indigo-400" />} label="Secure Ledger" />
+             <NeuralIconRow icon={<BarChart3 className="w-5 h-5 text-indigo-400" />} label="Forensic Hub" />
           </div>
         </aside>
       </div>
 
-      {/* FIXED BASELINE STATS */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 px-12 py-5 bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-full z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-         <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-            <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
-            0.38MS BASELINE
+      {/* TACTICAL FOOTER LOG */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-10 px-14 py-5 bg-slate-950/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.8)] ring-1 ring-white/5">
+         <div className="flex items-center gap-4 text-[11px] font-black text-indigo-400 uppercase tracking-[0.4em] animate-pulse">
+            <Zap className="w-4 h-4 text-amber-500" />
+            0.38MS Baseline
          </div>
          <div className="w-px h-6 bg-white/10" />
-         <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+         <div className="flex items-center gap-4 text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            RBI COMPLIANT
+            RBI Compliant
          </div>
       </div>
     </div>
@@ -343,22 +372,22 @@ export default function Demo() {
 
 function NeuralStage({ label, active }: { label: string; active: boolean }) {
    return (
-      <div className={`w-full max-w-[160px] py-3 px-5 rounded-2xl border transition-all duration-700 flex items-center justify-center gap-4 ${
-         active ? "bg-indigo-500/15 border-indigo-400 text-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.25)] scale-110" : "bg-white/5 border-white/10 text-slate-800 opacity-20 grayscale"
+      <div className={`w-full max-w-[180px] py-4 px-6 rounded-2xl border transition-all duration-1000 flex items-center justify-center gap-4 backdrop-blur-md ${
+         active ? "bg-indigo-500/20 border-indigo-400 text-indigo-400 shadow-[0_0_40px_rgba(99,102,241,0.3)] scale-110 z-20" : "bg-white/[0.02] border-white/5 text-slate-800 opacity-20 grayscale scale-95"
       }`}>
-         <div className={`w-2.5 h-2.5 rounded-full ${active ? "bg-indigo-400 animate-pulse shadow-[0_0_10px_#818cf8]" : "bg-slate-900"}`} />
-         <span className="text-[12px] font-black uppercase tracking-[0.2em]">{label}</span>
+         <div className={`w-2.5 h-2.5 rounded-full ${active ? "bg-indigo-400 animate-pulse shadow-[0_0_15px_#818cf8]" : "bg-slate-900"}`} />
+         <span className="text-[13px] font-black uppercase tracking-[0.3em] font-mono">{label}</span>
       </div>
    );
 }
 
 function NeuralIconRow({ icon, label }: { icon: any; label: string }) {
    return (
-      <div className="flex items-center gap-4 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] group cursor-default">
-         <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-white/5 flex items-center justify-center group-hover:border-indigo-500/30 group-hover:bg-indigo-500/5 transition-all">
+      <div className="flex items-center gap-5 text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] group cursor-default">
+         <div className="w-12 h-12 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center group-hover:border-indigo-500/40 group-hover:bg-indigo-500/10 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all duration-500">
             {icon}
          </div>
-         <span className="group-hover:text-slate-300 transition-colors">{label}</span>
+         <span className="group-hover:text-slate-300 transition-colors duration-500">{label}</span>
       </div>
    );
 }
