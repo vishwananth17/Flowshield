@@ -9,8 +9,8 @@ import {
   Clock,
   UserCheck
 } from 'lucide-react';
-import { useAlertStore } from '../stores/alertStore';
-import { AlertDrawer } from '../components/AlertDrawer';
+import { useAlertStore } from '@/stores/alertStore';
+import { AlertDrawer } from '@/components/AlertDrawer';
 import { toast } from 'sonner';
 
 export const AlertsPage: React.FC = () => {

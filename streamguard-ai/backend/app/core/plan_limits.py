@@ -14,7 +14,7 @@ PLAN_LIMITS = {
         "webhooks": 1,
         "history_days": 30,
         "ml_enabled": True,
-        "analytics": False,
+        "analytics": True,
         "alerts": True
     },
     "standard": {

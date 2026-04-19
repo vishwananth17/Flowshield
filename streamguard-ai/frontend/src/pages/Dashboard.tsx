@@ -28,8 +28,14 @@ export default function Dashboard() {
       const api = (await import('@/services/api')).default;
       const res = await api.get('/analytics/stats');
       setStatsData(res.data);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to fetch stats", e);
+      // Suppress toast for background status fetches unless it's a critical failure
+      if (e.response?.status === 403) {
+        // Analytics might be gated
+      } else if (e.response) {
+         toast.error(`Stats sync failed: ${e.response.data?.error?.message || 'Server error'}`);
+      }
     }
   };
 

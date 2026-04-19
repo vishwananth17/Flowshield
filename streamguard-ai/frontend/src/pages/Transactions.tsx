@@ -170,7 +170,15 @@ export default function Transactions() {
                         {new Date(tx.created_at).toLocaleTimeString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 font-bold text-[10px] uppercase tracking-widest">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTxId(tx.id);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 font-bold text-[10px] uppercase tracking-widest"
+                        >
                           Details
                         </Button>
                       </td>

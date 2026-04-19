@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -71,15 +71,24 @@ export default function Billing() {
   const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [searchParams] = useSearchParams();
+  const mounted = useRef(false);
 
   useEffect(() => {
+    if (mounted.current) return;
+    mounted.current = true;
+
     fetchData();
     
+    // Safety guard: only trigger if we aren't already initiating
     const upgradeTarget = searchParams.get('upgrade');
-    if (upgradeTarget === 'basic') {
-        subscribeToPlan('basic', 'monthly');
-    } else if (upgradeTarget === 'standard') {
-        subscribeToPlan('standard', 'monthly');
+    if (upgradeTarget && !isSubscribing) {
+        const planToUpgrade = upgradeTarget === 'basic' ? 'basic' : upgradeTarget === 'standard' ? 'standard' : null;
+        if (planToUpgrade) {
+            handleSubscribe(planToUpgrade, 'monthly');
+            // CLEAN UP URL to prevent re-trigger on refresh
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
     }
   }, [searchParams]);
 
@@ -93,8 +102,11 @@ export default function Billing() {
       setData(subRes.data);
       setInvoices(invRes.data);
       setIsAnnual(subRes.data.interval === 'annual');
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to fetch billing data", e);
+      if (e.response?.status !== 401) {
+        toast.error("Billing sync failed. Retrying...");
+      }
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ import {
   Globe,
   Monitor
 } from 'lucide-react';
-import api from '../services/api';
+import api from '@/services/api';
 
 interface TransactionDrawerProps {
   txId: string | null;
@@ -138,15 +138,14 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
               </div>
            </section>
 
-           {/* Geo Section */}
            <section className="space-y-4">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                  <MapPin size={16} /> Forensic Location
               </h3>
               <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
                  <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500">City / Region</span>
-                    <span className="text-white font-bold">{tx?.customer_city || 'N/A'}</span>
+                    <span className="text-white font-bold">{tx?.customer_city || 'N/A (Global)'}</span>
                  </div>
                  <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500">IP Address</span>
@@ -154,7 +153,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
                  </div>
                  <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500">Device Fingerprint</span>
-                    <span className="text-slate-400 font-mono text-[10px]">{tx?.device_fingerprint || 'sg_dfp_...'}</span>
+                    <span className="text-slate-400 font-mono text-[10px] break-all">{tx?.device_fingerprint || 'sg_dfp_pending_triangulation'}</span>
                  </div>
               </div>
            </section>

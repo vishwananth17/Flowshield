@@ -8,8 +8,8 @@ import {
   History,
   Info
 } from 'lucide-react';
-import api from '../services/api';
-import { useAlertStore } from '../stores/alertStore';
+import api from '@/services/api';
+import { useAlertStore } from '@/stores/alertStore';
 
 interface AlertDrawerProps {
   alertId: string | null;

@@ -37,16 +37,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // Diagnostic logging
+    // 1. Silent failure for non-critical network errors (e.g. cold starts)
     if (!error.response) {
-      console.error("❌ Network Error: Cannot reach backend at", originalRequest.baseURL);
-      toast.error("Network Error: Backend unreachable. Check VITE_API_URL settings.");
-    } else {
-      console.error(`❌ API Error (${error.response.status}):`, error.response.data?.error?.message || error.message);
+      console.warn("⚠️ Network Latency/Cold Start detected at", originalRequest.url);
+      // Suppress toast for background/GET requests to avoid annoying the user
+      if (originalRequest.method !== 'get') {
+        toast.error("Low-level connection error. Re-syncing...");
+      }
     }
 
-    // Handle 401 Unauthorized
+    // 2. Handle 401 Unauthorized Smarter
     const isAuthPath = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh');
+    const isPublicPage = ['/', '/login', '/register', '/docs'].includes(window.location.pathname);
     
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
       originalRequest._retry = true;
@@ -55,7 +57,10 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (e) {
         localStorage.removeItem('flowshield_token');
-        window.location.href = '/login';
+        // Only redirect if we are on a protected dashboard route
+        if (!isPublicPage && window.location.pathname.startsWith('/dashboard')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(e);
       }
     }
@@ -65,4 +70,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-
