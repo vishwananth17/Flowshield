@@ -120,53 +120,54 @@ export default function Demo() {
       
       <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
-        {/* --- API WORKFLOW OVERLAY (Literal Storytelling) --- */}
+        {/* --- API WORKFLOW OVERLAY (Grid-Locked Responsiveness) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
-          {/* Workflow Labels */}
-          <div className="absolute top-[35%] left-[26%] flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500">
-               <Globe className="w-4 h-4" />
+          
+          {/* Label 1: Locked to Gap Between Aside (col-3) and Main (col-5) */}
+          <div className="absolute left-[25%] top-[40%] -translate-x-1/2 flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+               <Globe className="w-5 h-5" />
             </div>
-            <span className="text-[8px] font-black tracking-widest text-slate-600 uppercase">Merchant SDK</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Merchant SDK</span>
           </div>
 
-          <div className="absolute top-[35%] left-[68%] flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500">
-               <Database className="w-4 h-4" />
+          {/* Label 2: Locked to Gap Between Main (col-5) and Right (col-4) */}
+          <div className="absolute left-[66%] top-[40%] -translate-x-1/2 flex flex-col items-center gap-2">
+            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+               <Database className="w-5 h-5" />
             </div>
-            <span className="text-[8px] font-black tracking-widest text-slate-600 uppercase">Audit Ledger</span>
+            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Audit Ledger</span>
           </div>
 
-          <svg className="w-full h-full" preserveAspectRatio="none">
-             {/* API Request Path */}
+          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+             {/* API Request Path (Percent Based) */}
              <motion.path
-                d="M 450 400 Q 550 400 650 400" 
+                d="M 25 40 Q 40 40 50 40" 
                 stroke="url(#api-grad)"
-                strokeWidth="1.5"
+                strokeWidth="0.5"
                 initial={{ opacity: 0 }}
                 animate={isProcessing ? { opacity: 0.4 } : { opacity: 0 }}
              />
              
-             {/* API Response Path */}
+             {/* API Response Path (Percent Based) */}
              <motion.path
-                d="M 1050 400 Q 1150 400 1250 400"
+                d="M 66 40 Q 80 40 100 40"
                 stroke="url(#api-grad-rev)"
-                strokeWidth="1.5"
+                strokeWidth="0.5"
                 initial={{ opacity: 0 }}
                 animate={currentPhase === 'resolved' ? { opacity: 0.4 } : { opacity: 0 }}
              />
 
-             {/* Moving Data Envelopes (Packets) */}
+             {/* Moving Data Envelopes (Using 100x100 coord system) */}
              <AnimatePresence>
                {isProcessing && (
                   <motion.g
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-                    style={{ offsetPath: "path('M 450 400 Q 550 400 650 400')" }}
+                    style={{ offsetPath: "path('M 25 40 Q 40 40 50 40')" }}
                   >
-                    <circle r="4" fill="#6366f1" className="shadow-[0_0_10px_#6366f1]" />
-                    <rect x="-6" y="-6" width="12" height="12" rx="2" fill="#6366f1" opacity="0.2" />
+                    <circle r="0.8" fill="#6366f1" className="shadow-[0_0_10px_#6366f1]" />
                   </motion.g>
                )}
              </AnimatePresence>
