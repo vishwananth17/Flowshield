@@ -120,6 +120,55 @@ export default function Demo() {
       
       <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
+        {/* --- INFERENCE WIRING OVERLAY --- */}
+        <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block overflow-hidden">
+          <svg className="w-full h-full" fill="none">
+             {/* Wire 1: Left to Center */}
+             <motion.path
+                d="M 300 450 L 500 450"
+                stroke="#6366f1"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                initial={{ opacity: 0 }}
+                animate={isProcessing ? { opacity: 0.2 } : { opacity: 0 }}
+             />
+             {/* Data Packet 1 */}
+             {isProcessing && (
+                <motion.circle
+                  r="3"
+                  fill="#6366f1"
+                  initial={{ offsetDistance: "0%" }}
+                  animate={{ offsetDistance: "100%" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  style={{ offsetPath: "path('M 300 450 L 500 450')" }}
+                  className="shadow-[0_0_10px_#6366f1]"
+                />
+             )}
+
+             {/* Wire 2: Center to Right */}
+             <motion.path
+                d="M 800 450 L 1000 450"
+                stroke="#6366f1"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                initial={{ opacity: 0 }}
+                animate={currentPhase === 'resolved' ? { opacity: 0.2 } : { opacity: 0 }}
+             />
+             {/* Data Packet 2 */}
+             {currentPhase === 'resolved' && (
+                <motion.circle
+                  r="3"
+                  fill="#818cf8"
+                  initial={{ offsetDistance: "0%" }}
+                  animate={{ offsetDistance: "100%" }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  style={{ offsetPath: "path('M 800 450 L 1000 450')" }}
+                  className="shadow-[0_0_10px_#818cf8]"
+                />
+             )}
+          </svg>
+        </div>
+
         {/* Trigger Panel */}
         <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 space-y-8">
           <div className="flex items-center gap-3 mb-10">
