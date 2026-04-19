@@ -171,6 +171,58 @@ export default function Landing() {
         </motion.div>
       </section>
 
+      {/* --- HOW IT WORKS: THE HANDSHAKE (Trust Narrative) --- */}
+      <section className="py-24 px-6 max-w-5xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-indigo-400 font-bold tracking-widest text-[9px] uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">The Architecture of Trust</span>
+          <h2 className="text-3xl md:text-5xl font-black mt-4 mb-6">How our API secures your stack</h2>
+        </div>
+
+        <div className="relative grid md:grid-cols-3 gap-12 items-center">
+          {/* Wire Background (Static) */}
+          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-y-1/2 z-0"></div>
+
+          {/* Step 1: SDK Connect */}
+          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+            <div className="w-20 h-20 rounded-[2rem] bg-slate-900 border border-white/10 flex items-center justify-center shadow-xl">
+              <Code className="w-8 h-8 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm">1. SDK Connection</h3>
+              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Lightweight integration via our Merchant SDK or direct API.</p>
+            </div>
+          </div>
+
+          {/* Step 2: The Oracle */}
+          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+            {/* Pulsing Neural Core */}
+            <div className="relative overflow-hidden w-28 h-28 rounded-full bg-blue-600/10 border-2 border-blue-500 flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.2)]">
+               <ShieldCheck className="w-10 h-10 text-blue-500" />
+               <motion.div 
+                 animate={{ rotate: 360 }}
+                 transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
+                 className="absolute inset-0 border border-dashed border-blue-500/30 rounded-full"
+               />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm">2. Neural Analysis</h3>
+              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Ensemble AI extracts 22+ risk vectors in real-time.</p>
+            </div>
+          </div>
+
+          {/* Step 3: Forensic Audit */}
+          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+            <div className="w-20 h-20 rounded-[2rem] bg-slate-900 border border-white/10 flex items-center justify-center shadow-xl">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm">3. Forensic Verdict</h3>
+              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Instant ALLOW/BLOCK with human-readable SHAP forensics.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
