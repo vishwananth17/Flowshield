@@ -58,7 +58,7 @@ export default function Demo() {
   return (
     <div className="min-h-screen bg-[#050810] text-[#f8fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
       
-      {/* HEADER - PIXEL PERFECT AUTH BADGE */}
+      {/* PRODUCTION APP SHELL */}
       <nav className="h-14 border-b border-white/5 bg-[#050810] flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-6">
            <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export default function Demo() {
 
         <div className="flex items-center gap-5">
            <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_10px_#10B981]" />
               <span className="text-[11px] font-bold text-white uppercase tracking-widest leading-none">Verify it's you</span>
            </div>
            <div className="flex items-center gap-5 text-slate-500">
@@ -96,16 +96,15 @@ export default function Demo() {
         </div>
       </nav>
 
-      {/* BACKGROUND GLOWS */}
+      {/* BACKGROUND GLOW */}
       <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       <main className="max-w-7xl mx-auto px-8 py-20 relative z-10">
         
-        {/* HERO TITLE - TRACKING MATCH */}
-        <div className="text-center mb-16 relative">
-          <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight inline-block relative">
-            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_20px_rgba(167,139,250,0.4)]">Glass-Box AI</span>
+        {/* HERO TITLE */}
+        <div className="text-center mb-16">
+          <h1 className="text-[58px] font-black tracking-tighter mb-4 leading-tight">
+            Try the <span className="text-[#818cf8]">Glass-Box AI</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
@@ -120,20 +119,20 @@ export default function Demo() {
               <button
                 key={s.id}
                 onClick={() => setActiveId(s.id)}
-                className={`w-full text-left p-7 rounded-[22px] border-2 transition-all duration-300 group ${
+                className={`w-full text-left p-7 rounded-2xl border-2 transition-all duration-300 group ${
                   activeId === s.id 
-                  ? 'bg-[#0f172a] border-blue-500 shadow-2xl shadow-blue-500/15' 
+                  ? 'bg-[#0f172a] border-blue-600/50 shadow-2xl shadow-blue-500/10' 
                   : 'bg-transparent border-white/5 hover:border-white/10 shadow-sm'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                    <div className="p-3 rounded-xl bg-[#080c14] border border-white/5 group-hover:border-white/10 transition-colors">
+                    <div className="p-3 rounded-xl bg-slate-900/50 border border-white/5">
                       {s.icon}
                     </div>
                     <div>
                       <h3 className="font-bold text-xl mb-1 leading-none">{s.name}</h3>
-                      <p className="text-[14px] text-slate-500 font-medium">{s.description}</p>
+                      <p className="text-[13px] text-slate-500 font-medium">{s.description}</p>
                     </div>
                   </div>
                   <ChevronRight className={`w-5 h-5 text-slate-700 transition-transform ${activeId === s.id ? 'translate-x-1 text-slate-400' : ''}`} />
@@ -141,17 +140,17 @@ export default function Demo() {
               </button>
             ))}
 
-            {/* TRUST BADGES - OPACITY MATCH */}
-            <div className="pt-10 flex gap-10 items-center opacity-70">
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            {/* TRUST BADGES */}
+            <div className="pt-10 flex gap-10 items-center">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                   <Globe className="w-4 h-4 text-blue-500" />
                   Global Markets Support
                </div>
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                   <Zap className="w-4 h-4 text-amber-400" />
                   {'<'}50ms Latency
                </div>
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   DPDP Compliant
                </div>
@@ -168,37 +167,37 @@ export default function Demo() {
                     <span className="text-[#f43f5e] font-bold">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white font-semibold">analyze(&#123;</span>
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300 font-medium">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
+                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300 font-medium">amount</span>: <span className="text-amber-300">180000</span>,
+                    <span className="text-amber-300">amount</span>: <span className="text-amber-300">180000</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300 font-medium">currency</span>: <span className="text-emerald-400">"INR"</span>,
+                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400">"INR"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300 font-medium">channel</span>: <span className="text-emerald-400">"web"</span>
+                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400">"web"</span>
                   </div>
-                  <div className="mt-2 text-white font-semibold flex items-center">
+                  <div className="mt-2 text-white font-semibold">
                     &#125;);
                   </div>
                </div>
             </div>
 
-            {/* DECISION ENGINE - ABSOLUTE FINAL PROPORTIONS */}
+            {/* DECISION ENGINE - MASSIVE V2 MATCH */}
             <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[36px] border border-white/10 p-10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)]">
                <div className="flex justify-between items-start mb-14">
                   <div>
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-[900]" />
+                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-black" />
                     </div>
-                    <div className={`text-[56px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
+                    <div className={`text-[52px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
                        {active.values.verdict}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 opacity-80">Risk Score</div>
-                    <div className="text-[96px] font-black text-white tracking-tighter leading-none flex items-baseline justify-end">
+                    <div className="text-[92px] font-black text-white tracking-tighter leading-none">
                       {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold mb-1">%</span>
                     </div>
                   </div>
@@ -209,28 +208,28 @@ export default function Demo() {
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <Zap className="w-4 h-4 text-blue-500" /> Latency
                      </div>
-                     <div className=[36px] font-black text-white italic tracking-tighter">35ms</div>
+                     <div className="text-[34px] font-black text-white italic tracking-tighter">35ms</div>
                   </div>
                   <div className="bg-[#080c14] border border-white/5 rounded-[24px] p-6 shadow-inner">
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <Activity className="w-4 h-4 text-[#818cf8]" /> Confusion
                      </div>
-                     <div className=[36px] font-black text-white italic tracking-tighter">0.75</div>
+                     <div className="text-[34px] font-black text-white italic tracking-tighter">0.75</div>
                   </div>
                </div>
 
                {/* FORENSICS LIST - PIXEL FINISH */}
                <div className="space-y-6">
                   <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 opacity-80">
-                     <span className="text-emerald-500 font-extrabold tracking-widest">{'>_'}</span>
+                     <span className="text-emerald-500 font-black tracking-widest">{'>_'}</span>
                      SHAP Forensics
                   </div>
                   <AnimatePresence mode="wait">
                     <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3.5">
                       {active.forensics.map((f, i) => (
                         <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
-                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_15px_rgba(129,140,248,0.9)]" />
-                           <span className="text-[14.5px] text-slate-400 font-[800] leading-relaxed tracking-tight">{f}</span>
+                           <div className="w-2 h-2 rounded-full bg-[#818cf8] shadow-[0_0_12px_rgba(129,140,248,0.8)]" />
+                           <span className="text-[14.5px] text-slate-400 font-bold leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
                     </motion.div>
