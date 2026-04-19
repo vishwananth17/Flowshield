@@ -50,16 +50,23 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   checkAuth: async () => {
+    const savedToken = localStorage.getItem('flowshield_token');
+    if (!savedToken) {
+      set({ isLoading: false });
+      return;
+    }
+
     try {
       const res = await api.get('/auth/me');
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
-        accessToken: res.data.access_token,
+        accessToken: savedToken,
         isAuthenticated: true, 
         isLoading: false 
       });
     } catch (error) {
+      localStorage.removeItem('flowshield_token');
       set({ user: null, organization: null, accessToken: null, isAuthenticated: false, isLoading: false });
     }
   },
@@ -68,10 +75,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/login', credentials);
+      const token = res.data.access_token;
+      if (token) localStorage.setItem('flowshield_token', token);
+      
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
-        accessToken: res.data.access_token,
+        accessToken: token,
         isAuthenticated: true,
         isLoading: false 
       });
@@ -85,10 +95,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post('/auth/register', data);
+      const token = res.data.access_token;
+      if (token) localStorage.setItem('flowshield_token', token);
+
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
-        accessToken: res.data.access_token,
+        accessToken: token,
         isAuthenticated: true,
         isLoading: false
       });
@@ -102,6 +115,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       await api.post('/auth/logout');
     } catch (e) {}
+    localStorage.removeItem('flowshield_token');
     set({ user: null, organization: null, accessToken: null, isAuthenticated: false });
   }
 }));

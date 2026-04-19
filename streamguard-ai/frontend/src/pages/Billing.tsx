@@ -176,10 +176,34 @@ export default function Billing() {
     }
   ];
 
+  const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
+
   const currentPlan = data?.plan || 'free';
+
+  const handleSubscribe = async (planId: string, interval: 'monthly' | 'annual') => {
+    if (isSubscribing) return;
+    setIsSubscribing(planId);
+    try {
+      await subscribeToPlan(planId as any, interval);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      // We don't necessarily set to null here if the redirect happens, 
+      // but if the modal blocks it, we should reset.
+      setTimeout(() => setIsSubscribing(null), 5000);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 p-4 md:p-8 text-white relative">
+      {isSubscribing && (
+        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#0A0E1A] border border-white/10 p-8 rounded-[2rem] flex flex-col items-center space-y-4 shadow-2xl">
+            <div className="h-12 w-12 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initializing Payment Node...</p>
+          </div>
+        </div>
+      )}
       {/* Background Ambient Glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
@@ -377,10 +401,11 @@ export default function Billing() {
                                 </Button>
                             ) : (
                                 <Button 
-                                  className={`w-full font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl h-14 transition-all duration-500 ${p.popular ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/20' : 'bg-transparent border border-white/10 text-white hover:bg-white/10'}`}
-                                  onClick={() => subscribeToPlan(p.id as any, isAnnual ? 'annual' : 'monthly')}
+                                  disabled={!!isSubscribing}
+                                  className={`w-full font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl h-14 transition-all duration-500 ${p.popular ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/20' : 'bg-transparent border border-white/10 text-white hover:bg-white/10 shadow-none hover:shadow-none'}`}
+                                  onClick={() => handleSubscribe(p.id, isAnnual ? 'annual' : 'monthly')}
                                 >
-                                    UPGRADE NOW
+                                    {isSubscribing === p.id ? 'INITIALIZING...' : 'UPGRADE NOW'}
                                 </Button>
                             )}
                         </div>
