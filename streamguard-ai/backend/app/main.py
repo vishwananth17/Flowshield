@@ -248,7 +248,7 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
             "http://localhost:5173",
             "http://localhost:3000"
         ],
-        allow_origin_regex=r"https://.*\.vercel\.app",
+        allow_origin_regex=r"https://flowshield-.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

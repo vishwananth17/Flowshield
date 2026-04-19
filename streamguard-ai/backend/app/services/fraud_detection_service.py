@@ -113,14 +113,45 @@ class FraudDetectionService:
 
     def analyze(self, tx: TransactionAnalyzeRequest, plan: str = "free") -> FraudResult:
         from app.ml.ensemble import get_ensemble
+        from app.core.billing_config import get_plan_limits
         
         start = time.time()
+        limits = get_plan_limits(plan)
+        
         try:
             features = _extract_features(tx)
             ensemble = get_ensemble()
 
-            if plan == 'free' or plan == 'starter':
-                # Tier-restricted: Rules only
+            # ── Tier-Based Inference Strategy ────────────────────────────────
+            if "XGBoost" in limits.ensemble_layers and "MVIForest" in limits.ensemble_layers:
+                # FULL ENSEMBLE (Growth/Enterprise/Builder)
+                result_dict = ensemble.predict(features)
+                
+                # If plan doesn't have SHAP and it's a suspicious case, hide reasons
+                if not limits.has_shap and result_dict["decision"] != "allow":
+                    result_dict["reasons"] = ["Upgrade to view forensic reasons"]
+            
+            elif "MVIForest" in limits.ensemble_layers:
+                # INTERMEDIATE (Builder variant)
+                mvi_score = ensemble._get_mvi_score(features)
+                rule_score, rule_reasons = ensemble._apply_hard_rules(features)
+                final_score = max(mvi_score, rule_score)
+                
+                if final_score >= 0.80: label, decision = "fraud", "block"
+                elif final_score >= 0.40: label, decision = "suspicious", "review"
+                else: label, decision = "safe", "allow"
+
+                result_dict = {
+                    "risk_score": round(final_score, 4),
+                    "risk_label": label,
+                    "decision": decision,
+                    "confidence": 0.70,
+                    "reasons": rule_reasons if limits.has_shap else ["AI anomaly detection active"],
+                    "model_scores": {"mvi": mvi_score, "rules": rule_score},
+                    "model_version": "mvi_rules_v1.0",
+                }
+            else:
+                # MINIMAL (Free)
                 rule_score, rule_reasons = ensemble._apply_hard_rules(features)
                 final_score = rule_score if rule_score > 0 else 0.05
 
@@ -133,13 +164,10 @@ class FraudDetectionService:
                     "risk_label": label,
                     "decision": decision,
                     "confidence": 0.65,
-                    "reasons": rule_reasons or ["Standard rule-set pass"],
+                    "reasons": rule_reasons if limits.has_shap else ["Standard rule-set pass"],
                     "model_scores": {"rules": round(final_score, 4)},
                     "model_version": "rules_only_v1.0",
                 }
-            else:
-                # Premium: Full Ensemble (MVI + XGB + Rules)
-                result_dict = ensemble.predict(features)
 
         except Exception as e:
             logger.error(f"Fraud analysis ensemble error: {e}", exc_info=True)

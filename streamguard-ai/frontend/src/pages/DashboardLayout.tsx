@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { 
@@ -13,7 +14,10 @@ import {
   Search,
   LogOut,
   Shield,
-  CreditCard
+  CreditCard,
+  Menu,
+  X,
+  PlayCircle
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -30,6 +34,7 @@ const AlertBadge = () => {
 };
 
 export default function DashboardLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const location = useLocation();
   
@@ -41,15 +46,19 @@ export default function DashboardLayout() {
     { name: 'Transactions', path: '/dashboard/transactions', icon: Activity },
     { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle },
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Simulation', path: '/demo', icon: PlayCircle }, // Quick Access to Demo
     { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
     { name: 'Team', path: '/dashboard/team', icon: Users },
     { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
   ];
 
   return (
-    <div className="flex h-screen bg-[#0A0E1A] text-white">
-      {/* Sidebar */}
-      <div className="w-64 border-r border-[#1F2937] bg-[#111827] flex flex-col">
+    <div className="flex h-screen bg-[#0A0E1A] text-white overflow-hidden">
+      {/* Sidebar - Desktop & Tablet */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-[#1F2937] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
         <div className="p-6 flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
             <Shield className="h-5 w-5 text-blue-400" />
@@ -110,9 +119,17 @@ export default function DashboardLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 border-b border-[#1F2937] bg-[#111827] flex items-center justify-between px-6">
+        <header className="h-16 border-b border-[#1F2937] bg-[#111827] flex items-center justify-between px-6 sticky top-0 z-40">
           <div className="flex items-center gap-4">
-            <div className="flex items-center bg-[#1F2937] rounded-lg px-3 py-2 w-96 border border-[#374151]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden text-gray-400"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+            <div className="hidden sm:flex items-center bg-[#1F2937] rounded-lg px-3 py-2 w-64 lg:w-96 border border-[#374151]">
               <Search className="h-4 w-4 text-gray-400 mr-2" />
               <input 
                 type="text" 

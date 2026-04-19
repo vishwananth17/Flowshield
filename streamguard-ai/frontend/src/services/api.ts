@@ -3,10 +3,10 @@ import axios from 'axios';
 const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
 
 const defaultBaseURL = isProduction 
-  ? 'https://flowshield-backend-ani8.onrender.com' 
-  : (window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8002' : 'http://localhost:8002');
+  ? 'https://flowshield-backend-ani8.onrender.com/api/v1' 
+  : 'http://localhost:8000/api/v1';
 
-// Force the Render backend in production to override stale environment variables
+// Unified API Base ensuring the /api/v1 prefix is always present
 export const API_BASE_URL = isProduction 
   ? 'https://flowshield-backend-ani8.onrender.com/api/v1' 
   : (import.meta.env.VITE_API_URL || defaultBaseURL);
@@ -47,8 +47,8 @@ api.interceptors.response.use(
     }
 
     // 2. Handle 401 Unauthorized Smarter
-    const isAuthPath = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh');
-    const isPublicPage = ['/', '/login', '/register', '/docs'].includes(window.location.pathname);
+    const isAuthPath = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register') || originalRequest.url?.includes('/auth/refresh');
+    const isPublicPage = ['/', '/login', '/register', '/docs', '/demo'].includes(window.location.pathname);
     
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
       originalRequest._retry = true;

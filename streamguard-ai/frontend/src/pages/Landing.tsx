@@ -13,7 +13,8 @@ import {
   CreditCard,
   Building2,
   ShieldCheck,
-  MessageSquare
+  MessageSquare,
+  Code
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,35 +103,35 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#020617] text-slate-50 selection:bg-blue-500/30 overflow-x-hidden">
       {/* Nav */}
-      <nav className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto backdrop-blur-md sticky top-0 border-b border-white/5">
+      <nav className="relative z-50 flex items-center justify-between px-4 md:px-6 py-6 max-w-7xl mx-auto backdrop-blur-md sticky top-0 border-b border-white/5 bg-black/50">
         <div className="flex items-center space-x-2">
           <div className="bg-blue-600 p-1.5 rounded-lg">
-            <Shield className="h-6 w-6 text-white" />
+            <Shield className="h-5 w-5 md:h-6 md:w-6 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight">Flowshield AI</span>
+          <span className="text-lg md:text-xl font-bold tracking-tight">Flowshield AI</span>
         </div>
-        <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
+        <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-400">
           <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
           <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
           <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
         </div>
-        <div className="flex items-center space-x-4">
-          <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Log in</Link>
-          <Button asChild className="bg-blue-600 hover:bg-blue-500 rounded-full h-10 px-6 font-bold shadow-lg shadow-blue-500/20">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <Link to="/login" className="text-xs md:text-sm font-medium text-slate-400 hover:text-white transition-colors">Log in</Link>
+          <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-500 rounded-full font-bold shadow-lg shadow-blue-500/20 px-4 md:px-6">
             <Link to="/register">Register</Link>
           </Button>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-20 pb-32 px-6 max-w-7xl mx-auto text-center">
+      <section className="relative pt-12 md:pt-20 pb-20 md:pb-32 px-4 md:px-6 max-w-7xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">v2.0 Beta now live</span>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9]">
+          <h1 className="text-4xl md:text-8xl font-black tracking-tighter mb-6 md:mb-8 leading-[1.0] md:leading-[0.9]">
             Secure your payments with <br />
             <span className="text-blue-500">Autonomous AI</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-lg text-slate-400 mb-12">
+          <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-400 mb-8 md:mb-12">
             Flowshield AI monitors every transaction in real-time, detecting complex fraud behavior 
             before it hits your balance. Built for high-volume marketplaces and fintech.
           </p>
@@ -139,11 +140,11 @@ export default function Landing() {
               <Input 
                 type="email" 
                 placeholder="Enter work email" 
-                className="bg-white/5 border-white/10 h-14 rounded-2xl" 
+                className="bg-white/5 border-white/10 h-12 md:h-14 rounded-2xl" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button onClick={handleWaitlistManual} className="bg-white text-black hover:bg-slate-200 h-14 px-8 rounded-2xl font-black">
+              <Button onClick={handleWaitlistManual} className="bg-white text-black hover:bg-slate-200 h-12 md:h-14 px-8 rounded-2xl font-black whitespace-nowrap">
                 {isSubmitting ? '...' : 'Join Waitlist'}
               </Button>
             </div>
@@ -152,6 +153,21 @@ export default function Landing() {
               Welcome! You're on the list.
             </div>
           )}
+
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Button asChild variant="outline" className="border-white/10 hover:bg-white/5 text-slate-400 hover:text-white h-12 px-8 rounded-xl font-bold bg-slate-900/50 backdrop-blur-sm">
+              <Link to="/demo" className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" />
+                Try Interactive Sandbox
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="text-slate-500 hover:text-white h-12 px-8 rounded-xl font-bold">
+              <Link to="/docs" className="flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                Developer Quickstart
+              </Link>
+            </Button>
+          </div>
         </motion.div>
       </section>
 
