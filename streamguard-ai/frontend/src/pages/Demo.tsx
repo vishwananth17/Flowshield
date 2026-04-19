@@ -118,13 +118,13 @@ export default function Demo() {
         
         {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-             {/* Labels (Pinned to SVG geometry) */}
-             <text x="25" y="46" textAnchor="middle" fill="#64748b" className="text-[2px] font-black tracking-widest uppercase font-sans">Merchant SDK</text>
-             <text x="75" y="46" textAnchor="middle" fill="#64748b" className="text-[2px] font-black tracking-widest uppercase font-sans">Audit Ledger</text>
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+             {/* Labels (Pinned to SVG geometry with fixed scale) */}
+             <text x="21" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Merchant SDK</text>
+             <text x="79" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Audit Ledger</text>
 
-             <circle cx="25" cy="40" r="1" fill="#1e293b" stroke="#6366f1" strokeWidth="0.2" />
-             <circle cx="75" cy="40" r="1" fill="#1e293b" stroke="#818cf8" strokeWidth="0.2" />
+             <circle cx="21" cy="40" r="0.8" fill="#020617" stroke="#6366f1" strokeWidth="0.1" className="opacity-40" />
+             <circle cx="79" cy="40" r="0.8" fill="#020617" stroke="#818cf8" strokeWidth="0.1" className="opacity-40" />
 
              {/* Data Swarm: Left to Center */}
              <AnimatePresence>
@@ -136,8 +136,8 @@ export default function Demo() {
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: i*0.4 }}
-                    style={{ offsetPath: `path('M 25 40 Q 37 40 50 40')` }}
-                    className="shadow-[0_0_20px_#6366f1]"
+                    style={{ offsetPath: `path('M 21 40 Q 36 40 50 40')` }}
+                    className="shadow-[0_0_15px_#6366f1]"
                   />
                ))}
              </AnimatePresence>
@@ -152,8 +152,8 @@ export default function Demo() {
                       initial={{ offsetDistance: "0%" }}
                       animate={{ offsetDistance: "100%" }}
                       transition={{ duration: 0.8, ease: "easeOut", delay: i*0.15 }}
-                      style={{ offsetPath: `path('M 50 40 Q 63 40 75 40')` }}
-                      className="shadow-[0_0_20px_#818cf8]"
+                      style={{ offsetPath: `path('M 50 40 Q 64 40 79 40')` }}
+                      className="shadow-[0_0_15px_#818cf8]"
                     />
                 ))}
              </AnimatePresence>
