@@ -96,15 +96,16 @@ export default function Demo() {
         </div>
       </nav>
 
-      {/* BACKGROUND GLOW */}
+      {/* BACKGROUND GLOWS */}
       <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       <main className="max-w-7xl mx-auto px-8 py-20 relative z-10">
         
         {/* HERO TITLE - TRACKING MATCH */}
-        <div className="text-center mb-16">
-          <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight">
-            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]">Glass-Box AI</span>
+        <div className="text-center mb-16 relative">
+          <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight inline-block relative">
+            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_20px_rgba(167,139,250,0.4)]">Glass-Box AI</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
@@ -119,15 +120,15 @@ export default function Demo() {
               <button
                 key={s.id}
                 onClick={() => setActiveId(s.id)}
-                className={`w-full text-left p-7 rounded-2xl border-2 transition-all duration-300 group ${
+                className={`w-full text-left p-7 rounded-[22px] border-2 transition-all duration-300 group ${
                   activeId === s.id 
-                  ? 'bg-[#0f172a] border-blue-500 shadow-2xl shadow-blue-500/10' 
+                  ? 'bg-[#0f172a]/90 border-blue-500 shadow-2xl shadow-blue-500/10' 
                   : 'bg-transparent border-white/5 hover:border-white/10 shadow-sm'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                    <div className="p-3 rounded-xl bg-slate-900/50 border border-white/5">
+                    <div className="p-3 rounded-xl bg-[#080c14] border border-white/5 group-hover:border-white/10 transition-colors">
                       {s.icon}
                     </div>
                     <div>
@@ -167,18 +168,18 @@ export default function Demo() {
                     <span className="text-[#f43f5e] font-bold">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white font-semibold">analyze(&#123;</span>
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
+                    <span className="text-amber-300 font-medium">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">amount</span>: <span className="text-amber-300">180000</span>,
+                    <span className="text-amber-300 font-medium">amount</span>: <span className="text-amber-300">180000</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400">"INR"</span>,
+                    <span className="text-amber-300 font-medium">currency</span>: <span className="text-emerald-400">"INR"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400">"web"</span>
+                    <span className="text-amber-300 font-medium">channel</span>: <span className="text-emerald-400">"web"</span>
                   </div>
-                  <div className="mt-2 text-white font-semibold">
+                  <div className="mt-2 text-white font-semibold flex items-center">
                     &#125;);
                   </div>
                </div>
