@@ -50,18 +50,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   checkAuth: async () => {
-    const savedToken = localStorage.getItem('flowshield_token');
-    if (!savedToken) {
-      set({ isLoading: false });
-      return;
-    }
-
     try {
       const res = await api.get('/auth/me');
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
-        accessToken: savedToken,
+        accessToken: localStorage.getItem('flowshield_token'),
         isAuthenticated: true, 
         isLoading: false 
       });
