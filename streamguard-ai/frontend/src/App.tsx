@@ -19,9 +19,9 @@ import Landing from '@/pages/Landing';
 
 function App() {
   return (
-    <ErrorBoundary>
-      <Toaster position="top-right" richColors />
-      <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <Toaster position="top-right" richColors />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -43,8 +43,8 @@ function App() {
             </Route>
           </Route>
         </Routes>
-      </BrowserRouter>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </BrowserRouter>
   );
 }
 
