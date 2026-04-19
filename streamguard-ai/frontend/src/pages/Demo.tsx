@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react';
+import React, { useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -18,7 +18,7 @@ import {
 import api from '@/services/api';
 import { toast } from 'sonner';
 
-// --- Types & Interfaces ---
+// --- Types ---
 type SimulationStatus = 'IDLE' | 'PROCESSING' | 'RESOLVED';
 
 interface ForensicFactor {
@@ -52,7 +52,6 @@ type Action =
   | { type: 'COMPLETE_SIMULATION' }
   | { type: 'RESET' };
 
-// --- Reducer ---
 function simulationReducer(state: State, action: Action): State {
   switch (action.type) {
     case 'START_SIMULATION':
@@ -68,53 +67,52 @@ function simulationReducer(state: State, action: Action): State {
   }
 }
 
-// --- Scenarios Data ---
-const ENTERPRISE_SCENARIOS: Scenario[] = [
+const FLOWSHIELD_THEME_SCENARIOS: Scenario[] = [
   {
     id: 'SAFE_UPI',
-    name: 'Standard UPI Payment',
-    description: 'Typical INR 450 Grocery Transaction (Mumbai)',
-    icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
+    name: 'Safe UPI Payment',
+    description: 'Typical INR 450 grocery transaction from Mumbai',
+    icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
     risk_score: 0.02,
     confidence: 0.99,
-    latency: 34,
+    latency: 12,
     verdict: 'ALLOW',
     forensics: [
-      { label: 'Verified Device Fingerprint', weight: 15, type: 'decrease' },
-      { label: 'Historical Merchant Affinity', weight: 40, type: 'decrease' },
-      { label: 'Compliant INR Parameters', weight: 10, type: 'decrease' }
+      { label: 'Device ID Match', weight: 15, type: 'decrease' },
+      { label: 'Merchant Affinity', weight: 40, type: 'decrease' },
+      { label: 'Compliant Parameters', weight: 10, type: 'decrease' }
     ],
     payload: { amount: 450, currency: 'INR', city: 'Mumbai', channel: 'upi' }
   },
   {
     id: 'COLLECT_SCAM',
-    name: 'High-Value Collect Request',
-    description: 'Suspicious 15k INR Pull on Unverified Device',
-    icon: <AlertTriangle className="w-5 h-5 text-amber-600" />,
+    name: 'UPI Collect Scam',
+    description: 'High-value pull request on an unverified device',
+    icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
     risk_score: 0.82,
     confidence: 0.94,
-    latency: 38,
+    latency: 17,
     verdict: 'BLOCK',
     forensics: [
-      { label: 'Unverified Pull Request', weight: 45, type: 'increase' },
-      { label: 'Device Age < 24 Hours', weight: 30, type: 'increase' },
-      { label: 'Velocity Limit Breach', weight: 20, type: 'increase' }
+      { label: 'Unverified Pull', weight: 45, type: 'increase' },
+      { label: 'Device Age < 24h', weight: 30, type: 'increase' },
+      { label: 'Velocity Breach', weight: 20, type: 'increase' }
     ],
     payload: { amount: 15000, currency: 'INR', city: 'Delhi', channel: 'upi_collect' }
   },
   {
     id: 'GLOBAL_CARD',
-    name: 'Trans-Atlantic Card Theft',
-    description: 'EUR 1.8k Crypto Purchase from Indian IP',
-    icon: <Lock className="w-5 h-5 text-rose-600" />,
+    name: 'Global Card Theft',
+    description: 'EUR 1.8k purchase from US card on Indian IP',
+    icon: <Lock className="w-5 h-5 text-rose-500" />,
     risk_score: 0.98,
     confidence: 0.98,
-    latency: 42,
+    latency: 22,
     verdict: 'BLOCK',
     forensics: [
-      { label: 'Geographic IP/Card Mismatch', weight: 55, type: 'increase' },
-      { label: 'High-Risk Merchant (Crypto)', weight: 25, type: 'increase' },
-      { label: 'Anomalous Magnitude (EUR)', weight: 15, type: 'increase' }
+      { label: 'IP / Card Mismatch', weight: 55, type: 'increase' },
+      { label: 'High-Risk Merchant', weight: 25, type: 'increase' },
+      { label: 'Magnitude Anomaly', weight: 15, type: 'increase' }
     ],
     payload: { amount: 1800, currency: 'EUR', city: 'Bangalore', channel: 'web' }
   }
@@ -130,253 +128,206 @@ export default function Demo() {
   const handleRunSimulation = async (scenario: Scenario) => {
     dispatch({ type: 'START_SIMULATION', scenario });
     
-    // Step 1: Normalization (t=200ms)
-    await new Promise(r => setTimeout(r, 200));
-    dispatch({ type: 'SET_STEP', step: 'Vectorizing Risk Signal...' });
+    await new Promise(r => setTimeout(r, 600));
+    dispatch({ type: 'SET_STEP', step: 'Vectorizing Signal...' });
 
-    // Step 2: Inference (t=400ms)
-    await new Promise(r => setTimeout(r, 200));
-    dispatch({ type: 'SET_STEP', step: 'Running Neural Consensus...' });
+    await new Promise(r => setTimeout(r, 700));
+    dispatch({ type: 'SET_STEP', step: 'Neural Consensus...' });
 
-    // Step 3: Resolution (t=600ms)
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 500));
     dispatch({ type: 'COMPLETE_SIMULATION' });
-    toast.success('Forensic Verdict Rendered');
+    toast.success('Forensic Report Ready');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
+    <div className="min-h-screen bg-[#02030a] text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
       
-      {/* HEADER HUD BAR */}
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 px-8 py-4">
+      {/* HUD NAV */}
+      <nav className="border-b border-white/5 bg-slate-950/50 backdrop-blur-3xl sticky top-0 z-50 px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
            <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <ShieldCheck className="text-white w-5 h-5 shadow-lg" />
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.4)]">
+                <ShieldCheck className="text-white w-5 h-5" />
               </div>
-              <div>
-                <span className="text-lg font-black tracking-tighter uppercase italic">Flowshield</span>
-                <span className="ml-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-l border-slate-200 pl-3">Oracle Zenith v1.3</span>
+              <div className="flex flex-col">
+                <span className="text-lg font-black tracking-tighter uppercase italic leading-none">Flowshield</span>
+                <span className="text-[9px] font-bold text-indigo-400 tracking-[0.3em] uppercase">Zenith Console v1.3</span>
               </div>
            </div>
            
            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                 <Activity className="w-3 h-3 text-emerald-500" />
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                 <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
                  0.38MS Baseline
               </div>
-              <button 
-                onClick={() => dispatch({ type: 'RESET' })}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200"
-              >
-                <RotateCcw className="w-4 h-4 text-slate-600" />
+              <button onClick={() => dispatch({ type: 'RESET' })} className="p-2 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/10">
+                <RotateCcw className="w-4 h-4 text-slate-400" />
               </button>
            </div>
         </div>
       </nav>
 
       <main className="max-w-7xl mx-auto p-6 md:p-8 h-[calc(100vh-80px)] max-h-[900px]">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
           
-          {/* 1. LEFT PANEL: TRIGGER PROTOCOL */}
-          <aside className="lg:col-span-3 flex flex-col gap-6">
+          {/* 1. LEFT PANEL */}
+          <aside className="lg:col-span-3 flex flex-col gap-6 relative z-40">
             <div className="space-y-1">
-              <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Forensic Lab</h2>
-              <p className="text-xl font-bold text-slate-900 tracking-tight">Trigger Protocol</p>
+              <h2 className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.4em]">Forensic Lab</h2>
+              <p className="text-xl font-bold text-white tracking-tight">Scenario Pulse</p>
             </div>
 
             <div className="space-y-4">
-              {ENTERPRISE_SCENARIOS.map((s) => (
+              {FLOWSHIELD_THEME_SCENARIOS.map((s) => (
                 <button
                   key={s.id}
                   disabled={state.status === 'PROCESSING'}
                   onClick={() => handleRunSimulation(s)}
-                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative group overflow-hidden ${
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-500 group relative overflow-hidden ${
                     state.activeScenario?.id === s.id 
-                    ? 'bg-white border-indigo-600 shadow-md ring-1 ring-indigo-600/5' 
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm grayscale-[0.5] hover:grayscale-0'
+                    ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_30px_rgba(99,102,241,0.1)]' 
+                    : 'bg-slate-900/40 border-white/5 hover:border-indigo-500/30'
                   }`}
                 >
                    <div className="flex items-center gap-4 relative z-10">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-colors ${
-                        state.activeScenario?.id === s.id ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-black/60 border border-white/5 group-hover:border-indigo-500/40 transition-colors`}>
                          {s.icon}
                       </div>
                       <div>
-                        <div className="font-bold text-[14px] text-slate-900 tracking-tight">{s.name}</div>
-                        <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{s.id.replace('_', ' ')} Context</div>
+                        <div className="font-bold text-[13px] text-slate-200">{s.name}</div>
+                        <div className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{s.id.split('_')[0]} Pulse</div>
                       </div>
                    </div>
-                   {state.activeScenario?.id === s.id && (
-                     <motion.div 
-                        layoutId="active-pill" 
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600" 
-                     />
-                   )}
                 </button>
               ))}
             </div>
 
-            <div className="mt-auto p-5 rounded-2xl bg-slate-900 text-white space-y-4">
-               <div className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40">System Heartbeat</div>
+            <div className="mt-auto p-6 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 space-y-4">
+               <div className="text-[9px] font-black uppercase tracking-[0.4em] text-indigo-400">Node Performance</div>
                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold">Node Accuracy</span>
+                  <span className="text-[11px] font-bold text-slate-400">Accuracy</span>
                   <span className="text-[11px] font-black text-emerald-400">99.8%</span>
                </div>
                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold">Latency SLA</span>
-                  <span className="text-[11px] font-black text-indigo-400">{'<'}50ms</span>
+                  <span className="text-[11px] font-bold text-slate-400">SLA</span>
+                  <span className="text-[11px] font-black text-indigo-400">{'<'}20ms</span>
                </div>
             </div>
           </aside>
 
-          {/* 2. CENTER PANEL: THE ZENITH CORE */}
-          <section className="lg:col-span-5 flex flex-col items-center justify-center relative p-8 bg-white border border-slate-200 rounded-[3rem] shadow-sm overflow-hidden">
+          {/* 2. CENTER PANEL (ZENITH CORE) */}
+          <section className="lg:col-span-5 relative flex flex-col items-center justify-center p-8 bg-[#010208]/40 border border-white/5 rounded-[3rem] shadow-2xl overflow-hidden group">
              
-             {/* Data Lines (Relative Percentage Anchors) */}
-             <div className="absolute inset-0 pointer-events-none opacity-20 hidden lg:block">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                   <path d="M 0 50 L 100 50" stroke="#cbd5e1" strokeWidth="0.1" strokeDasharray="1 2" />
+             {/* DATA WIRING */}
+             <div className="absolute inset-0 pointer-events-none z-10">
+                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                   {/* Static Wire Traces */}
+                   <path d="M 0 50 L 100 50" stroke="rgba(99,102,241,0.05)" strokeWidth="0.15" fill="none" />
+                   
+                   {/* Data Packet Flow */}
+                   <AnimatePresence>
+                     {state.status === 'PROCESSING' && (
+                        <motion.circle
+                          r="0.5" fill="#6366f1"
+                          initial={{ offsetDistance: "0%" }} animate={{ offsetDistance: "50%" }}
+                          transition={{ duration: 0.4, ease: "easeIn" }}
+                          style={{ offsetPath: `path('M 0 50 L 100 50')` }}
+                          className="shadow-[0_0_20px_#6366f1]"
+                        />
+                     )}
+                     {state.status === 'RESOLVED' && (
+                        <motion.circle
+                          r="0.8" 
+                          fill={state.activeScenario?.verdict === 'BLOCK' ? '#f43f5e' : '#10b981'}
+                          initial={{ offsetDistance: "50%" }} animate={{ offsetDistance: "100%" }}
+                          transition={{ duration: 0.5, ease: "circOut" }}
+                          style={{ offsetPath: `path('M 0 50 L 100 50')` }}
+                          className={`shadow-[0_0_30px_currentColor]`}
+                        />
+                     )}
+                   </AnimatePresence>
                 </svg>
              </div>
 
-             {/* Movement: Data Packet Left -> Center */}
-             <AnimatePresence>
-                {state.status === 'PROCESSING' && (
-                  <motion.div 
-                    initial={{ left: "-10%", opacity: 1 }}
-                    animate={{ left: "50%", opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeIn" }}
-                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.5)] z-40"
-                  />
-                )}
-             </AnimatePresence>
-
-             {/* Movement: Data Packet Center -> Right */}
-             <AnimatePresence>
-                {state.status === 'RESOLVED' && (
-                  <motion.div 
-                    initial={{ left: "50%", opacity: 1 }}
-                    animate={{ left: "110%", opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full shadow-2xl z-40 border-4 border-white ${
-                      state.activeScenario?.verdict === 'BLOCK' ? 'bg-rose-600' : 'bg-emerald-600'
-                    }`}
-                  />
-                )}
-             </AnimatePresence>
-
-             <div className="relative flex flex-col items-center gap-12">
+             <div className="relative z-20 flex flex-col items-center gap-14">
                 <div className="h-6">
                   <AnimatePresence mode="wait">
-                    {state.status === 'PROCESSING' ? (
+                    {state.status === 'PROCESSING' && (
                       <motion.div
                         key={state.processingStep}
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.4em]"
+                        className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] shadow-[0_0_20px_rgba(129,140,248,0.2)]"
                       >
                         {state.processingStep}
                       </motion.div>
-                    ) : null}
+                    )}
                   </AnimatePresence>
                 </div>
 
-                {/* THE CORE (Concentric Circles) */}
-                <div className="relative w-72 h-72 flex items-center justify-center">
-                   <motion.div 
-                      animate={state.status === 'PROCESSING' ? { rotate: 360, scale: [1, 1.02, 1] } : {}}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-0 border border-slate-200 rounded-full" 
-                   />
-                   <div className="absolute inset-8 border border-slate-100 rounded-full" />
-                   <div className="absolute inset-16 border border-slate-50 rounded-full" />
+                <div className="relative w-80 h-80 flex items-center justify-center">
+                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 40, ease: "linear" }} className="absolute inset-0 border border-dashed border-white/5 rounded-full" />
+                   <motion.div animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 60, ease: "linear" }} className="absolute inset-12 border border-indigo-500/5 rounded-full" />
                    
-                   <div className="relative flex flex-col items-center justify-center">
-                      <div className={`w-32 h-32 rounded-full border-2 flex flex-col items-center justify-center transition-all duration-700 ${
-                        state.status === 'PROCESSING' ? 'bg-indigo-50 border-indigo-200 shadow-[0_0_40px_rgba(79,70,229,0.1)]' : 'bg-slate-50 border-slate-200'
-                      }`}>
-                         {state.status === 'IDLE' && (
-                           <>
-                              <Zap className="w-8 h-8 text-slate-300 mb-2" />
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Standby</span>
-                           </>
-                         )}
-                         {state.status === 'PROCESSING' && (
-                           <div className="flex gap-1">
-                              {[0,1,2].map(i => (
-                                <motion.div 
-                                  key={i} animate={{ height: [8, 24, 8] }} 
-                                  transition={{ repeat: Infinity, duration: 0.8, delay: i*0.2 }}
-                                  className="w-1.5 bg-indigo-600 rounded-full"
-                                />
-                              ))}
-                           </div>
-                         )}
-                         {state.status === 'RESOLVED' && (
-                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                              <CheckCircle2 className={`w-10 h-10 ${state.activeScenario?.verdict === 'BLOCK' ? 'text-rose-600' : 'text-emerald-600'}`} />
-                           </motion.div>
-                         )}
-                      </div>
+                   <div className="relative bg-[#020512] border border-indigo-500/20 w-60 h-60 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_100px_rgba(0,0,0,1),inset_0_0_40px_rgba(99,102,241,0.05)]">
+                      <div className="text-[10px] uppercase font-black tracking-[0.4em] text-indigo-400/40 mb-2 font-mono">Neural Core</div>
+                      <NeuralStage label="Understand" active={state.status === 'PROCESSING' && state.processingStep.includes('Normalizing')} />
+                      <NeuralStage label="Structure" active={state.status === 'PROCESSING' && state.processingStep.includes('Vectorizing')} />
+                      <NeuralStage label="Connect" active={state.status === 'PROCESSING' && state.processingStep.includes('Neural')} />
                       
-                      {state.status === 'IDLE' && (
-                        <div className="absolute top-[140%] whitespace-nowrap text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Awaiting Payload</div>
+                      {state.status === 'RESOLVED' && (
+                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-full">
+                            <CheckCircle2 className={`w-20 h-20 ${state.activeScenario?.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'} drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]`} />
+                         </motion.div>
                       )}
                    </div>
                 </div>
              </div>
           </section>
 
-          {/* 3. RIGHT PANEL: AUDIT LEDGER & FORENSICS */}
-          <aside className="lg:col-span-4 flex flex-col gap-8 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm p-8 overflow-y-auto custom-scrollbar">
+          {/* 3. RIGHT PANEL */}
+          <aside className="lg:col-span-4 flex flex-col gap-6 bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-8 overflow-y-auto custom-scrollbar relative z-40">
             
             <div className="flex items-center justify-between">
-               <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Forensic Verdict</h3>
-               <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-black py-1 px-3">Real-time Node</Badge>
+               <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em]">Audit Ledger</h3>
+               <div className="flex items-center gap-2 text-[9px] font-black text-slate-500 opacity-50 uppercase tracking-widest">
+                  <Database className="w-3 h-3" />
+                  Live Sync
+               </div>
             </div>
 
-            {/* THE DECISION CARD */}
-            <div className="h-44">
+            {/* VERDICT CARD */}
+            <div className="h-48">
               <AnimatePresence mode="wait">
                 {state.status === 'RESOLVED' && state.activeScenario ? (
                   <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className={`h-full rounded-3xl border-2 p-8 flex flex-col justify-center items-center gap-2 ${
-                      state.activeScenario.verdict === 'BLOCK' 
-                      ? 'border-rose-200 bg-rose-50' 
-                      : 'border-emerald-200 bg-emerald-50'
+                    initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    className={`h-full rounded-[2rem] border-2 flex flex-col justify-center items-center gap-3 shadow-[0_30px_60px_rgba(0,0,0,0.4)] ${
+                      state.activeScenario.verdict === 'BLOCK' ? 'border-rose-500/40 bg-rose-500/5' : 'border-emerald-500/40 bg-emerald-500/5'
                     }`}
                   >
-                     <div className={`text-6xl font-black uppercase tracking-tighter ${
-                       state.activeScenario.verdict === 'BLOCK' ? 'text-rose-600' : 'text-emerald-600'
-                     }`}>
+                     <div className={`text-6xl font-black uppercase tracking-tighter ${state.activeScenario.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-400'}`}>
                         {state.activeScenario.verdict}
                      </div>
-                     <div className="flex items-center gap-4 mt-2">
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-r border-slate-300 pr-4">
-                           Confidence: {(state.activeScenario.confidence * 100).toFixed(0)}%
-                        </div>
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                           Latency: {state.activeScenario.latency}ms
-                        </div>
+                     <div className="flex items-center gap-6 px-6 py-2 bg-black/40 rounded-full border border-white/5">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-white/10 pr-4">Conf: {(state.activeScenario.confidence * 100).toFixed(0)}%</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{state.activeScenario.latency}ms</span>
                      </div>
                   </motion.div>
                 ) : (
-                  <div className="h-full border border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center opacity-30 grayscale saturate-0">
+                  <div className="h-full border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center justify-center opacity-20">
                      <Terminal className="w-8 h-8 text-slate-400 mb-4" />
-                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Audit Unpopulated</span>
+                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Awaiting Forensic Handover</span>
                   </div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* GLASS-BOX SHAP REPORT */}
+            {/* SHAP WATERFALL */}
             <div className="space-y-6 flex-grow">
-               <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <BarChart3 className="w-4 h-4 text-slate-400" />
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SHAP Interpretability Stack</span>
+               <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                  <BarChart3 className="text-indigo-400 w-4 h-4" />
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Glass-Box Forensic Stack</span>
                </div>
 
                <div className="space-y-4">
@@ -390,78 +341,67 @@ export default function Demo() {
                          {state.activeScenario.forensics.map((f, i) => (
                            <motion.div
                              key={i}
-                             variants={{
-                               hidden: { x: 20, opacity: 0 },
-                               visible: { x: 0, opacity: 1 }
-                             }}
-                             className="p-4 rounded-xl border border-slate-100 bg-slate-50/50"
+                             variants={{ hidden: { x: 20, opacity: 0 }, visible: { x: 0, opacity: 1 } }}
+                             className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 group hover:bg-white/[0.06] transition-all"
                            >
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-[12px] font-bold text-slate-700">{f.label}</span>
-                                <span className={`text-[12px] font-black ${f.type === 'increase' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                              <div className="flex justify-between items-center mb-3">
+                                <span className="text-[12px] font-bold text-slate-300 tracking-tight">{f.label}</span>
+                                <span className={`text-[12px] font-black ${f.type === 'increase' ? 'text-rose-500' : 'text-emerald-400'}`}>
                                    {f.type === 'increase' ? '+' : '-'}{f.weight}%
                                 </span>
                               </div>
-                              <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                              <div className="h-1.5 w-full bg-black/60 rounded-full overflow-hidden border border-white/5">
                                 <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${f.weight}%` }}
-                                  transition={{ duration: 0.8, ease: "circOut" }}
-                                  className={`h-full rounded-full ${f.type === 'increase' ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                  initial={{ width: 0 }} animate={{ width: `${f.weight}%` }}
+                                  transition={{ duration: 1, ease: "circOut" }}
+                                  className={`h-full rounded-full ${f.type === 'increase' ? 'bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]' : 'bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`} 
                                 />
                               </div>
                            </motion.div>
                          ))}
                       </motion.div>
                     ) : (
-                      <div className="py-12 flex flex-col items-center justify-center opacity-10">
-                         <Database className="w-12 h-12 text-slate-900 mb-4" />
-                         <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting Context</p>
+                      <div className="py-20 flex flex-col items-center justify-center opacity-10">
+                         <Database className="w-10 h-10 text-white mb-4" />
+                         <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Audit Ledger Idle</p>
                       </div>
                     )}
                   </AnimatePresence>
                </div>
             </div>
-
-            <div className="text-[9px] text-slate-400 font-medium leading-relaxed border-t border-slate-100 pt-6">
-              *All forensics on this node are SHAP-weighted based on the Flowshield Ensemble v4.2. Localized INR weights applied.
-            </div>
           </aside>
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-4 border-t border-slate-100 bg-white/50 backdrop-blur-sm pointer-events-none">
-         <div className="max-w-7xl mx-auto flex justify-center gap-10 opacity-40">
-            <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-               <RotateCcw className="w-3 h-3" />
-               Deterministic Engine
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-               <Lock className="w-3 h-3" />
-               RSA-4096 Encrypted
-            </div>
+      {/* TACTICAL FOOTER */}
+      <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-10 px-12 py-4 bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-full z-50 shadow-2xl">
+         <div className="flex items-center gap-3 text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] animate-pulse">
+            <Zap className="w-4 h-4 text-amber-500" />
+            0.38MS Baseline
+         </div>
+         <div className="w-px h-6 bg-white/10" />
+         <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            RBI Compliant
+         </div>
+         <div className="w-px h-6 bg-white/10" />
+         <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">
+            <Lock className="w-3 h-3" />
+            AES-256
          </div>
       </footer>
     </div>
   );
 }
 
-// --- Sub-Components ---
-function NeuralIconRow({ icon, label }: { icon: any; label: string }) {
+// --- Components ---
+function NeuralStage({ label, active }: { label: string; active: boolean }) {
    return (
-      <div className="flex items-center gap-4 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] group cursor-default">
-         <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center group-hover:border-indigo-400 transition-colors shadow-sm">
-            {icon}
-         </div>
-         <span className="group-hover:text-slate-900 transition-colors">{label}</span>
+      <div className={`w-full max-w-[160px] py-3 px-5 rounded-2xl border transition-all duration-700 flex items-center justify-center gap-4 ${
+         active ? "bg-indigo-500/20 border-indigo-500 text-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.2)] scale-110" : "bg-white/[0.02] border-white/5 text-slate-800 opacity-20 grayscale"
+      }`}>
+         <div className={`w-2 h-2 rounded-full ${active ? "bg-indigo-400 animate-pulse shadow-[0_0_10px_#818cf8]" : "bg-slate-900"}`} />
+         <span className="text-[12px] font-black uppercase tracking-[0.3em] font-mono">{label}</span>
       </div>
    );
-}
-
-function Badge({ children, className, variant }: any) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}>
-      {children}
-    </span>
-  );
 }
