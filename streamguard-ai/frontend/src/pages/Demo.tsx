@@ -119,6 +119,13 @@ export default function Demo() {
         {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+             {/* Labels (Pinned to SVG geometry) */}
+             <text x="25" y="46" textAnchor="middle" fill="#64748b" className="text-[2px] font-black tracking-widest uppercase font-sans">Merchant SDK</text>
+             <text x="75" y="46" textAnchor="middle" fill="#64748b" className="text-[2px] font-black tracking-widest uppercase font-sans">Audit Ledger</text>
+
+             <circle cx="25" cy="40" r="1" fill="#1e293b" stroke="#6366f1" strokeWidth="0.2" />
+             <circle cx="75" cy="40" r="1" fill="#1e293b" stroke="#818cf8" strokeWidth="0.2" />
+
              {/* Data Swarm: Left to Center */}
              <AnimatePresence>
                {isProcessing && [0,1,2].map((i) => (
@@ -160,11 +167,11 @@ export default function Demo() {
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <ShieldCheck className="text-white w-5 h-5" />
               </div>
-              <span className="text-lg font-bold tracking-tight">Oracle Hub</span>
+              <span className="text-xl font-black tracking-tighter">ORACLE</span>
             </div>
 
             <div className="space-y-4">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">Scenario Pulse</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-black mb-2">Scenario Pulse</div>
               {demoScenarios.map((s) => (
                 <button
                   key={s.id}
@@ -182,7 +189,7 @@ export default function Demo() {
                     </div>
                     <div>
                       <div className="font-bold text-[13px]">{s.name}</div>
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">{s.id.split('_')[0]} context</div>
+                      <div className="text-[10px] text-slate-600 uppercase tracking-widest">{s.id.split('_')[0]} context</div>
                     </div>
                   </div>
                 </button>
@@ -191,56 +198,38 @@ export default function Demo() {
           </div>
 
           <div className="space-y-4 pt-10 border-t border-white/5">
-             <div className="text-[9px] uppercase font-black text-slate-600 tracking-widest">Input Context Stack</div>
-             <NeuralIconRow icon={<CreditCard className="w-4 h-4 text-indigo-400" />} label="Card Payload" />
-             <NeuralIconRow icon={<Globe className="w-4 h-4 text-indigo-400" />} label="Geographic Data" />
+             <div className="text-[9px] uppercase font-black text-slate-700 tracking-widest">Input Signals</div>
+             <NeuralIconRow icon={<CreditCard className="w-4 h-4 text-indigo-400" />} label="Payload" />
+             <NeuralIconRow icon={<Globe className="w-4 h-4 text-indigo-400" />} label="Geographic" />
           </div>
         </aside>
 
         {/* 2. MIDDLE PANEL: NEURAL PROCESSOR */}
         <main className="lg:col-span-5 bg-[#02030a] relative flex flex-col items-center justify-center p-8 lg:p-12 overflow-hidden">
-          
-          {/* Label 1: API Anchor (Left) */}
-          <div className="absolute left-0 top-[40%] -translate-x-1/2 flex flex-col items-center gap-2 z-40">
-            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-               <Globe className="w-5 h-5" />
-            </div>
-            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Merchant SDK</span>
-          </div>
-
-          {/* Label 2: API Anchor (Right) */}
-          <div className="absolute right-0 top-[40%] translate-x-1/2 flex flex-col items-center gap-2 z-40">
-            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-               <Database className="w-5 h-5" />
-            </div>
-            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Audit Ledger</span>
-          </div>
-
-          <div className="relative z-10 w-full flex flex-col items-center gap-16">
+          <div className="relative z-10 w-full flex flex-col items-center gap-12">
             {/* Step Narrator */}
             <div className="h-6">
               <AnimatePresence mode="wait">
                 {(isProcessing || currentPhase === 'resolved') && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}
-                    className="bg-indigo-500/5 px-4 py-2 rounded-full border border-indigo-500/20 text-[10px] font-black text-indigo-400 tracking-widest uppercase"
+                    className="bg-slate-950 px-4 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-slate-400 tracking-widest uppercase shadow-2xl"
                   >
-                    {currentPhase === 'normalizing' && "Step 1: Normalizing Telemetry"}
-                    {currentPhase === 'extracting' && "Step 2: Vectorizing Features"}
-                    {currentPhase === 'deciding' && "Step 3: Neural Consensus"}
-                    {currentPhase === 'resolved' && "Step 4: Forensic Handover Complete"}
+                    {currentPhase === 'normalizing' && "Ingesting Pulse"}
+                    {currentPhase === 'extracting' && "Vectorizing Risk"}
+                    {currentPhase === 'deciding' && "Neural Consensus"}
+                    {currentPhase === 'resolved' && "Forensic Handover"}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* NEURAL CORE (Reference Mirror) */}
+            {/* NEURAL CORE */}
             <div className="relative w-80 h-80 flex items-center justify-center">
-               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute inset-0 border border-dashed border-indigo-500/10 rounded-full" />
-               <motion.div animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }} className="absolute inset-8 border border-white/5 rounded-full" />
+               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }} className="absolute inset-0 border border-dashed border-white/5 rounded-full" />
                
-               <div className="relative bg-slate-950 border border-indigo-500/40 w-56 h-56 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_80px_rgba(99,102,241,0.2)]">
-                  <div className="text-[10px] uppercase font-black tracking-[0.3em] text-indigo-500/40 mb-2 font-mono">Neural Engine</div>
+               <div className="relative bg-slate-950 border border-white/10 w-60 h-60 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_80px_rgba(0,0,0,1)]">
+                  <div className="text-[10px] uppercase font-black tracking-[0.3em] text-slate-600 mb-2 font-mono">Processor</div>
                   <NeuralStage label="Understand" active={currentPhase === 'normalizing'} />
                   <NeuralStage label="Structure" active={currentPhase === 'extracting'} />
                   <NeuralStage label="Connect" active={currentPhase === 'deciding' || currentPhase === 'resolved'} />
@@ -252,27 +241,25 @@ export default function Demo() {
         {/* 3. RIGHT PANEL: STRUCTURED SYSTEMS & VERDICT */}
         <aside className="lg:col-span-4 bg-slate-950/50 backdrop-blur-3xl border-l border-white/5 p-6 lg:p-10 flex flex-col h-screen overflow-y-auto custom-scrollbar relative z-50">
           
-          {/* VERDICT CONTAINER (Reference Requirement) */}
-          <div className="mb-10 text-center">
+          {/* VERDICT CONTAINER */}
+          <div className="mb-6 text-center">
             <AnimatePresence mode="wait">
               {result ? (
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                  className={`p-10 rounded-[2.5rem] border-2 flex flex-col items-center gap-3 shadow-2xl ${
-                    result.decision === 'block' ? 'border-rose-500/60 bg-rose-500/5 shadow-rose-500/20' : 'border-emerald-500/60 bg-emerald-500/5 shadow-emerald-500/20'
+                  className={`p-6 rounded-[2rem] border flex flex-col items-center gap-2 shadow-2xl ${
+                    result.decision === 'block' ? 'border-rose-500/40 bg-rose-500/5 shadow-rose-500/10' : 'border-emerald-500/40 bg-emerald-500/5 shadow-emerald-500/10'
                   }`}
                 >
-                   <div className={`text-6xl font-black uppercase tracking-tighter drop-shadow-lg ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                   <div className={`text-5xl font-black uppercase tracking-tighter ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
                       {result.decision}
                    </div>
-                   <div className="text-[11px] font-black text-slate-400/60 uppercase tracking-[0.4em]">System Verdict</div>
+                   <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">System Verdict</div>
                 </motion.div>
               ) : (
-                <div className="p-10 rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center gap-3 grayscale opacity-30">
-                   <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center">
-                      <Zap className="text-slate-500 w-6 h-6" />
-                   </div>
-                   <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Awaiting Data</span>
+                <div className="p-8 rounded-[2rem] border border-dashed border-white/5 flex flex-col items-center gap-2 grayscale opacity-20">
+                   <Zap className="text-slate-500 w-5 h-5" />
+                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Awaiting Pulse</span>
                 </div>
               )}
             </AnimatePresence>
