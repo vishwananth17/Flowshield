@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useAuthStore } from '../stores/authStore';
 
 const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
 
@@ -55,10 +54,8 @@ api.interceptors.response.use(
         await api.post('/auth/refresh');
         return api(originalRequest);
       } catch (e) {
-        if (useAuthStore.getState().user) {
-          toast.error("Session expired. Please log in again.");
-          useAuthStore.getState().logout();
-        }
+        localStorage.removeItem('flowshield_token');
+        window.location.href = '/login';
         return Promise.reject(e);
       }
     }
