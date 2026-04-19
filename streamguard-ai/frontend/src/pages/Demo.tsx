@@ -86,7 +86,7 @@ export default function Demo() {
 
         <div className="flex items-center gap-5">
            <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
+              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
               <span className="text-[11px] font-bold text-white uppercase tracking-widest leading-none">Verify it's you</span>
            </div>
            <div className="flex items-center gap-5 text-slate-500">
