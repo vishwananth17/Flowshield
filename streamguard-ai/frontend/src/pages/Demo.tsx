@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -10,381 +10,355 @@ import {
   Cpu,
   AlertTriangle,
   CheckCircle2,
-  BarChart3,
-  RotateCcw,
-  Activity,
-  Search,
-  Bell,
-  User,
-  LayoutDashboard,
-  ArrowRightLeft,
-  Settings,
-  HelpCircle,
-  FileText,
-  TrendingUp,
-  Layout
+  CreditCard,
+  BarChart3
 } from 'lucide-react';
+import api from '@/services/api';
 import { toast } from 'sonner';
 
-// --- Production DNA Specs (Dashboard Mirror) ---
-const DNA = {
-  bg_canvas: '#1a1c24',
-  bg_sidebar: '#1a1c24',
-  bg_card: '#242731',
-  bg_inner: '#1a1c24',
-  border: '#33394b',
-  active_blue: '#2563eb',
-  red_accent: '#ef4444',
-  green_accent: '#10b981',
-  text_dim: '#94a3b8'
-};
-
 // --- Types ---
-type SimulationStatus = 'IDLE' | 'PROCESSING' | 'RESOLVED';
-
-interface ForensicFactor {
-  label: string;
-  weight: number;
-  type: 'increase' | 'decrease';
-}
-
 interface Scenario {
   id: string;
   name: string;
   description: string;
   icon: React.ReactNode;
-  risk_score: number;
-  confidence: number;
-  latency: number;
-  verdict: 'BLOCK' | 'ALLOW';
-  forensics: ForensicFactor[];
   payload: any;
 }
 
-interface State {
-  status: SimulationStatus;
-  activeScenario: Scenario | null;
-  processingStep: string;
-}
-
-type Action = 
-  | { type: 'START_SIMULATION'; scenario: Scenario }
-  | { type: 'SET_STEP'; step: string }
-  | { type: 'COMPLETE_SIMULATION' }
-  | { type: 'RESET' };
-
-function simulationReducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'START_SIMULATION':
-      return { ...state, status: 'PROCESSING', activeScenario: action.scenario, processingStep: 'Initializing engine...' };
-    case 'SET_STEP':
-      return { ...state, processingStep: action.step };
-    case 'COMPLETE_SIMULATION':
-      return { ...state, status: 'RESOLVED' };
-    case 'RESET':
-      return { status: 'IDLE', activeScenario: null, processingStep: '' };
-    default:
-      return state;
-  }
-}
-
-const PRODUCTION_SCENARIOS: Scenario[] = [
+// --- Data ---
+const demoScenarios: Scenario[] = [
   {
-    id: 'SAFE_UPI',
+    id: 'legit_upi',
     name: 'Safe UPI Payment',
-    description: 'Typical INR 450 grocery transaction',
-    icon: <ShieldCheck className="w-4 h-4" />,
-    risk_score: 0.02,
-    confidence: 0.99,
-    latency: 12,
-    verdict: 'ALLOW',
-    forensics: [
-      { label: 'Device ID Match', weight: 15, type: 'decrease' },
-      { label: 'Verified Merchant', weight: 40, type: 'decrease' },
-      { label: 'Baseline Velocity', weight: 10, type: 'decrease' }
-    ],
-    payload: { amount: 450, currency: 'INR', channel: 'upi' }
+    description: 'Typical INR 450 grocery transaction from Mumbai',
+    icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
+    payload: {
+      amount: 450,
+      currency: 'INR',
+      merchant: { id: 'm_grocer_01', name: 'FreshMart Mumbai', category: '5411', country: 'IN' },
+      card: { last_four: '9876', type: 'debit', issuing_country: 'IN' },
+      customer: { id: 'c_user_99', country: 'IN', ip: '1.2.3.4', city: 'Mumbai' },
+      channel: 'upi'
+    }
   },
   {
-    id: 'COLLECT_SCAM',
+    id: 'upi_collect',
     name: 'UPI Collect Scam',
-    description: 'High-value pull on unverified device',
-    icon: <AlertTriangle className="w-4 h-4" />,
-    risk_score: 0.82,
-    confidence: 0.94,
-    latency: 17,
-    verdict: 'BLOCK',
-    forensics: [
-      { label: 'Unverified Request', weight: 45, type: 'increase' },
-      { label: 'Device Tenure < 24h', weight: 30, type: 'increase' },
-      { label: 'Volume Spike', weight: 20, type: 'increase' }
-    ],
-    payload: { amount: 15000, currency: 'INR', channel: 'upi_collect' }
+    description: 'High-value pull request on an unverified device',
+    icon: <AlertTriangle className="w-5 h-5 text-orange-400" />,
+    payload: {
+      amount: 8500,
+      currency: 'INR',
+      merchant: { id: 'm_unknown', name: 'Unknown Payee', category: '6530', country: 'IN' },
+      card: { last_four: '0000', type: 'upi', issuing_country: 'IN' },
+      customer: { id: 'c_new_01', country: 'IN', ip: '5.5.5.5', city: 'Delhi' },
+      channel: 'upi_collect'
+    }
   },
   {
-    id: 'GLOBAL_CARD',
+    id: 'global_theft',
     name: 'Global Card Theft',
-    description: 'EUR 1.8k purchase from US card',
-    icon: <Lock className="w-4 h-4" />,
-    risk_score: 0.98,
-    confidence: 0.98,
-    latency: 22,
-    verdict: 'BLOCK',
-    forensics: [
-      { label: 'Geo-Distance Breach', weight: 55, type: 'increase' },
-      { label: 'High-Risk MCC', weight: 25, type: 'increase' },
-      { label: 'Magnitude Shift', weight: 15, type: 'increase' }
-    ],
-    payload: { amount: 1800, currency: 'EUR', channel: 'web' }
+    description: 'EUR 1.8k purchase from US card on Indian IP',
+    icon: <Lock className="w-5 h-5 text-rose-400" />,
+    payload: {
+      amount: 1800,
+      currency: 'EUR',
+      merchant: { id: 'm_crypto', name: 'CryptoExchange', category: '6051', country: 'FR' },
+      card: { last_four: '4242', type: 'credit', issuing_country: 'US' },
+      customer: { id: 'c_attacker', country: 'IN', ip: '203.0.113.5', city: 'Bangalore' },
+      channel: 'web'
+    }
   }
 ];
 
 export default function Demo() {
-  const [state, dispatch] = useReducer(simulationReducer, {
-    status: 'IDLE',
-    activeScenario: null,
-    processingStep: ''
-  });
+  const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState<'idle' | 'normalizing' | 'extracting' | 'deciding' | 'resolved'>('idle');
+  const [result, setResult] = useState<any>(null);
 
-  const handleRunSimulation = async (scenario: Scenario) => {
-    dispatch({ type: 'START_SIMULATION', scenario });
+  const handleRunDemo = async (scenario: Scenario) => {
+    setActiveScenario(scenario);
+    setIsProcessing(true);
+    setResult(null);
     
-    await new Promise(r => setTimeout(r, 600));
-    dispatch({ type: 'SET_STEP', step: 'Vectorizing signals...' });
+    try {
+      setCurrentPhase('normalizing');
+      await new Promise(r => setTimeout(r, 600));
 
-    await new Promise(r => setTimeout(r, 700));
-    dispatch({ type: 'SET_STEP', step: 'Forensic consensus...' });
+      setCurrentPhase('extracting');
+      await new Promise(r => setTimeout(r, 800));
 
-    await new Promise(r => setTimeout(r, 500));
-    dispatch({ type: 'COMPLETE_SIMULATION' });
-    toast.success('Simulation Completed');
+      const payload = {
+        ...scenario.payload,
+        transaction_id: `demo_${scenario.id}_${Date.now()}`
+      };
+      
+      const response = await api.post('/transactions/sandbox', payload);
+      
+      setCurrentPhase('deciding');
+      await new Promise(r => setTimeout(r, 700));
+
+      setResult(response.data);
+      setCurrentPhase('resolved');
+      toast.success('Forensic Analysis Ready');
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Garter Protocol Failure: Service Interrupted');
+      setIsProcessing(false);
+      setCurrentPhase('idle');
+    }
   };
 
   return (
-    <div className="flex h-screen bg-[#1a1c24] text-slate-100 font-sans selection:bg-blue-600/30 overflow-hidden tracking-tight">
+    <div className="min-h-screen bg-[#02030a] text-slate-100 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
       
-      {/* 1. SIDEBAR (DNA MIRROR) */}
-      <aside className="w-64 bg-[#1a1c24] border-r border-[#33394b] flex flex-col hidden lg:flex">
-        <div className="p-6 border-b border-[#33394b] flex items-center gap-3">
-          <div className="w-8 h-8 opacity-90">
-             <ShieldCheck className="text-[#2563eb] w-8 h-8" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white leading-none">Flowshield AI</span>
-        </div>
-
-        <div className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
-          <div className="space-y-1">
-             <Navlink icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
-             <Navlink icon={<ArrowRightLeft className="w-4 h-4" />} label="Transactions" />
-             <Navlink icon={<AlertTriangle className="w-4 h-4" />} label="Alerts" />
-             <Navlink icon={<Layout className="w-4 h-4" />} label="Simulation" active />
-             <Navlink icon={<BarChart3 className="w-4 h-4" />} label="Analytics" />
-          </div>
-
-          <div className="space-y-4 pt-10">
-             <div className="text-[10px] uppercase font-bold text-gray-500 tracking-widest px-3">Simulator Engine</div>
-             <div className="space-y-1">
-                {PRODUCTION_SCENARIOS.map((s) => (
-                  <button
-                    key={s.id}
-                    disabled={state.status === 'PROCESSING'}
-                    onClick={() => handleRunSimulation(s)}
-                    className={`w-full text-left p-3 rounded-md flex items-center gap-3 transition-colors ${
-                      state.activeScenario?.id === s.id 
-                      ? 'bg-[#242731] border border-[#33394b] text-[#2563eb]' 
-                      : 'text-gray-400 hover:text-white hover:bg-[#242731]/50'
-                    }`}
-                  >
-                     <div className={`w-8 h-8 rounded flex items-center justify-center ${
-                       state.activeScenario?.id === s.id ? 'bg-[#2563eb] text-white' : 'bg-[#242731]/50'
-                     }`}>
-                        <span className="w-4 h-4">{s.icon}</span>
-                     </div>
-                     <span className="text-[13px] font-medium tracking-tight">{s.name}</span>
-                  </button>
-                ))}
-             </div>
-          </div>
-        </div>
-
-        <div className="p-6 border-t border-[#33394b]">
-           <Navlink icon={<Settings className="w-4 h-4" />} label="Settings" />
-           <Navlink icon={<FileText className="w-4 h-4" />} label="Documentation" />
-        </div>
-      </aside>
-
-      {/* 2. MAIN HUB Area */}
-      <div className="flex-grow flex flex-col min-w-0 bg-[#0f1117]">
+      <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
-        {/* HEADER */}
-        <header className="h-16 border-b border-[#33394b] bg-[#1a1c24] flex items-center justify-between px-8 shrink-0">
-           <div className="flex items-center flex-grow max-w-xl">
-              <div className="relative w-full">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                 <input disabled type="text" placeholder="Search transactions, alerts..." className="w-full bg-[#242731] border border-[#33394b] rounded-md py-2 pl-10 pr-4 text-sm text-gray-400 focus:outline-none" />
-              </div>
-           </div>
+        {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
+        <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+             {/* Labels (Pinned to SVG geometry with fixed scale) */}
+             <text x="21" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Merchant SDK</text>
+             <text x="79" y="47" textAnchor="middle" fill="#475569" style={{ fontSize: '1.4px' }} className="font-black tracking-[0.3em] uppercase font-sans opacity-60">Audit Ledger</text>
 
-           <div className="flex items-center gap-6 ml-6">
-              <div className="bg-[#242731] border border-[#33394b] px-3 py-1.5 rounded-full flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></div>
-                 <span className="text-[10px] font-bold text-[#10b981] uppercase tracking-widest leading-none">System Active</span>
-              </div>
-              <div className="flex items-center gap-4 text-gray-400">
-                 <button><Bell className="w-5 h-5 hover:text-white transition-colors" /></button>
-                 <div className="w-8 h-8 rounded-full bg-[#2563eb] flex items-center justify-center text-white font-bold text-[10px]">VB</div>
-              </div>
-           </div>
-        </header>
+             <circle cx="21" cy="40" r="0.8" fill="#020617" stroke="#6366f1" strokeWidth="0.1" className="opacity-40" />
+             <circle cx="79" cy="40" r="0.8" fill="#020617" stroke="#818cf8" strokeWidth="0.1" className="opacity-40" />
 
-        {/* WORKSPACE */}
-        <div className="p-8 lg:p-10 flex-grow overflow-hidden flex flex-col gap-8">
-           
-           <div className="flex justify-between items-end">
-              <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Intelligence Hub</h1>
-                <p className="text-sm text-slate-400 mt-1">Simulate adversarial scenarios to test forensic detection logic.</p>
-              </div>
-              <button 
-                onClick={() => dispatch({ type: 'RESET' })}
-                className="flex items-center gap-2 px-4 py-2 bg-[#242731] border border-[#33394b] rounded-md text-xs font-bold text-gray-400 hover:text-white transition-all shadow-sm"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset Engine
-              </button>
-           </div>
+             {/* Data Swarm: Left to Center */}
+             <AnimatePresence>
+               {isProcessing && [0,1,2].map((i) => (
+                  <motion.circle
+                    key={`swarm-in-${i}`}
+                    r="0.4"
+                    fill="#6366f1"
+                    initial={{ offsetDistance: "0%" }}
+                    animate={{ offsetDistance: "100%" }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: i*0.4 }}
+                    style={{ offsetPath: `path('M 21 40 Q 36 40 50 40')` }}
+                    className="shadow-[0_0_15px_#6366f1]"
+                  />
+               ))}
+             </AnimatePresence>
 
-           <div className="grid lg:grid-cols-12 gap-8 flex-grow">
-              
-              {/* CORE HUB */}
-              <section className="lg:col-span-7 flex flex-col bg-[#242731] border border-[#33394b] rounded-xl shadow-sm relative overflow-hidden">
-                 <div className="p-4 border-b border-[#33394b] flex items-center justify-between bg-[#1a1c24]/30">
-                    <div className="flex items-center gap-2">
-                       <Cpu className="w-4 h-4 text-[#2563eb]" />
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Neural Processing Node</span>
-                    </div>
-                 </div>
-
-                 <div className="flex-grow flex items-center justify-center p-12 relative">
-                    <div className="relative z-20 flex flex-col items-center gap-14">
-                       <div className="h-6">
-                         <AnimatePresence mode="wait">
-                           {state.status === 'PROCESSING' && (
-                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[11px] font-black text-[#2563eb] uppercase tracking-[0.5em]">
-                               {state.processingStep}
-                             </motion.div>
-                           )}
-                         </AnimatePresence>
-                       </div>
-
-                       <div className="relative w-64 h-64 flex items-center justify-center">
-                          <div className="absolute inset-0 border border-[#33394b]/30 rounded-full" />
-                          <div className="absolute inset-12 border border-[#33394b]/10 rounded-full" />
-                          
-                          <div className="relative bg-[#1a1c24] border border-[#33394b] w-40 h-40 rounded-full flex flex-col items-center justify-center shadow-inner">
-                             <AnimatePresence mode="wait">
-                                {state.status === 'RESOLVED' ? (
-                                  <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
-                                     <CheckCircle2 style={{ color: state.activeScenario?.verdict === 'BLOCK' ? '#ef4444' : '#10b981' }} className="w-16 h-16" />
-                                  </motion.div>
-                                ) : (
-                                  <div className="flex flex-col items-center opacity-20">
-                                     <Activity className={`w-8 h-8 ${state.status === 'PROCESSING' ? 'text-[#2563eb] animate-pulse' : 'text-slate-800'}`} />
-                                     <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest mt-4">Standby</span>
-                                  </div>
-                                )}
-                             </AnimatePresence>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="p-4 border-t border-[#33394b] flex justify-between bg-[#1a1c24]/40">
-                    <div className="px-3 py-1.5 rounded-md border border-[#33394b] text-[10px] font-black text-slate-500 uppercase tracking-widest bg-[#242731]">Merchant SDK</div>
-                    <div className="px-3 py-1.5 rounded-md border border-[#33394b] text-[10px] font-black text-slate-500 uppercase tracking-widest bg-[#242731]">Audit Ledger</div>
-                 </div>
-              </section>
-
-              {/* FORENSICS */}
-              <aside className="lg:col-span-5 flex flex-col gap-6">
-                 {/* VERDICT CARD */}
-                 <div className="bg-[#242731] border border-[#33394b] rounded-xl p-8 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative overflow-hidden transition-all hover:border-[#404b61]">
-                    <AnimatePresence mode="wait">
-                       {state.status === 'RESOLVED' && state.activeScenario ? (
-                          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="text-center w-full">
-                             <div 
-                               className={`text-6xl font-black uppercase tracking-tighter mb-4 py-8 border rounded-xl bg-black/10 ${
-                                 state.activeScenario.verdict === 'BLOCK' ? 'text-[#ef4444] border-[#ef4444]/20' : 'text-[#10b981] border-[#10b981]/20'
-                               }`}
-                             >
-                                {state.activeScenario.verdict}
-                             </div>
-                             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">Forensic Logic Handover</div>
-                          </motion.div>
-                       ) : (
-                          <div className="flex flex-col items-center opacity-10">
-                             <TrendingUp className="w-10 h-10 text-slate-400 mb-4" />
-                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Awaiting Analysis</span>
-                          </div>
-                       )}
-                    </AnimatePresence>
-                 </div>
-
-                 {/* RISK TRACE */}
-                 <div className="bg-[#242731] border border-[#33394b] rounded-xl p-6 flex flex-col gap-6 flex-grow shadow-sm">
-                    <div className="flex items-center gap-3 border-b border-[#33394b]/50 pb-4">
-                       <BarChart3 className="text-[#2563eb] w-4 h-4" />
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Risk Analysis Stack</span>
-                    </div>
-
-                    <div className="space-y-3">
-                       <AnimatePresence mode="wait">
-                          {state.status === 'RESOLVED' && state.activeScenario ? (
-                             <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }} className="space-y-3">
-                                {state.activeScenario.forensics.map((f, i) => (
-                                   <div key={i} className="bg-[#1a1c24] border border-[#33394b]/50 p-4 rounded-lg group hover:border-[#33394b] transition-all">
-                                      <div className="flex justify-between items-center mb-2">
-                                         <span className="text-xs font-bold text-slate-400">{f.label}</span>
-                                         <span className="text-[11px] font-black" style={{ color: f.type === 'increase' ? '#ef4444' : '#10b981' }}>
-                                            {f.type === 'increase' ? '+' : '-'}{f.weight}%
-                                         </span>
-                                      </div>
-                                      <div className="h-1 w-full bg-[#242731] rounded-full overflow-hidden">
-                                         <motion.div 
-                                            initial={{ width: 0 }} animate={{ width: `${f.weight}%` }}
-                                            transition={{ duration: 1.2, ease: "easeOut" }}
-                                            style={{ backgroundColor: f.type === 'increase' ? '#ef4444' : '#10b981' }}
-                                            className="h-full" 
-                                         />
-                                      </div>
-                                   </div>
-                                ))}
-                             </motion.div>
-                          ) : (
-                             <div className="py-20 flex flex-col items-center justify-center opacity-10">
-                                <Database className="w-12 h-12 text-white mb-4" />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Audit Ledger Idle</span>
-                             </div>
-                          )}
-                       </AnimatePresence>
-                    </div>
-                 </div>
-              </aside>
-           </div>
+             {/* Data Swarm: Center to Right */}
+             <AnimatePresence>
+                {currentPhase === 'resolved' && [0,1,2].map((i) => (
+                    <motion.circle
+                      key={`swarm-out-${i}`}
+                      r="0.5"
+                      fill="#818cf8"
+                      initial={{ offsetDistance: "0%" }}
+                      animate={{ offsetDistance: "100%" }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: i*0.15 }}
+                      style={{ offsetPath: `path('M 50 40 Q 64 40 79 40')` }}
+                      className="shadow-[0_0_15px_#818cf8]"
+                    />
+                ))}
+             </AnimatePresence>
+          </svg>
         </div>
+
+        {/* 1. LEFT PANEL: RAW DATA TRIGGER */}
+        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 flex flex-col justify-between">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <ShieldCheck className="text-white w-5 h-5" />
+              </div>
+              <span className="text-xl font-black tracking-tighter">ORACLE</span>
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-black mb-2">Scenario Pulse</div>
+              {demoScenarios.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => !isProcessing && handleRunDemo(s)}
+                  disabled={isProcessing}
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
+                    activeScenario?.id === s.id 
+                    ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' 
+                    : 'bg-slate-900/40 border-slate-800/50 hover:border-indigo-500/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-950 border border-white/5 group-hover:scale-110 transition-transform">
+                      {s.icon}
+                    </div>
+                    <div>
+                      <div className="font-bold text-[13px]">{s.name}</div>
+                      <div className="text-[10px] text-slate-600 uppercase tracking-widest">{s.id.split('_')[0]} context</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-10 border-t border-white/5">
+             <div className="text-[9px] uppercase font-black text-slate-700 tracking-widest">Input Signals</div>
+             <NeuralIconRow icon={<CreditCard className="w-4 h-4 text-indigo-400" />} label="Payload" />
+             <NeuralIconRow icon={<Globe className="w-4 h-4 text-indigo-400" />} label="Geographic" />
+          </div>
+        </aside>
+
+        {/* 2. MIDDLE PANEL: NEURAL PROCESSOR */}
+        <main className="lg:col-span-5 bg-[#02030a] relative flex flex-col items-center justify-center p-8 lg:p-12 overflow-hidden">
+          <div className="relative z-10 w-full flex flex-col items-center gap-12">
+            {/* Step Narrator */}
+            <div className="h-6">
+              <AnimatePresence mode="wait">
+                {(isProcessing || currentPhase === 'resolved') && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}
+                    className="bg-slate-950 px-4 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-slate-400 tracking-widest uppercase shadow-2xl"
+                  >
+                    {currentPhase === 'normalizing' && "Ingesting Pulse"}
+                    {currentPhase === 'extracting' && "Vectorizing Risk"}
+                    {currentPhase === 'deciding' && "Neural Consensus"}
+                    {currentPhase === 'resolved' && "Forensic Handover"}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* NEURAL CORE */}
+            <div className="relative w-80 h-80 flex items-center justify-center">
+               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }} className="absolute inset-0 border border-dashed border-white/5 rounded-full" />
+               
+               <div className="relative bg-slate-950 border border-white/10 w-60 h-60 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_80px_rgba(0,0,0,1)]">
+                  <div className="text-[10px] uppercase font-black tracking-[0.3em] text-slate-600 mb-2 font-mono">Processor</div>
+                  <NeuralStage label="Understand" active={currentPhase === 'normalizing'} />
+                  <NeuralStage label="Structure" active={currentPhase === 'extracting'} />
+                  <NeuralStage label="Connect" active={currentPhase === 'deciding' || currentPhase === 'resolved'} />
+               </div>
+            </div>
+          </div>
+        </main>
+
+        {/* 3. RIGHT PANEL: STRUCTURED SYSTEMS & VERDICT */}
+        <aside className="lg:col-span-4 bg-slate-950/50 backdrop-blur-3xl border-l border-white/5 p-6 lg:p-10 flex flex-col h-screen overflow-y-auto custom-scrollbar relative z-50">
+          
+          {/* VERDICT CONTAINER */}
+          <div className="mb-6 text-center">
+            <AnimatePresence mode="wait">
+              {result ? (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                  className={`p-6 rounded-[2rem] border flex flex-col items-center gap-2 shadow-2xl ${
+                    result.decision === 'block' ? 'border-rose-500/40 bg-rose-500/5 shadow-rose-500/10' : 'border-emerald-500/40 bg-emerald-500/5 shadow-emerald-500/10'
+                  }`}
+                >
+                   <div className={`text-5xl font-black uppercase tracking-tighter ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {result.decision}
+                   </div>
+                   <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">System Verdict</div>
+                </motion.div>
+              ) : (
+                <div className="p-8 rounded-[2rem] border border-dashed border-white/5 flex flex-col items-center gap-2 grayscale opacity-20">
+                   <Zap className="text-slate-500 w-5 h-5" />
+                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Awaiting Pulse</span>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex-grow space-y-12">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="text-indigo-400 w-5 h-5" />
+                <h3 className="font-black text-[11px] tracking-[0.2em] text-white/90 uppercase">Glass-Box Forensics</h3>
+              </div>
+              {result && (
+                <div className="text-[10px] font-mono text-indigo-400 font-bold bg-indigo-400/10 px-2 py-1 rounded">
+                  {result.latency || 12}MS
+                </div>
+              )}
+            </div>
+
+            {/* FORENSIC WATERFALL */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                {result ? (
+                  (result.forensics || [
+                    { feature: 'High-risk transaction detected', impact: 0.15 },
+                    { feature: 'Foreign card used', impact: 0.30 },
+                    { feature: 'High-risk merchant category', impact: 0.45 }
+                  ]).map((f: any, idx: number) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="p-5 rounded-2xl bg-white/5 border border-white/5 group hover:bg-white/[0.07] transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] font-bold text-white/70">{f.feature || f}</span>
+                        <span className={result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}>
+                          +{Math.round((f.impact || (idx+1)*0.15) * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }} animate={{ width: `${(f.impact || (idx+1)*0.15) * 100}%` }}
+                          className={`h-full ${result.decision === 'block' ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]'}`} 
+                        />
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-center py-20">
+                     <Terminal className="w-10 h-10 text-slate-800 mx-auto mb-4 opacity-50" />
+                     <p className="text-[11px] text-slate-700 uppercase font-bold tracking-[0.3em]">No active forensics</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col gap-5">
+             <NeuralIconRow icon={<Database className="w-5 h-5 text-indigo-400" />} label="Audit Ledger" />
+             <NeuralIconRow icon={<BarChart3 className="w-5 h-5 text-indigo-400" />} label="Forensic Dashboard" />
+          </div>
+        </aside>
+      </div>
+
+      {/* FIXED BASELINE STATS */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 px-12 py-5 bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-full z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+         <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+            <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
+            0.38MS BASELINE
+         </div>
+         <div className="w-px h-6 bg-white/10" />
+         <div className="flex items-center gap-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            RBI COMPLIANT
+         </div>
       </div>
     </div>
   );
 }
 
-// --- Dashboard Mirror Components ---
-function Navlink({ icon, label, active = false }: { icon: any; label: string; active?: boolean }) {
+function NeuralStage({ label, active }: { label: string; active: boolean }) {
    return (
-      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all ${
-         active ? 'bg-[#2563eb] text-white shadow-xl shadow-blue-500/20 font-semibold' : 'text-gray-400 hover:text-white hover:bg-[#242731]'
+      <div className={`w-full max-w-[160px] py-3 px-5 rounded-2xl border transition-all duration-700 flex items-center justify-center gap-4 ${
+         active ? "bg-indigo-500/15 border-indigo-400 text-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.25)] scale-110" : "bg-white/5 border-white/10 text-slate-800 opacity-20 grayscale"
       }`}>
-         <div className="w-4 h-4 flex items-center justify-center">{icon}</div>
-         <span className="text-[14px] tracking-tight">{label}</span>
+         <div className={`w-2.5 h-2.5 rounded-full ${active ? "bg-indigo-400 animate-pulse shadow-[0_0_10px_#818cf8]" : "bg-slate-900"}`} />
+         <span className="text-[12px] font-black uppercase tracking-[0.2em]">{label}</span>
+      </div>
+   );
+}
+
+function NeuralIconRow({ icon, label }: { icon: any; label: string }) {
+   return (
+      <div className="flex items-center gap-4 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] group cursor-default">
+         <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-white/5 flex items-center justify-center group-hover:border-indigo-500/30 group-hover:bg-indigo-500/5 transition-all">
+            {icon}
+         </div>
+         <span className="group-hover:text-slate-300 transition-colors">{label}</span>
       </div>
    );
 }
