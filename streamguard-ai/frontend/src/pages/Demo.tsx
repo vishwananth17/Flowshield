@@ -9,7 +9,8 @@ import {
   Terminal,
   Cpu,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  CreditCard
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import api from '@/services/api';
