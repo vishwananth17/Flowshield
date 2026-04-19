@@ -113,7 +113,7 @@ async def get_time_series(
     user: CurrentUser,
     days: int = Query(7, ge=1, le=90)
 ):
-    check_analytics_access(user.plan)
+    check_analytics_access(user.organization.plan)
     
     start_date = datetime.utcnow() - timedelta(days=days)
     
