@@ -4,9 +4,9 @@ PLAN_LIMITS = {
         "api_keys": 1,
         "webhooks": 0,
         "history_days": 7,
-        "ml_enabled": False,
-        "analytics": False,
-        "alerts": False
+        "ml_enabled": True,
+        "analytics": True,
+        "alerts": True
     },
     "basic": {
         "requests": 25000,
