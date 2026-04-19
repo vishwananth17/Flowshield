@@ -74,7 +74,11 @@ export default function Demo() {
     setLoading(true);
     setActiveScenario(scenario.id);
     try {
-      const response = await api.post('/transactions/sandbox', scenario.payload);
+      const payload = {
+        ...scenario.payload,
+        transaction_id: `demo_${scenario.id}_${Date.now()}`
+      };
+      const response = await api.post('/transactions/sandbox', payload);
       setResult(response.data);
       toast.success('Simulation Complete');
     } catch (error: any) {

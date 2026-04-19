@@ -85,7 +85,12 @@ class GlobalOracleBench:
 
                     res_str = "BLOCK" if is_blocked else "ALLOW"
                     truth = "FRAUD" if actual_fraud else "LEGIT"
-                    print(f"[{i+1}/100] {truth:5} | {res_str:5} | Score: {score:.3f} | Amt: {amount:.1f} | Reasons: {reasons[:1]}")
+                    try:
+                        print(f"[{i+1}/100] {truth:5} | {res_str:5} | Score: {score:.3f} | Amt: {amount:.1f} | Reasons: {reasons[:1]}")
+                    except UnicodeEncodeError:
+                        # Fallback for Windows CP1252
+                        clean_reasons = [r.replace('\u20b9', 'INR') for r in reasons]
+                        print(f"[{i+1}/100] {truth:5} | {res_str:5} | Score: {score:.3f} | Amt: {amount:.1f} | Reasons: {clean_reasons[:1]}")
                 else:
                     self.stats["validation_errors"] += 1
                 
