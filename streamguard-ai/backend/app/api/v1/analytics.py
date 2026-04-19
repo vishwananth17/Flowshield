@@ -44,7 +44,7 @@ async def get_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
-    check_analytics_access(user.organization.plan)
+    check_analytics_access(user.plan)
     
     # Total analyzed
     total_result = await db.execute(

@@ -119,7 +119,7 @@ async def list_alerts(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100)
 ):
-    check_alerts_access(user.organization.plan)
+    check_alerts_access(user.plan)
     # Use Service for core logic
     data = await AlertService.get_alerts_paginated(
         db, user.org_id, status=status, severity=severity, page=page, per_page=per_page
