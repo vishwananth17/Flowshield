@@ -225,29 +225,29 @@ export default function Demo() {
               <div className="space-y-4">
                 <div className="text-[9px] font-black tracking-widest text-slate-600 uppercase">Risk Level: {(result.risk_score * 100).toFixed(1)}%</div>
                 <div className="space-y-6">
-                  {result.reasons.map((r: string, i: number) => {
-                    const isNeg = r.toLowerCase().includes('good') || r.toLowerCase().includes('safe');
-                    return (
-                      <motion.div 
-                        key={i}
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 1 + (i * 0.1) }}
-                      >
-                        <div className="flex justify-between text-[11px] mb-1">
-                          <span className="text-slate-400">{r}</span>
-                          <span className={isNeg ? 'text-emerald-400' : 'text-rose-400'}>{isNeg ? '-' : '+'}{Math.round((i+1)*15)}%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }} 
-                            animate={{ width: `${Math.max(30, (i+1)*20)}%` }} 
-                            className={`h-full ${isNeg ? 'bg-emerald-500' : 'bg-rose-500'}`} 
-                          />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                    {result.reasons.map((r: string, i: number) => {
+                      const isNeg = r.toLowerCase().includes('good') || r.toLowerCase().includes('safe') || r.toLowerCase().includes('normal') || r.toLowerCase().includes('parameters');
+                      return (
+                        <motion.div 
+                          key={i}
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 1 + (i * 0.1) }}
+                        >
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-slate-400">{r}</span>
+                            <span className={isNeg ? 'text-emerald-400' : 'text-rose-400'}>{isNeg ? '-' : '+'}{Math.round((i+1)*15)}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }} 
+                              animate={{ width: `${Math.max(30, (i+1)*20)}%` }} 
+                              className={`h-full ${isNeg ? 'bg-emerald-500' : 'bg-rose-500'}`} 
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                 </div>
               </div>
             )}
