@@ -120,50 +120,56 @@ export default function Demo() {
       
       <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
-        {/* --- INFERENCE WIRING OVERLAY --- */}
-        <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block overflow-hidden">
-          <svg className="w-full h-full" fill="none">
-             {/* Wire 1: Left to Center */}
+        {/* --- INFERENCE WIRING OVERLAY (TOP LAYER) --- */}
+        <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
+          <svg className="w-full h-full" preserveAspectRatio="none">
+             {/* Wire 1: Left (25%) to Center (25%-66%) */}
              <motion.path
-                d="M 300 450 L 500 450"
+                d="M 400 450 L 500 450" 
                 stroke="#6366f1"
-                strokeWidth="1"
+                strokeWidth="2"
                 strokeDasharray="4 4"
                 initial={{ opacity: 0 }}
-                animate={isProcessing ? { opacity: 0.2 } : { opacity: 0 }}
+                animate={isProcessing ? { opacity: 0.6 } : { opacity: 0 }}
+                className="drop-shadow-[0_0_8px_#6366f1]"
              />
-             {/* Data Packet 1 */}
-             {isProcessing && (
-                <motion.circle
-                  r="3"
-                  fill="#6366f1"
-                  initial={{ offsetDistance: "0%" }}
-                  animate={{ offsetDistance: "100%" }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  style={{ offsetPath: "path('M 300 450 L 500 450')" }}
-                  className="shadow-[0_0_10px_#6366f1]"
-                />
-             )}
+             
+             {/* Data Packet 1 (Pulse) */}
+             <AnimatePresence>
+               {isProcessing && (
+                  <motion.circle
+                    r="4"
+                    fill="#6366f1"
+                    initial={{ offsetDistance: "0%" }}
+                    animate={{ offsetDistance: "100%" }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    style={{ offsetPath: "path('M 400 450 L 500 450')" }}
+                    className="shadow-[0_0_15px_#6366f1]"
+                  />
+               )}
+             </AnimatePresence>
 
-             {/* Wire 2: Center to Right */}
+             {/* Wire 2: Center to Right (66%) */}
              <motion.path
-                d="M 800 450 L 1000 450"
-                stroke="#6366f1"
-                strokeWidth="1"
+                d="M 1100 450 L 1250 450"
+                stroke="#818cf8"
+                strokeWidth="2"
                 strokeDasharray="4 4"
                 initial={{ opacity: 0 }}
-                animate={currentPhase === 'resolved' ? { opacity: 0.2 } : { opacity: 0 }}
+                animate={currentPhase === 'resolved' ? { opacity: 0.6 } : { opacity: 0 }}
+                className="drop-shadow-[0_0_8px_#818cf8]"
              />
-             {/* Data Packet 2 */}
+             
+             {/* Data Packet 2 (Strike) */}
              {currentPhase === 'resolved' && (
                 <motion.circle
-                  r="3"
+                  r="4"
                   fill="#818cf8"
                   initial={{ offsetDistance: "0%" }}
                   animate={{ offsetDistance: "100%" }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  style={{ offsetPath: "path('M 800 450 L 1000 450')" }}
-                  className="shadow-[0_0_10px_#818cf8]"
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  style={{ offsetPath: "path('M 1100 450 L 1250 450')" }}
+                  className="shadow-[0_0_15px_#818cf8]"
                 />
              )}
           </svg>
