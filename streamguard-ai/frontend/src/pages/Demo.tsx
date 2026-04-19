@@ -58,7 +58,7 @@ export default function Demo() {
   return (
     <div className="min-h-screen bg-[#050810] text-[#f8fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
       
-      {/* HEADER - PIXEL PERFECT AUTH BADGE */}
+      {/* FINAL PRODUCTION APP SHELL (SCREENSHOT 2) */}
       <nav className="h-14 border-b border-white/5 bg-[#050810] flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-6">
            <div className="flex items-center gap-2">
@@ -96,13 +96,13 @@ export default function Demo() {
         </div>
       </nav>
 
-      {/* BACKGROUND GLOWS */}
+      {/* ATMOSPHERIC BACKGROUND */}
       <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       <main className="max-w-7xl mx-auto px-8 py-20 relative z-10">
         
-        {/* HERO TITLE - TRACKING MATCH */}
+        {/* HERO TITLE - RESTORED */}
         <div className="text-center mb-16 relative">
           <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight inline-block relative">
             Try the <span className="text-[#a78bfa] drop-shadow-[0_0_20px_rgba(167,139,250,0.4)]">Glass-Box AI</span>
@@ -141,7 +141,7 @@ export default function Demo() {
               </button>
             ))}
 
-            {/* TRUST BADGES - COLOR ACCURACY */}
+            {/* TRUST BADGES - SCREENSHOT 2 FIDELITY */}
             <div className="pt-10 flex gap-10 items-center opacity-50">
                <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <Globe className="w-4 h-4 text-blue-500" />
@@ -185,7 +185,7 @@ export default function Demo() {
                </div>
             </div>
 
-            {/* DECISION ENGINE - ABSOLUTE FINAL PROPORTIONS */}
+            {/* DECISION ENGINE - RESTORED PROPORTIONS */}
             <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[36px] border border-white/10 p-10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)]">
                <div className="flex justify-between items-start mb-14">
                   <div>
@@ -229,7 +229,7 @@ export default function Demo() {
                     <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3.5">
                       {active.forensics.map((f, i) => (
                         <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
-                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_15px_rgba(129,140,248,0.9)]" />
+                           <div className="w-3 h-3 rounded-full bg-[#818cf8] shadow-[0_0_15px_rgba(129,140,248,0.9)]" />
                            <span className="text-[14.5px] text-slate-400 font-[800] leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
