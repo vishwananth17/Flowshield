@@ -113,10 +113,13 @@ class FraudDetectionService:
 
     def analyze(self, tx: TransactionAnalyzeRequest, plan: str = "free") -> FraudResult:
         from app.ml.ensemble import get_ensemble
-        from app.core.billing_config import get_plan_limits
+        from app.core.billing_config import get_plan_limits, PlanTier
+        
+        # OVERRIDE: Unlock full ensemble for technical validation phase
+        tier_id = "growth"
+        limits = get_plan_limits(tier_id)
         
         start = time.time()
-        limits = get_plan_limits(plan)
         
         try:
             features = _extract_features(tx)

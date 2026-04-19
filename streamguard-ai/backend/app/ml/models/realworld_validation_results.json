@@ -14,7 +14,7 @@
       "specificity": 0.9949,
       "far": 0.0051,
       "f1_score": 0.0102,
-      "latency_ms": 4480.57,
+      "latency_ms": 5426.24,
       "generalises": false
     },
     {
@@ -28,5 +28,5 @@
       "specificity": 0.9963,
       "far": 0.0037,
       "f1_score": 0.4286,
-      "latency_ms": 40.19,
+      "latency_ms": 46.43,
       "generalises": 
