@@ -120,58 +120,67 @@ export default function Demo() {
       
       <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
-        {/* --- INFERENCE WIRING OVERLAY (TOP LAYER) --- */}
+        {/* --- API WORKFLOW OVERLAY (Literal Storytelling) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
+          {/* Workflow Labels */}
+          <div className="absolute top-[35%] left-[26%] flex flex-col items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500">
+               <Globe className="w-4 h-4" />
+            </div>
+            <span className="text-[8px] font-black tracking-widest text-slate-600 uppercase">Merchant SDK</span>
+          </div>
+
+          <div className="absolute top-[35%] left-[68%] flex flex-col items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500">
+               <Database className="w-4 h-4" />
+            </div>
+            <span className="text-[8px] font-black tracking-widest text-slate-600 uppercase">Audit Ledger</span>
+          </div>
+
           <svg className="w-full h-full" preserveAspectRatio="none">
-             {/* Wire 1: Left (25%) to Center (25%-66%) */}
+             {/* API Request Path */}
              <motion.path
-                d="M 400 450 L 500 450" 
-                stroke="#6366f1"
-                strokeWidth="2"
-                strokeDasharray="4 4"
+                d="M 450 400 Q 550 400 650 400" 
+                stroke="url(#api-grad)"
+                strokeWidth="1.5"
                 initial={{ opacity: 0 }}
-                animate={isProcessing ? { opacity: 0.6 } : { opacity: 0 }}
-                className="drop-shadow-[0_0_8px_#6366f1]"
+                animate={isProcessing ? { opacity: 0.4 } : { opacity: 0 }}
              />
              
-             {/* Data Packet 1 (Pulse) */}
+             {/* API Response Path */}
+             <motion.path
+                d="M 1050 400 Q 1150 400 1250 400"
+                stroke="url(#api-grad-rev)"
+                strokeWidth="1.5"
+                initial={{ opacity: 0 }}
+                animate={currentPhase === 'resolved' ? { opacity: 0.4 } : { opacity: 0 }}
+             />
+
+             {/* Moving Data Envelopes (Packets) */}
              <AnimatePresence>
                {isProcessing && (
-                  <motion.circle
-                    r="4"
-                    fill="#6366f1"
+                  <motion.g
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    style={{ offsetPath: "path('M 400 450 L 500 450')" }}
-                    className="shadow-[0_0_15px_#6366f1]"
-                  />
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    style={{ offsetPath: "path('M 450 400 Q 550 400 650 400')" }}
+                  >
+                    <circle r="4" fill="#6366f1" className="shadow-[0_0_10px_#6366f1]" />
+                    <rect x="-6" y="-6" width="12" height="12" rx="2" fill="#6366f1" opacity="0.2" />
+                  </motion.g>
                )}
              </AnimatePresence>
 
-             {/* Wire 2: Center to Right (66%) */}
-             <motion.path
-                d="M 1100 450 L 1250 450"
-                stroke="#818cf8"
-                strokeWidth="2"
-                strokeDasharray="4 4"
-                initial={{ opacity: 0 }}
-                animate={currentPhase === 'resolved' ? { opacity: 0.6 } : { opacity: 0 }}
-                className="drop-shadow-[0_0_8px_#818cf8]"
-             />
-             
-             {/* Data Packet 2 (Strike) */}
-             {currentPhase === 'resolved' && (
-                <motion.circle
-                  r="4"
-                  fill="#818cf8"
-                  initial={{ offsetDistance: "0%" }}
-                  animate={{ offsetDistance: "100%" }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  style={{ offsetPath: "path('M 1100 450 L 1250 450')" }}
-                  className="shadow-[0_0_15px_#818cf8]"
-                />
-             )}
+             <defs>
+               <linearGradient id="api-grad" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#6366f1" stopOpacity="0" />
+                 <stop offset="100%" stopColor="#6366f1" stopOpacity="1" />
+               </linearGradient>
+               <linearGradient id="api-grad-rev" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#818cf8" stopOpacity="1" />
+                 <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+               </linearGradient>
+             </defs>
           </svg>
         </div>
 
