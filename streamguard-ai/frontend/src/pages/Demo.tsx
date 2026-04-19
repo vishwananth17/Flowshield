@@ -122,7 +122,7 @@ export default function Demo() {
                 onClick={() => setActiveId(s.id)}
                 className={`w-full text-left p-7 rounded-[22px] border-2 transition-all duration-300 group ${
                   activeId === s.id 
-                  ? 'bg-[#0f172a]/90 border-blue-500 shadow-2xl shadow-blue-500/10' 
+                  ? 'bg-[#0f172a] border-blue-500 shadow-2xl shadow-blue-500/10' 
                   : 'bg-transparent border-white/5 hover:border-white/10 shadow-sm'
                 }`}
               >
@@ -215,7 +215,7 @@ export default function Demo() {
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <Activity className="w-4 h-4 text-[#818cf8]" /> Confusion
                      </div>
-                     <div className="text-[36px] font-black text-white italic tracking-tighter">0.75</div>
+                     <div className-[36px] font-black text-white italic tracking-tighter">0.75</div>
                   </div>
                </div>
 
