@@ -124,81 +124,70 @@ export default function Demo() {
         {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-             {/* Data Swarm 1: Ingestion */}
+             {/* Data Swarm: Left to Center */}
              <AnimatePresence>
-               {isProcessing && [0,1,2,3].map((i) => (
+               {isProcessing && [0,1,2].map((i) => (
                   <motion.circle
                     key={`swarm-in-${i}`}
-                    r="0.6"
+                    r="0.4"
                     fill="#6366f1"
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: i*0.2 }}
-                    style={{ offsetPath: `path('M 25 40 Q 40 40 50 40')` }}
-                    className="shadow-[0_0_10px_#6366f1]"
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear", delay: i*0.3 }}
+                    style={{ offsetPath: `path('M 25 40 Q 37 40 50 40')` }}
+                    className="shadow-[0_0_15px_#6366f1]"
                   />
                ))}
              </AnimatePresence>
 
-             {/* Data Swarm 2: Handover */}
+             {/* Data Swarm: Center to Right */}
              <AnimatePresence>
                 {currentPhase === 'resolved' && [0,1,2].map((i) => (
                     <motion.circle
                       key={`swarm-out-${i}`}
-                      r="0.6"
+                      r="0.4"
                       fill="#818cf8"
                       initial={{ offsetDistance: "0%" }}
                       animate={{ offsetDistance: "100%" }}
-                      transition={{ duration: 1, ease: "easeOut", delay: i*0.1 }}
-                      style={{ offsetPath: `path('M 66 40 Q 80 40 100 40')` }}
-                      className="shadow-[0_0_10px_#818cf8]"
+                      transition={{ duration: 0.8, ease: "easeOut", delay: i*0.1 }}
+                      style={{ offsetPath: `path('M 50 40 Q 63 40 75 40')` }}
+                      className="shadow-[0_0_15px_#818cf8]"
                     />
                 ))}
              </AnimatePresence>
-
-             <defs>
-               <linearGradient id="api-grad" x1="0" y1="0" x2="1" y2="0">
-                 <stop offset="0%" stopColor="#6366f1" stopOpacity="0" />
-                 <stop offset="100%" stopColor="#6366f1" stopOpacity="1" />
-               </linearGradient>
-               <linearGradient id="api-grad-rev" x1="0" y1="0" x2="1" y2="0">
-                 <stop offset="0%" stopColor="#818cf8" stopOpacity="1" />
-                 <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
-               </linearGradient>
-             </defs>
           </svg>
         </div>
 
-        {/* Trigger Panel */}
-        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 space-y-8 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-10">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+        {/* 1. LEFT PANEL: RAW DATA TRIGGER */}
+        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 flex flex-col justify-between">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <ShieldCheck className="text-white w-5 h-5" />
               </div>
               <span className="text-lg font-bold tracking-tight">Oracle Hub</span>
             </div>
 
             <div className="space-y-4">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-6">Select Scenario</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">Scenario Pulse</div>
               {demoScenarios.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => !isProcessing && handleRunDemo(s)}
                   disabled={isProcessing}
-                  className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group relative overflow-hidden ${
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
                     activeScenario?.id === s.id 
-                    ? 'bg-indigo-600/10 border-indigo-500' 
-                    : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
+                    ? 'bg-indigo-600/10 border-indigo-500/50' 
+                    : 'bg-slate-900/40 border-slate-800/50 hover:border-indigo-500/30'
                   }`}
                 >
-                  <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-950/80 border border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-950 border border-white/5 group-hover:scale-110 transition-transform">
                       {s.icon}
                     </div>
                     <div>
-                      <div className="font-bold text-sm">{s.name}</div>
-                      <div className="text-[11px] text-slate-500">{s.description}</div>
+                      <div className="font-bold text-[13px]">{s.name}</div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest">{s.id.split('_')[0]} context</div>
                     </div>
                   </div>
                 </button>
@@ -206,24 +195,17 @@ export default function Demo() {
             </div>
           </div>
 
-          {/* SINK NODES (Bottom of Panel) */}
-          <div className="space-y-3 opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all">
-            <div className="text-[9px] uppercase font-bold text-slate-600 mb-2">Input Context</div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-500">
-               <div className="w-6 h-6 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center"><CreditCard className="w-3 h-3" /></div>
-               <span>Card Metadata</span>
-            </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-500">
-               <div className="w-6 h-6 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center"><Globe className="w-3 h-3" /></div>
-               <span>Geographic Signals</span>
-            </div>
+          <div className="space-y-4 pt-10 border-t border-white/5">
+             <div className="text-[9px] uppercase font-black text-slate-600 tracking-widest">Input Context Stack</div>
+             <NeuralIconRow icon={<CreditCard className="w-4 h-4" />} label="Card Payload" />
+             <NeuralIconRow icon={<Globe className="w-4 h-4" />} label="Geographic Data" />
           </div>
         </aside>
 
-        {/* Engine Panel */}
-        <main className="lg:col-span-5 bg-[#020617] relative flex flex-col items-center justify-center p-8 lg:p-12">
+        {/* 2. MIDDLE PANEL: NEURAL PROCESSOR */}
+        <main className="lg:col-span-5 bg-[#02030a] relative flex flex-col items-center justify-center p-8 lg:p-12 overflow-hidden">
           
-          {/* Label 1: Locked to Gap Between Aside (col-3) and Main (col-5) */}
+          {/* Label 1: API Anchor (Left) */}
           <div className="absolute left-0 top-[40%] -translate-x-1/2 flex flex-col items-center gap-2 z-40">
             <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
                <Globe className="w-5 h-5" />
@@ -231,7 +213,7 @@ export default function Demo() {
             <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Merchant SDK</span>
           </div>
 
-          {/* Label 2: Locked to Gap Between Main (col-5) and Right (col-4) */}
+          {/* Label 2: API Anchor (Right) */}
           <div className="absolute right-0 top-[40%] translate-x-1/2 flex flex-col items-center gap-2 z-40">
             <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
                <Database className="w-5 h-5" />
@@ -239,90 +221,164 @@ export default function Demo() {
             <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Audit Ledger</span>
           </div>
 
-          <div className="w-full max-w-md relative z-10 space-y-12">
-            
-            {/* 1. THE NARRATOR (Trust Layer) */}
-            <div className="h-6 flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                {(isProcessing || currentPhase === 'resolved') && (
-                  <motion.div
-                    key={currentPhase}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-[10px] font-black tracking-[0.2em] text-indigo-400 uppercase bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
-                  >
-                    {currentPhase === 'normalizing' && "Neural Step 1: Ingesting Real-Time Patterns"}
-                    {currentPhase === 'extracting' && "Neural Step 2: Decomposing Risk Vectors"}
-                    {currentPhase === 'deciding' && "Neural Step 3: Global Oracle Finalizing"}
-                    {currentPhase === 'resolved' && "Step 4: Decision Rendered & Forensic Handover Complete"}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <div className="relative z-10 w-full flex flex-col items-center gap-16">
+            {/* Step Narrator */}
+            <AnimatePresence mode="wait">
+              {(isProcessing || currentPhase === 'resolved') && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  className="bg-indigo-500/5 px-4 py-2 rounded-full border border-indigo-500/20 text-[10px] font-black text-indigo-400 tracking-widest uppercase"
+                >
+                  {currentPhase === 'normalizing' && "Step 1: Normalizing Telemetry"}
+                  {currentPhase === 'extracting' && "Step 2: Vectorizing Features"}
+                  {currentPhase === 'deciding' && "Step 3: Neural Consensus"}
+                  {currentPhase === 'resolved' && "Step 4: Forensic Handover Complete"}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* NEURAL CORE (Reference Mirror) */}
+            <div className="relative w-80 h-80 flex items-center justify-center">
+               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute inset-0 border border-dashed border-indigo-500/20 rounded-full" />
+               <motion.div animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }} className="absolute inset-8 border border-white/5 rounded-full" />
+               
+               <div className="relative bg-slate-950 border border-indigo-500/40 w-56 h-56 rounded-full flex flex-col items-center justify-center space-y-3 shadow-[0_0_60px_rgba(99,102,241,0.2)]">
+                  <div className="text-[10px] uppercase font-black tracking-[0.2em] text-indigo-500/60 mb-2 font-mono">Processing Unit</div>
+                  <NeuralStage label="Understand" active={currentPhase === 'normalizing'} />
+                  <NeuralStage label="Structure" active={currentPhase === 'extracting'} />
+                  <NeuralStage label="Connect" active={currentPhase === 'deciding' || currentPhase === 'resolved'} />
+               </div>
+            </div>
+          </div>
+        </main>
+
+        {/* 3. RIGHT PANEL: STRUCTURED SYSTEMS & VERDICT */}
+        <aside className="lg:col-span-4 bg-slate-950/50 backdrop-blur-3xl border-l border-white/5 p-6 lg:p-10 flex flex-col overflow-y-auto custom-scrollbar">
+          
+          {/* VERDICT CONTAINER (Reference Requirement) */}
+          <div className="mb-10 text-center">
+            <AnimatePresence mode="wait">
+              {result ? (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                  className={`p-6 rounded-[2.5rem] border-2 flex flex-col items-center gap-2 shadow-2xl ${
+                    result.decision === 'block' ? 'border-rose-500/40 bg-rose-500/5 shadow-rose-500/10' : 'border-emerald-500/40 bg-emerald-500/5 shadow-emerald-500/10'
+                  }`}
+                >
+                   <div className={`text-4xl font-black uppercase tracking-tighter ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {result.decision}
+                   </div>
+                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">System Verdict</div>
+                </motion.div>
+              ) : (
+                <div className="p-8 rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center gap-3 grayscale opacity-30">
+                   <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center">
+                      <Zap className="text-slate-500 w-5 h-5" />
+                   </div>
+                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Awaiting Pulse</span>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex-grow space-y-10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="text-indigo-400 w-5 h-5" />
+                <h3 className="font-bold text-sm tracking-tight text-white/90 uppercase">Glass-Box Forensics</h3>
+              </div>
+              {result && (
+                <div className="text-[10px] font-mono text-indigo-400 font-bold bg-indigo-400/10 px-2 py-0.5 rounded">
+                  LATENCY: {result.latency}ms
+                </div>
+              )}
             </div>
 
-            {/* 2. THE HUB */}
-            <div className="relative flex items-center justify-center">
-              {/* Rotating Rings */}
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-                className="absolute w-64 h-64 border border-dashed border-indigo-500/20 rounded-full" 
-              />
-              <motion.div 
-                animate={{ rotate: -360 }}
-                transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-                className="absolute w-48 h-48 border border-white/5 rounded-full" 
-              />
-
-              {/* CENTRAL CORE */}
-              <div className="relative z-10 text-center">
-                <AnimatePresence mode="wait">
-                  {/* THE PERSISTENT ACTIVE CORE */}
-                  <motion.div
-                    key="active-hub"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`w-52 h-52 bg-slate-950 border rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_60px_rgba(99,102,241,0.15)] transition-colors duration-700 ${
-                      currentPhase === 'resolved' 
-                      ? (result?.decision === 'block' ? 'border-rose-500/30' : 'border-emerald-500/30') 
-                      : 'border-indigo-500/40'
-                    }`}
-                  >
-                    {!result ? (
-                      <>
-                        <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Zenith Engine</div>
-                        <div className="space-y-1.5 w-full px-8">
-                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'normalizing' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>NORMALIZE</div>
-                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'extracting' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>VECTORIZE</div>
-                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'deciding' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>DECIDE</div>
-                        </div>
-                      </>
-                    ) : (
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="text-center"
-                      >
-                        <div className={`text-5xl font-black tracking-tighter uppercase mb-2 ${
-                          result.decision === 'block' ? 'text-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.4)]' : 'text-emerald-500 drop-shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-                        }`}>
-                          {result.decision}
-                        </div>
-                        <div className="text-[9px] font-black tracking-[0.4em] text-white/30 uppercase">Verdict Rendered</div>
-                        
-                        {/* Persistent Mini-Logic (Proof of Work) */}
-                        <div className="flex gap-2 mt-4 opacity-40">
-                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+            {/* FORENSIC WATERFALL */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className="text-slate-400 uppercase tracking-widest">Global Risk Level</span>
+                <span className={result && result.risk_score > 0.5 ? "text-rose-500" : "text-indigo-400"}>
+                  {result ? `${Math.round(result.risk_score * 100)}%` : "0%"}
+                </span>
+              </div>
+              
+              <div className="space-y-4">
+                {result ? (
+                  result.forensics.map((f: any, idx: number) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="p-4 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden group"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-white/70">{f.feature}</span>
+                        <span className="text-[11px] font-black text-rose-500">+{Math.round(f.impact * 100)}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }} animate={{ width: `${f.impact * 100}%` }}
+                          className={`h-full ${result.decision === 'block' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]' : 'bg-indigo-500'}`} 
+                        />
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-center py-20">
+                     <Terminal className="w-8 h-8 text-slate-800 mx-auto mb-4" />
+                     <p className="text-[10px] text-slate-600 uppercase font-black tracking-widest">No forensics in audit log</p>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-white/5 flex gap-4">
+             <NeuralIconRow icon={<Database className="w-4 h-4" />} label="Audit Ledger" />
+             <NeuralIconRow icon={<ShieldCheck className="w-4 h-4" />} label="Compliance Sentry" />
+          </div>
+        </aside>
+      </div>
+
+      {/* FIXED BASELINE STATS */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 px-10 py-4 bg-slate-950/80 backdrop-blur-xl border border-white/5 rounded-full z-50 shadow-2xl">
+         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <Zap className="w-3 h-3 text-amber-500" />
+            0.38MS BASELINE
+         </div>
+         <div className="w-px h-4 bg-white/10" />
+         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+            RBI COMPLIANT
+         </div>
+      </div>
+    </div>
+  );
+}
+
+function NeuralStage({ label, active }: { label: string; active: boolean }) {
+   return (
+      <div className={`w-full max-w-[140px] py-2 px-4 rounded-xl border transition-all duration-500 flex items-center justify-center gap-3 ${
+         active ? "bg-indigo-500/20 border-indigo-500 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)] scale-105" : "bg-white/5 border-white/10 text-slate-700 opacity-30"
+      }`}>
+         <div className={`w-2 h-2 rounded-full ${active ? "bg-indigo-400 animate-pulse" : "bg-slate-800"}`} />
+         <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
+      </div>
+   );
+}
+
+function NeuralIconRow({ icon, label }: { icon: any; label: string }) {
+   return (
+      <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+         <div className="w-8 h-8 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center">
+            {icon}
+         </div>
+         <span>{label}</span>
+      </div>
+   );
+}
 
             {/* 3. ENGINE LOGS */}
             <div className="bg-slate-950/80 border border-white/5 rounded-2xl p-6 backdrop-blur-xl h-40">
