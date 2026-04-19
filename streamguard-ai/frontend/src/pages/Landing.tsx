@@ -156,9 +156,9 @@ export default function Landing() {
 
           <div className="flex flex-wrap justify-center gap-4 mt-8">
             <Button asChild variant="outline" className="border-white/10 hover:bg-white/5 text-slate-400 hover:text-white h-12 px-8 rounded-xl font-bold bg-slate-900/50 backdrop-blur-sm">
-              <Link to="/register" className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-blue-400" />
-                Get Started Now
+              <Link to="/demo" className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" />
+                Try Interactive Sandbox
               </Link>
             </Button>
             <Button asChild variant="ghost" className="text-slate-500 hover:text-white h-12 px-8 rounded-xl font-bold">
