@@ -47,9 +47,15 @@ class FraudDetectionService:
         # 1. Logic A: Machine Learning Core (Pattern Recognition)
         ml_score = 0.0
         if plan != "free":
-            ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
-            if ml_score > 0.7:
-                reasons.append(f"Autonomous pattern recognition flagged transaction (Risk: {ml_score:.2f})")
+            try:
+                ml_score = ml_model.predict_risk(float(tx.amount), now.hour, is_cb, email_len, is_prepaid)
+                if ml_score > 0.7:
+                    reasons.append(f"Autonomous pattern recognition flagged transaction (Risk: {ml_score:.2f})")
+            except Exception as e:
+                # Log the error but don't crash the API. Fallback to Rule-Mode.
+                # In a real environment, you'd send this to Sentry/CloudWatch.
+                reasons.append(f"AI Core offline (fallback mode active)")
+                ml_score = 0.0
         else:
             reasons.append("ML ensemble analysis restricted to premium tiers")
         
