@@ -13,7 +13,15 @@ import {
   CreditCard,
   BarChart3,
   RotateCcw,
-  Activity
+  Activity,
+  Search,
+  Bell,
+  User,
+  LayoutDashboard,
+  ArrowRightLeft,
+  Settings,
+  HelpCircle,
+  FileText
 } from 'lucide-react';
 import api from '@/services/api';
 import { toast } from 'sonner';
@@ -55,7 +63,7 @@ type Action =
 function simulationReducer(state: State, action: Action): State {
   switch (action.type) {
     case 'START_SIMULATION':
-      return { ...state, status: 'PROCESSING', activeScenario: action.scenario, processingStep: 'Initializing logic...' };
+      return { ...state, status: 'PROCESSING', activeScenario: action.scenario, processingStep: 'Processing payload...' };
     case 'SET_STEP':
       return { ...state, processingStep: action.step };
     case 'COMPLETE_SIMULATION':
@@ -67,18 +75,18 @@ function simulationReducer(state: State, action: Action): State {
   }
 }
 
-const FLOWSHIELD_DNA_SCENARIOS: Scenario[] = [
+const DASHBOARD_DNA_SCENARIOS: Scenario[] = [
   {
     id: 'SAFE_UPI',
     name: 'Safe UPI Payment',
     description: 'Typical INR 450 grocery transaction',
-    icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />,
+    icon: <ShieldCheck className="w-5 h-5" />,
     risk_score: 0.02,
     confidence: 0.99,
     latency: 12,
     verdict: 'ALLOW',
     forensics: [
-      { label: 'Device Hash Match', weight: 15, type: 'decrease' },
+      { label: 'Device ID Match', weight: 15, type: 'decrease' },
       { label: 'Verified Merchant', weight: 40, type: 'decrease' },
       { label: 'Baseline Velocity', weight: 10, type: 'decrease' }
     ],
@@ -88,7 +96,7 @@ const FLOWSHIELD_DNA_SCENARIOS: Scenario[] = [
     id: 'COLLECT_SCAM',
     name: 'UPI Collect Scam',
     description: 'High-value pull on unverified device',
-    icon: <AlertTriangle className="w-4 h-4 text-amber-500" />,
+    icon: <AlertTriangle className="w-5 h-5" />,
     risk_score: 0.82,
     confidence: 0.94,
     latency: 17,
@@ -104,7 +112,7 @@ const FLOWSHIELD_DNA_SCENARIOS: Scenario[] = [
     id: 'GLOBAL_CARD',
     name: 'Global Card Theft',
     description: 'EUR 1.8k purchase from US card',
-    icon: <Lock className="w-4 h-4 text-rose-500" />,
+    icon: <Lock className="w-5 h-5" />,
     risk_score: 0.98,
     confidence: 0.98,
     latency: 22,
@@ -129,271 +137,275 @@ export default function Demo() {
     dispatch({ type: 'START_SIMULATION', scenario });
     
     await new Promise(r => setTimeout(r, 600));
-    dispatch({ type: 'SET_STEP', step: 'Extracting features...' });
+    dispatch({ type: 'SET_STEP', step: 'Vectorizing signals...' });
 
     await new Promise(r => setTimeout(r, 700));
-    dispatch({ type: 'SET_STEP', step: 'Running ensemble...' });
+    dispatch({ type: 'SET_STEP', step: 'AI Analysis...' });
 
     await new Promise(r => setTimeout(r, 500));
     dispatch({ type: 'COMPLETE_SIMULATION' });
-    toast.success('Forensic Result Ready');
+    toast.success('Simulation Completed');
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-slate-200 font-sans selection:bg-blue-600/30 overflow-hidden">
+    <div className="flex h-screen bg-[#0A0E1A] text-slate-200 font-sans selection:bg-blue-600/30 overflow-hidden">
       
-      {/* HUD HEADER - DNA MIRRORED */}
-      <nav className="border-b border-[#1F2937] bg-[#030712] px-8 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-           <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-[#2563eb] rounded flex items-center justify-center">
-                <ShieldCheck className="text-white w-5 h-5 shadow-lg" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-white leading-none">Flowshield AI</span>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Intelligence Hub</span>
+      {/* 1. DASHBOARD SIDEBAR (MIRRORED) */}
+      <aside className="w-64 bg-[#030712] border-r border-[#1F2937] flex flex-col hidden lg:flex">
+        <div className="p-6 border-b border-[#1F2937] flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#2563eb] rounded flex items-center justify-center">
+            <ShieldCheck className="text-white w-5 h-5" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-white leading-none">Flowshield AI</span>
+        </div>
+
+        <div className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
+          {/* Main Nav Labels */}
+          <div className="space-y-1">
+             <SidebarLink icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+             <SidebarLink icon={<ArrowRightLeft className="w-4 h-4" />} label="Transactions" />
+             <SidebarLink icon={<AlertTriangle className="w-4 h-4" />} label="Alerts" />
+             <SidebarLink icon={<Activity className="w-4 h-4" />} label="Simulation" active />
+          </div>
+
+          <div className="space-y-4 pt-10">
+             <div className="text-[10px] uppercase font-bold text-gray-600 tracking-widest px-3">Simulator Engine</div>
+             <div className="space-y-2">
+                {DASHBOARD_DNA_SCENARIOS.map((s) => (
+                  <button
+                    key={s.id}
+                    disabled={state.status === 'PROCESSING'}
+                    onClick={() => handleRunSimulation(s)}
+                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-all ${
+                      state.activeScenario?.id === s.id 
+                      ? 'bg-[#2563eb]/10 text-[#2563eb] border border-[#2563eb]/30' 
+                      : 'text-gray-500 hover:text-white hover:bg-[#111827]'
+                    }`}
+                  >
+                     <div className={`w-8 h-8 rounded flex items-center justify-center ${
+                        state.activeScenario?.id === s.id ? 'bg-[#2563eb] text-white' : 'bg-[#111827]'
+                     }`}>
+                        {s.icon}
+                     </div>
+                     <span className="text-[12px] font-bold tracking-tight">{s.name}</span>
+                  </button>
+                ))}
+             </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-[#1F2937]">
+           <SidebarLink icon={<Settings className="w-4 h-4" />} label="Settings" />
+           <SidebarLink icon={<HelpCircle className="w-4 h-4" />} label="Documentation" />
+        </div>
+      </aside>
+
+      {/* 2. MAIN CONTENT AREA */}
+      <div className="flex-grow flex flex-col min-w-0 bg-[#0A0E1A]">
+        
+        {/* DASHBOARD TOP HEADER */}
+        <header className="h-16 border-b border-[#1F2937] bg-[#030712] flex items-center justify-between px-8 shrink-0">
+           <div className="flex items-center flex-grow max-w-xl">
+              <div className="relative w-full">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                 <input 
+                   disabled 
+                   type="text" 
+                   placeholder="Search scenarios, alerts..." 
+                   className="w-full bg-[#111827] border border-[#1F2937] rounded-lg py-2 pl-10 pr-4 text-sm text-gray-400 focus:outline-none" 
+                 />
               </div>
            </div>
-           
-           <div className="flex items-center gap-4">
+
+           <div className="flex items-center gap-6 ml-6">
               <div className="bg-[#111827] border border-[#1F2937] px-3 py-1.5 rounded-full flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Engine Connected</span>
+                 <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest leading-none">Engine Live</span>
+              </div>
+              <div className="flex items-center gap-4 text-gray-400">
+                 <button><Bell className="w-5 h-5 hover:text-white transition-colors" /></button>
+                 <div className="w-8 h-8 rounded-full bg-[#2563eb] flex items-center justify-center text-white font-bold text-xs">V</div>
+              </div>
+           </div>
+        </header>
+
+        {/* SIMULATION HUB CONTENT */}
+        <div className="p-6 lg:p-10 flex-grow overflow-hidden flex flex-col gap-8">
+           
+           <div className="flex justify-between items-end">
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Intelligence Hub</h1>
+                <p className="text-sm text-gray-500 mt-1">Simulate adversarial attacks to test forensic recall.</p>
               </div>
               <button 
-                onClick={() => dispatch({ type: 'RESET' })} 
-                className="p-2 hover:bg-[#1F2937] border border-[#1F2937] rounded-lg transition-colors group"
-                title="Reset simulation"
+                onClick={() => dispatch({ type: 'RESET' })}
+                className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-[#1F2937] rounded-lg text-xs font-bold text-gray-400 hover:text-white transition-all shadow-sm"
               >
-                <RotateCcw className="w-4 h-4 text-gray-500 group-hover:text-white" />
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset Machine
               </button>
            </div>
-        </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto p-6 lg:p-8 h-[calc(100vh-72px)] overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-          
-          {/* 1. LEFT PANEL: TRIGGER */}
-          <aside className="lg:col-span-3 flex flex-col gap-6 relative z-40">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold text-white tracking-tight">Scenario Pulse</h2>
-              <p className="text-xs text-gray-500 font-medium tracking-tight">Trigger a telemetry stream for analysis.</p>
-            </div>
+           <div className="grid lg:grid-cols-12 gap-8 flex-grow">
+              
+              {/* THE ENGINE CARD (DNA MIRRORED) */}
+              <section className="lg:col-span-7 flex flex-col bg-[#111827] border border-[#1F2937] rounded-xl shadow-2xl relative overflow-hidden">
+                 
+                 <div className="absolute inset-x-0 bottom-0 pointer-events-none z-10 h-1/2">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                       <path d="M 0 0 L 0 100 L 100 100 L 100 0" fill="url(#core-grad)" />
+                       <defs>
+                          <linearGradient id="core-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                             <stop offset="0%" stopColor="#111827" stopOpacity="0" />
+                             <stop offset="100%" stopColor="#2563eb" stopOpacity="0.05" />
+                          </linearGradient>
+                       </defs>
+                    </svg>
+                 </div>
 
-            <div className="space-y-3">
-              {FLOWSHIELD_DNA_SCENARIOS.map((s) => (
-                <button
-                  key={s.id}
-                  disabled={state.status === 'PROCESSING'}
-                  onClick={() => handleRunSimulation(s)}
-                  className={`w-full text-left p-4 rounded-lg border transition-all duration-200 group relative ${
-                    state.activeScenario?.id === s.id 
-                    ? 'bg-[#2563eb] border-[#2563eb] shadow-xl shadow-blue-900/20' 
-                    : 'bg-[#111827] border-[#1F2937] hover:border-gray-700'
-                  }`}
-                >
-                   <div className="flex items-center gap-4 relative z-10">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                        state.activeScenario?.id === s.id ? 'bg-white/20' : 'bg-[#0A0E1A] border border-[#1F2937]'
-                      }`}>
-                         {s.icon}
-                      </div>
-                      <div>
-                        <div className={`font-bold text-[13px] ${state.activeScenario?.id === s.id ? 'text-white' : 'text-slate-200'}`}>{s.name}</div>
-                        <div className={`text-[10px] uppercase font-bold tracking-widest leading-none mt-1 ${state.activeScenario?.id === s.id ? 'text-blue-100' : 'text-gray-600'}`}>
-                          {s.id.replace('_', ' ')}
-                        </div>
-                      </div>
-                   </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-auto p-5 rounded-lg bg-[#111827] border border-[#1F2937] space-y-4">
-               <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Ensemble Accuracy</span>
-                  <span className="text-[11px] font-black text-emerald-400">99.8%</span>
-               </div>
-               <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Latency</span>
-                  <span className="text-[11px] font-black text-[#2563eb]">{'<'}20ms</span>
-               </div>
-            </div>
-          </aside>
-
-          {/* 2. MIDDLE PANEL: PROCESSOR (DNA CORE) */}
-          <section className="lg:col-span-5 relative flex flex-col items-center justify-center p-8 bg-[#111827] border border-[#1F2937] rounded-lg shadow-2xl overflow-hidden">
-             
-             {/* DNA PATHWAYS (Fixed Scale Labels) */}
-             <div className="absolute inset-0 pointer-events-none z-10 opaciy-30">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-                   {/* Pathway Lines */}
-                   <path d="M 0 50 L 100 50" stroke="#1F2937" strokeWidth="0.15" fill="none" strokeDasharray="1 3" />
-                   
-                   {/* Infrastructure Labels (Match Dashboard Pills) */}
-                   <g transform="translate(15, 58)">
-                      <rect x="-8" y="-3" width="16" height="6" rx="3" fill="#0A0E1A" stroke="#1F2937" strokeWidth="0.1" />
-                      <text textAnchor="middle" y="1" fill="#4B5563" style={{ fontSize: '1.2px' }} className="font-bold tracking-widest uppercase font-sans">Merchant SDK</text>
-                   </g>
-
-                   <g transform="translate(85, 58)">
-                      <rect x="-8" y="-3" width="16" height="6" rx="3" fill="#0A0E1A" stroke="#1F2937" strokeWidth="0.1" />
-                      <text textAnchor="middle" y="1" fill="#4B5563" style={{ fontSize: '1.2px' }} className="font-bold tracking-widest uppercase font-sans">Audit Ledger</text>
-                   </g>
-
-                   {/* Pulse Movement */}
-                   <AnimatePresence>
-                     {state.status === 'PROCESSING' && (
-                        <motion.circle
-                          r="0.5" fill="#2563eb"
-                          initial={{ offsetDistance: "0%" }} animate={{ offsetDistance: "50%" }}
-                          transition={{ duration: 0.4, ease: "linear" }}
-                          style={{ offsetPath: `path('M 0 50 L 100 50')` }}
-                          className="shadow-[0_0_15px_#2563eb]"
-                        />
-                     )}
-                     {state.status === 'RESOLVED' && (
-                        <motion.circle
-                          r="0.8" 
-                          fill={state.activeScenario?.verdict === 'BLOCK' ? '#ef4444' : '#10b981'}
-                          initial={{ offsetDistance: "55%" }} animate={{ offsetDistance: "100%" }}
-                          transition={{ duration: 0.5, ease: "easeOut" }}
-                          style={{ offsetPath: `path('M 0 50 L 100 50')` }}
-                        />
-                     )}
-                   </AnimatePresence>
-                </svg>
-             </div>
-
-             <div className="relative z-20 flex flex-col items-center gap-14">
-                <div className="h-6">
-                  <AnimatePresence mode="wait">
+                 <div className="p-6 border-b border-[#1F2937] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                       <Cpu className="w-4 h-4 text-[#2563eb]" />
+                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Neural Processor Node</span>
+                    </div>
                     {state.status === 'PROCESSING' && (
-                      <motion.div
-                        key={state.processingStep}
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        className="text-[10px] font-bold text-[#2563eb] uppercase tracking-[0.4em] bg-[#0A0E1A] px-4 py-1.5 rounded-full border border-[#1F2937] shadow-xl"
-                      >
-                        {state.processingStep}
-                      </motion.div>
+                       <span className="text-[10px] font-bold text-[#2563eb] uppercase tracking-widest animate-pulse">Running Inferences...</span>
                     )}
-                  </AnimatePresence>
-                </div>
+                 </div>
 
-                {/* THE CORE BLOCK */}
-                <div className="relative w-80 h-80 flex items-center justify-center">
-                   <div className="absolute inset-0 border border-[#1F2937] rounded-full" />
-                   <div className="absolute inset-16 border border-[#1F2937]/50 rounded-full" />
-                   
-                   <div className="relative bg-[#0A0E1A] border border-[#1F2937] w-52 h-52 rounded-full flex flex-col items-center justify-center space-y-4 shadow-inner">
-                      {state.status === 'RESOLVED' ? (
-                        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-                           <CheckCircle2 className={`w-16 h-16 ${state.activeScenario?.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'}`} />
-                        </motion.div>
-                      ) : (
-                        <div className="flex flex-col items-center">
-                           <Activity className={`w-10 h-10 ${state.status === 'PROCESSING' ? 'text-[#2563eb] animate-pulse' : 'text-gray-800'}`} />
-                           <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest mt-4">Node Engine</span>
-                        </div>
-                      )}
-                   </div>
-                </div>
-             </div>
-          </section>
+                 <div className="flex-grow flex items-center justify-center p-12 relative overflow-hidden">
+                    <div className="relative z-20 flex flex-col items-center gap-14">
+                       <div className="h-6">
+                         <AnimatePresence mode="wait">
+                           {state.status === 'PROCESSING' && (
+                             <motion.div
+                               key={state.processingStep}
+                               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}
+                               className="text-[11px] font-black text-[#2563eb] uppercase tracking-[0.5em]"
+                             >
+                               {state.processingStep}
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
+                       </div>
 
-          {/* 3. RIGHT PANEL: AUDIT */}
-          <aside className="lg:col-span-4 flex flex-col gap-6">
-            
-            <div className="bg-[#111827] border border-[#1F2937] rounded-lg p-6 shadow-xl">
-               <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest font-mono">Analysis Result</h3>
-                  <div className="bg-[#2563eb]/10 px-2 py-0.5 rounded text-[9px] font-black text-[#2563eb] uppercase">Confidence High</div>
-               </div>
+                       <div className="relative w-72 h-72 flex items-center justify-center">
+                          <div className="absolute inset-0 border border-gray-800 rounded-full" />
+                          <motion.div 
+                             animate={state.status === 'PROCESSING' ? { rotate: 360 } : {}}
+                             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                             className="absolute inset-8 border border-gray-800/50 rounded-full" 
+                          />
+                          
+                          <div className="relative bg-[#0A0E1A] border border-[#1F2937] w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-inner group">
+                             <AnimatePresence mode="wait">
+                                {state.status === 'RESOLVED' ? (
+                                  <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                                     <CheckCircle2 className={`w-16 h-16 ${state.activeScenario?.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'}`} />
+                                  </motion.div>
+                                ) : (
+                                  <div className="flex flex-col items-center">
+                                     <Activity className={`w-10 h-10 ${state.status === 'PROCESSING' ? 'text-[#2563eb] animate-pulse' : 'text-gray-800 opacity-20'}`} />
+                                     <span className="text-[9px] font-black text-gray-800 uppercase tracking-[0.4em] mt-4">Static</span>
+                                  </div>
+                                )}
+                             </AnimatePresence>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
 
-               <div className="h-44 flex flex-col items-center justify-center bg-[#0A0E1A] border border-[#1F2937] rounded-lg relative overflow-hidden group">
-                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#2563eb 0.5px, transparent 0.5px)', backgroundSize: '12px 12px' }}></div>
-                 <AnimatePresence mode="wait">
-                    {state.status === 'RESOLVED' && state.activeScenario ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                        className="text-center relative z-10"
-                      >
-                         <div className={`text-6xl font-black uppercase tracking-tighter mb-2 ${
-                           state.activeScenario.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-400'
-                         }`}>
-                            {state.activeScenario.verdict}
-                         </div>
-                         <div className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.4em]">Handover Ready</div>
-                      </motion.div>
-                    ) : (
-                      <div className="flex flex-col items-center opacity-20 relative z-10">
-                         <Terminal className="w-8 h-8 text-gray-500 mb-4" />
-                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] max-w-[180px] text-center leading-relaxed">System awaiting node resolution signal...</span>
-                      </div>
-                    )}
-                 </AnimatePresence>
-               </div>
-            </div>
+                 <div className="p-6 border-t border-[#1F2937] flex justify-between">
+                    <div className="flex items-center gap-2">
+                       <Globe className="w-4 h-4 text-gray-700" />
+                       <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Merchant Gateway</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Global Audit Log</span>
+                       <Database className="w-4 h-4 text-gray-700" />
+                    </div>
+                 </div>
+              </section>
 
-            <div className="flex-grow bg-[#111827] border border-[#1F2937] rounded-lg p-6 flex flex-col gap-6 shadow-xl">
-               <div className="flex items-center gap-3 border-b border-[#1F2937] pb-4">
-                  <BarChart3 className="text-[#2563eb] w-4 h-4" />
-                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Forensic Breakdown</span>
-               </div>
+              {/* AUDIT & VERDICT PANEL */}
+              <aside className="lg:col-span-5 flex flex-col gap-6">
+                 {/* VERDICT CARD */}
+                 <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-xl">
+                    <AnimatePresence mode="wait">
+                       {state.status === 'RESOLVED' && state.activeScenario ? (
+                          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+                             <div className={`text-6xl font-black uppercase tracking-tighter ${
+                               state.activeScenario.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'
+                             }`}>
+                                {state.activeScenario.verdict}
+                             </div>
+                             <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] mt-3">Forensic Verdict</div>
+                          </motion.div>
+                       ) : (
+                          <div className="flex flex-col items-center opacity-10">
+                             <FileText className="w-10 h-10 text-gray-500 mb-4" />
+                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Awaiting Outcome</span>
+                          </div>
+                       )}
+                    </AnimatePresence>
+                 </div>
 
-               <div className="space-y-3">
-                  <AnimatePresence mode="wait">
-                    {state.status === 'RESOLVED' && state.activeScenario ? (
-                      <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }} className="space-y-3">
-                         {state.activeScenario.forensics.map((f, i) => (
-                           <motion.div key={i} variants={{ hidden: { opacity: 0, x: 10 }, visible: { opacity: 1, x: 0 } }} className="bg-[#0A0E1A] border border-[#1F2937] p-4 rounded-lg group hover:border-[#2563eb]/30 transition-colors">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-bold text-gray-400 group-hover:text-slate-200 transition-colors">{f.label}</span>
-                                <span className={`text-[11px] font-black ${f.type === 'increase' ? 'text-rose-500' : 'text-emerald-400'}`}>
-                                   {f.type === 'increase' ? '+' : '-'}{f.weight}%
-                                </span>
-                              </div>
-                              <div className="h-1 w-full bg-[#1F2937] rounded-full overflow-hidden">
-                                <motion.div 
-                                  initial={{ width: 0 }} animate={{ width: `${f.weight}%` }}
-                                  transition={{ duration: 1.2, ease: "easeOut" }}
-                                  className={`h-full ${f.type === 'increase' ? 'bg-rose-500' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'}`} 
-                                />
-                              </div>
-                           </motion.div>
-                         ))}
-                      </motion.div>
-                    ) : (
-                      <div className="py-20 flex flex-col items-center justify-center opacity-10">
-                         <Activity className="w-10 h-10 text-white mb-4" />
-                         <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Audit Ledger Standard</p>
-                      </div>
-                    )}
-                  </AnimatePresence>
-               </div>
-            </div>
-          </aside>
+                 {/* SHAP WATERFALL */}
+                 <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-6 flex flex-col gap-6 flex-grow shadow-lg">
+                    <div className="flex items-center justify-between border-b border-[#1F2937] pb-4">
+                       <div className="flex items-center gap-3">
+                          <BarChart3 className="text-[#2563eb] w-4 h-4" />
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Risk Analysis</span>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <AnimatePresence mode="wait">
+                          {state.status === 'RESOLVED' && state.activeScenario ? (
+                             <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }} className="space-y-3">
+                                {state.activeScenario.forensics.map((f, i) => (
+                                   <div key={i} className="bg-[#0A0E1A] border border-[#1F2937] p-4 rounded-lg">
+                                      <div className="flex justify-between items-center mb-2">
+                                         <span className="text-xs font-bold text-gray-500">{f.label}</span>
+                                         <span className={`text-[11px] font-black ${f.type === 'increase' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                            {f.type === 'increase' ? '+' : '-'}{f.weight}%
+                                         </span>
+                                      </div>
+                                      <div className="h-1 w-full bg-[#1F2937] rounded-full overflow-hidden">
+                                         <motion.div 
+                                            initial={{ width: 0 }} animate={{ width: `${f.weight}%` }}
+                                            transition={{ duration: 1.2, ease: "easeOut" }}
+                                            className={`h-full ${f.type === 'increase' ? 'bg-rose-500' : 'bg-[#2563eb]'}`} 
+                                         />
+                                      </div>
+                                   </div>
+                                ))}
+                             </motion.div>
+                          ) : (
+                             <div className="py-20 flex flex-col items-center justify-center opacity-10">
+                                <Search className="w-12 h-12 text-white mb-4" />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Audit Idle</span>
+                             </div>
+                          )}
+                       </AnimatePresence>
+                    </div>
+                 </div>
+              </aside>
+           </div>
         </div>
-      </main>
-
-      {/* DASHBOARD STATUS BAR */}
-      <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-10 px-12 py-4 bg-[#030712] border border-[#1F2937] rounded-full z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-         <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">
-            <Zap className="w-4 h-4 text-[#2563eb]" />
-            0.38ms Baseline
-         </div>
-         <div className="w-px h-6 bg-[#1F2937]" />
-         <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            RBI Compliant
-         </div>
-         <div className="w-px h-6 bg-[#1F2937]" />
-         <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">
-            <Activity className="w-4 h-4 text-[#2563eb]" />
-            V4.2 Ensemble
-         </div>
-      </footer>
+      </div>
     </div>
   );
+}
+
+// --- Dashboard Component Mirroring ---
+function SidebarLink({ icon, label, active = false }: { icon: any; label: string; active?: boolean }) {
+   return (
+      <div className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
+         active ? 'bg-[#2563eb] text-white shadow-lg shadow-blue-900/20' : 'text-gray-500 hover:text-white hover:bg-[#111827]'
+      }`}>
+         {icon}
+         <span className="text-sm font-medium tracking-tight">{label}</span>
+      </div>
+   );
 }
