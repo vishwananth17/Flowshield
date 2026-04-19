@@ -214,48 +214,108 @@ export default function Demo() {
         {/* Engine Panel */}
         <main className="lg:col-span-5 bg-[#020617] relative flex flex-col items-center justify-center p-8 lg:p-12">
           <div className="w-full max-w-md relative z-10 space-y-12">
+            
+            {/* 1. THE NARRATOR (Trust Layer) */}
+            <div className="h-6 flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                {isProcessing && currentPhase !== 'resolved' && (
+                  <motion.div
+                    key={currentPhase}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-[10px] font-black tracking-[0.2em] text-indigo-400 uppercase bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                  >
+                    {currentPhase === 'normalizing' && "Neural Step 1: Ingesting Real-Time Patterns"}
+                    {currentPhase === 'extracting' && "Neural Step 2: Decomposing Risk Vectors"}
+                    {currentPhase === 'deciding' && "Neural Step 3: Global Oracle Finalizing"}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 2. THE HUB */}
             <div className="relative flex items-center justify-center">
+              {/* Rotating Rings */}
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+                className="absolute w-64 h-64 border border-dashed border-indigo-500/20 rounded-full" 
+              />
+              <motion.div 
+                animate={{ rotate: -360 }}
+                transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+                className="absolute w-48 h-48 border border-white/5 rounded-full" 
+              />
+
+              {/* CENTRAL CORE */}
               <div className="relative z-10 text-center">
                 <AnimatePresence mode="wait">
                   {currentPhase === 'idle' && (
                     <motion.div
                       key="idle"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="w-32 h-32 bg-slate-950 rounded-3xl border-2 border-slate-800 flex flex-col items-center justify-center"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.2 }}
+                      className="w-32 h-32 bg-slate-950 rounded-3xl border-2 border-slate-800 flex flex-col items-center justify-center p-6"
                     >
                       <Cpu className="w-10 h-10 text-slate-700 animate-pulse" />
+                      <div className="text-[10px] font-black tracking-widest text-slate-700 mt-2">STANDBY</div>
                     </motion.div>
                   )}
 
                   {isProcessing && currentPhase !== 'resolved' && (
                     <motion.div
                       key="active"
-                      className="w-40 h-40 bg-indigo-950/20 rounded-full border-2 border-indigo-500 flex flex-col items-center justify-center"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="w-40 h-40 bg-indigo-950/20 rounded-full border-2 border-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.2)] flex flex-col items-center justify-center overflow-hidden"
                     >
-                      <div className="text-indigo-400 font-bold">{progress}%</div>
-                      <div className="text-[9px] font-black tracking-[0.2em] text-indigo-400/60 uppercase">{currentPhase}</div>
+                      <motion.div 
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ repeat: Infinity, duration: 1 }}
+                        className="text-indigo-400 font-bold mb-1"
+                      >
+                        {progress}%
+                      </motion.div>
+                      <div className="text-[9px] font-black tracking-[0.2em] text-indigo-400/60 uppercase">
+                        {currentPhase}
+                      </div>
+
+                      {/* Scanning Line */}
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/20 to-transparent h-12 w-full"
+                        animate={{ y: [-100, 200] }}
+                        transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                      />
                     </motion.div>
                   )}
 
                   {currentPhase === 'resolved' && result && (
                     <motion.div
                       key="result"
-                      initial={{ scale: 0.8, opacity: 0 }}
+                      initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className={`w-48 h-48 rounded-full border-4 flex flex-col items-center justify-center ${
-                        result.decision === 'block' ? 'border-rose-500 bg-rose-500/10' : 'border-emerald-500 bg-emerald-500/10'
+                      transition={{ type: "spring", damping: 12 }}
+                      className={`w-48 h-48 rounded-full border-4 flex flex-col items-center justify-center shadow-2xl ${
+                        result.decision === 'block' 
+                        ? 'border-rose-500 bg-rose-500/10 shadow-rose-500/20' 
+                        : 'border-emerald-500 bg-emerald-500/10 shadow-emerald-500/20'
                       }`}
                     >
-                      <div className={`text-4xl font-black uppercase ${result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      <div className={`text-4xl font-black tracking-tighter uppercase ${
+                        result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'
+                      }`}>
                         {result.decision}
                       </div>
+                      <div className="text-[10px] font-bold text-white/40 tracking-[0.3em] mt-1 uppercase">Decision</div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </div>
 
+            {/* 3. ENGINE LOGS */}
             <div className="bg-slate-950/80 border border-white/5 rounded-2xl p-6 backdrop-blur-xl h-40">
                <div className="font-mono text-[11px] space-y-2">
                  {currentPhase === 'resolved' && result && (
