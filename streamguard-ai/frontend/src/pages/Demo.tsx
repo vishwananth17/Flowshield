@@ -58,7 +58,7 @@ export default function Demo() {
   return (
     <div className="min-h-screen bg-[#050810] text-[#f8fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
       
-      {/* HEADER - PIXEL MATCH */}
+      {/* HEADER - ABSOLUTE PIXEL MATCH */}
       <nav className="h-14 border-b border-white/5 bg-[#050810] flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-6">
            <div className="flex items-center gap-2">
@@ -104,9 +104,9 @@ export default function Demo() {
         {/* HERO TITLE */}
         <div className="text-center mb-16">
           <h1 className="text-[54px] font-extrabold tracking-tighter mb-4 leading-tight">
-            Try the <span className="text-[#a78bfa]">Glass-Box AI</span>
+            Try the <span className="text-[#818cf8]">Glass-Box AI</span>
           </h1>
-          <p className="text-slate-500 text-lg max-w-xl mx-auto font-medium">
+          <p className="text-slate-500 text-lg max-w-xl mx-auto font-semibold opacity-70">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
           </p>
         </div>
@@ -119,9 +119,9 @@ export default function Demo() {
               <button
                 key={s.id}
                 onClick={() => setActiveId(s.id)}
-                className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 group ${
+                className={`w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 group ${
                   activeId === s.id 
-                  ? 'bg-[#0f172a] border-blue-500/30 shadow-2xl' 
+                  ? 'bg-[#0f172a] border-blue-500/50 shadow-2xl' 
                   : 'bg-transparent border-white/5 hover:border-white/10'
                 }`}
               >
@@ -141,7 +141,7 @@ export default function Demo() {
             ))}
 
             {/* TRUST BADGES */}
-            <div className="pt-10 flex items-center gap-8">
+            <div className="pt-10 flex gap-8 items-center">
                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                   <Globe className="w-3.5 h-3.5 text-blue-500" />
                   Global Markets Support
@@ -160,11 +160,11 @@ export default function Demo() {
           {/* ENGINE AREA */}
           <div className="space-y-8">
             
-            {/* TERMINAL SINK */}
-            <div className="bg-[#020610] rounded-3xl border border-white/5 p-8 font-mono text-[14px]">
+            {/* TERMINAL - SYNTAX MATCH */}
+            <div className="bg-[#020610] rounded-[32px] border border-white/5 p-8 font-mono text-[14.5px]">
                <div className="space-y-1.5 leading-relaxed">
                   <div className="mb-2">
-                    <span className="text-[#f43f5e]">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white">analyze(&#123;</span>
+                    <span className="text-[#f43f5e] font-bold">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white">analyze(&#123;</span>
                   </div>
                   <div className="pl-6">
                     <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
@@ -184,33 +184,33 @@ export default function Demo() {
                </div>
             </div>
 
-            {/* DECISION NODE - HI-FI MATCH */}
-            <div className="bg-[#0f172a]/90 backdrop-blur-3xl rounded-[32px] border border-white/5 p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
+            {/* DECISION NODE - TYPOGRAPHY MATCH */}
+            <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[32px] border border-white/5 p-10 shadow-2xl">
                <div className="flex justify-between items-start mb-12">
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                       Decision Engine <ChevronRight className="w-3 h-3 text-slate-700 font-bold" />
+                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-black" />
                     </div>
-                    <div className={`text-[44px] font-black uppercase tracking-tight leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
+                    <div className={`text-[52px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
                        {active.values.verdict}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 opacity-80">Risk Score</div>
-                    <div className="text-[74px] font-black text-white tracking-tighter leading-none">
+                    <div className="text-[84px] font-black text-white tracking-tighter leading-none">
                       {active.values.score}<span className="text-3xl text-slate-600 ml-1 font-medium">%</span>
                     </div>
                   </div>
                </div>
 
                <div className="grid grid-cols-2 gap-4 mb-10">
-                  <div className="bg-[#080c14] border border-white/5 rounded-2xl p-5 shadow-inner">
+                  <div className="bg-[#080c14] border border-white/5 rounded-2xl p-5">
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <Zap className="w-3.5 h-3.5 text-blue-500" /> Latency
                      </div>
                      <div className="text-3xl font-black text-white italic tracking-tighter">35ms</div>
                   </div>
-                  <div className="bg-[#080c14] border border-white/5 rounded-2xl p-5 shadow-inner">
+                  <div className="bg-[#080c14] border border-white/5 rounded-2xl p-5">
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <Activity className="w-3.5 h-3.5 text-[#818cf8]" /> Confusion
                      </div>
@@ -220,16 +220,16 @@ export default function Demo() {
 
                {/* FORENSICS ENGINE */}
                <div className="space-y-6">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.25em] flex items-center gap-2 opacity-80">
-                     <span className="text-emerald-500 font-black tracking-tight">{'>_'}</span>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.25em] flex items-center gap-2 opacity-80">
+                     <span className="text-emerald-500 font-extrabold tracking-tight">{'>_'}</span>
                      SHAP Forensics
                   </div>
                   <AnimatePresence mode="wait">
-                    <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                    <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 px-1">
                       {active.forensics.map((f, i) => (
                         <div key={i} className="flex items-center gap-4 py-4 px-6 rounded-2xl bg-[#080c14] border border-white/5 hover:border-white/10 transition-colors">
-                           <div className="w-1.5 h-1.5 rounded-full bg-[#818cf8] shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
-                           <span className="text-[14px] text-slate-400 font-medium leading-relaxed">{f}</span>
+                           <div className="w-1.5 h-1.5 rounded-full bg-[#818cf8] shadow-[0_0_8px_rgba(129,140,248,0.7)]" />
+                           <span className="text-[14px] text-slate-400 font-semibold leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
                     </motion.div>
