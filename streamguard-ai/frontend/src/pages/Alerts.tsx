@@ -244,12 +244,23 @@ export const AlertsPage: React.FC = () => {
                     <td className="p-4 text-center">
                       <span className="text-slate-500 text-[11px] font-medium">{new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
-                    <td className="p-4 text-right capitalize">
-                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border ${getStatusStyles(alert.status)}`}>
-                          {alert.status === 'open' && <AlertCircle size={10} />}
-                          {alert.status === 'in_review' && <UserCheck size={10} className="animate-pulse" />}
-                          {alert.status === 'resolved' && <CheckCircle size={10} />}
-                          {alert.status.replace('_', ' ')}
+                    <td className="p-4 text-right">
+                       <div className="flex items-center justify-end gap-3">
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border ${getStatusStyles(alert.status)}`}>
+                             {alert.status === 'open' && <AlertCircle size={10} />}
+                             {alert.status === 'in_review' && <UserCheck size={10} className="animate-pulse" />}
+                             {alert.status === 'resolved' && <CheckCircle size={10} />}
+                             {alert.status.replace('_', ' ')}
+                          </div>
+                          <button 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setSelectedAlertId(alert.id);
+                             }}
+                             className="bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold px-3 py-1 rounded text-[10px] uppercase tracking-wider border border-slate-700 transition-all"
+                          >
+                             Open
+                          </button>
                        </div>
                     </td>
                   </tr>
