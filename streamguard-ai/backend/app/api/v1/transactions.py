@@ -75,7 +75,7 @@ async def analyze_transaction(
     task.add_done_callback(_background_tasks.discard)
 
     # 6. WebSocket Broadcast (Dashboard Live Feed)
-    await ws_manager.broadcast({
+    await ws_manager.broadcast(str(auth.org_id), {
         "type": "new_transaction",
         "org_id": str(auth.org_id),
         "data": {
@@ -84,12 +84,12 @@ async def analyze_transaction(
             "merchant_name": body.merchant.name,
             "amount": float(body.amount),
             "currency": body.currency,
-            "risk_score": result.risk_score,
+            "risk_score": float(result.risk_score),
             "risk_label": result.risk_label,
             "decision": result.decision,
             "created_at": datetime.now(UTC).isoformat()
         }
-    }, org_id=auth.org_id)
+    })
 
     # 7. Kafka (Optional - enabled if configured)
     try:
