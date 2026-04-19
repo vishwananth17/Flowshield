@@ -58,7 +58,7 @@ export default function Demo() {
   return (
     <div className="min-h-screen bg-[#050810] text-[#f8fafc] font-sans selection:bg-blue-500/30 overflow-hidden relative">
       
-      {/* FINAL PRODUCTION APP SHELL (SCREENSHOT 2) */}
+      {/* HEADER - PIXEL PERFECT AUTH BADGE */}
       <nav className="h-14 border-b border-white/5 bg-[#050810] flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-6">
            <div className="flex items-center gap-2">
@@ -96,18 +96,18 @@ export default function Demo() {
         </div>
       </nav>
 
-      {/* ATMOSPHERIC BACKGROUND */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+      {/* BACKGROUND GLOWS - INTENSITY BOOST */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1100px] h-[500px] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       <main className="max-w-7xl mx-auto px-8 py-20 relative z-10">
         
-        {/* HERO TITLE - RESTORED */}
+        {/* HERO TITLE - TRACKING MATCH */}
         <div className="text-center mb-16 relative">
           <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight inline-block relative">
-            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_20px_rgba(167,139,250,0.4)]">Glass-Box AI</span>
+            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_25px_rgba(167,139,250,0.5)]">Glass-Box AI</span>
           </h1>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-85 leading-relaxed">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function Demo() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                    <div className="p-3.5 rounded-xl bg-black border border-white/5 group-hover:border-white/10 transition-colors">
+                    <div className="p-3.5 rounded-xl bg-[#080c14] border border-white/5 group-hover:border-white/10 transition-colors">
                       {s.icon}
                     </div>
                     <div>
@@ -141,8 +141,8 @@ export default function Demo() {
               </button>
             ))}
 
-            {/* TRUST BADGES - OPACITY MATCH */}
-            <div className="pt-10 flex gap-10 items-center opacity-50">
+            {/* TRUST BADGES */}
+            <div className="pt-10 flex gap-10 items-center opacity-40">
                <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <Globe className="w-4 h-4 text-blue-500" />
                   Global Markets Support
@@ -185,7 +185,7 @@ export default function Demo() {
                </div>
             </div>
 
-            {/* DECISION ENGINE - RESTORED PROPORTIONS */}
+            {/* DECISION ENGINE - ABSOLUTE FINAL PROPORTIONS */}
             <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[36px] border border-white/10 p-10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)]">
                <div className="flex justify-between items-start mb-14">
                   <div>
@@ -228,8 +228,8 @@ export default function Demo() {
                   <AnimatePresence mode="wait">
                     <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3.5">
                       {active.forensics.map((f, i) => (
-                        <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
-                           <div className="w-3 h-3 rounded-full bg-[#818cf8] shadow-[0_0_15px_rgba(129,140,248,0.9)]" />
+                        <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default group/item">
+                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_20px_rgba(129,140,248,1)] transition-all duration-700" />
                            <span className="text-[14.5px] text-slate-400 font-[800] leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
