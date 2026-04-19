@@ -86,7 +86,7 @@ export default function Demo() {
 
         <div className="flex items-center gap-5">
            <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_10px_#10B981]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
               <span className="text-[11px] font-bold text-white uppercase tracking-widest leading-none">Verify it's you</span>
            </div>
            <div className="flex items-center gap-5 text-slate-500">
@@ -121,7 +121,7 @@ export default function Demo() {
                 onClick={() => setActiveId(s.id)}
                 className={`w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 group ${
                   activeId === s.id 
-                  ? 'bg-[#0f172a] border-blue-600/50 shadow-2xl' 
+                  ? 'bg-[#0f172a] border-blue-500 shadow-2xl shadow-blue-500/10' 
                   : 'bg-transparent border-white/5 hover:border-white/10 shadow-sm'
                 }`}
               >
@@ -167,16 +167,16 @@ export default function Demo() {
                     <span className="text-[#f43f5e] font-bold">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white font-semibold">analyze(&#123;</span>
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400 font-medium">"tx_high_value_foreign"</span>,
+                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
                   </div>
                   <div className="pl-6">
                     <span className="text-amber-300">amount</span>: <span className="text-amber-300">180000</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400 font-medium">"INR"</span>,
+                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400">"INR"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400 font-medium">"web"</span>
+                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400">"web"</span>
                   </div>
                   <div className="mt-2 text-white font-semibold">
                     &#125;);
@@ -227,9 +227,9 @@ export default function Demo() {
                   <AnimatePresence mode="wait">
                     <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3.5">
                       {active.forensics.map((f, i) => (
-                        <div key={i} className="flex items-center gap-5 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
-                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_12px_rgba(129,140,248,0.9)]" />
-                           <span className="text-[14.5px] text-slate-400 font-[700] leading-relaxed tracking-tight">{f}</span>
+                        <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
+                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_15px_rgba(129,140,248,0.9)]" />
+                           <span className="text-[14.5px] text-slate-400 font-[800] leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
                     </motion.div>
