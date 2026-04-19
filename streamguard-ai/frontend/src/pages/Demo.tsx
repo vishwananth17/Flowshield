@@ -227,7 +227,7 @@ export default function Demo() {
             {/* 1. THE NARRATOR (Trust Layer) */}
             <div className="h-6 flex items-center justify-center">
               <AnimatePresence mode="wait">
-                {isProcessing && currentPhase !== 'resolved' && (
+                {(isProcessing || currentPhase === 'resolved') && (
                   <motion.div
                     key={currentPhase}
                     initial={{ opacity: 0, y: 10 }}
@@ -238,6 +238,7 @@ export default function Demo() {
                     {currentPhase === 'normalizing' && "Neural Step 1: Ingesting Real-Time Patterns"}
                     {currentPhase === 'extracting' && "Neural Step 2: Decomposing Risk Vectors"}
                     {currentPhase === 'deciding' && "Neural Step 3: Global Oracle Finalizing"}
+                    {currentPhase === 'resolved' && "Step 4: Decision Rendered & Forensic Handover Complete"}
                   </motion.div>
                 )}
               </AnimatePresence>
