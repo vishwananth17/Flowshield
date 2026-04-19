@@ -111,6 +111,9 @@ export default function Billing() {
     }
   };
 
+  const currentPlan = data?.plan || 'free';
+  const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -176,9 +179,6 @@ export default function Billing() {
     }
   ];
 
-  const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
-
-  const currentPlan = data?.plan || 'free';
 
   const handleSubscribe = async (planId: string, interval: 'monthly' | 'annual') => {
     if (isSubscribing) return;
