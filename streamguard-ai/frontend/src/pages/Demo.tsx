@@ -77,8 +77,10 @@ export default function Demo() {
       const response = await api.post('/transactions/sandbox', scenario.payload);
       setResult(response.data);
       toast.success('Simulation Complete');
-    } catch (error) {
-      toast.error('Simulation failed. Service might be starting up.');
+    } catch (error: any) {
+      console.error('Simulation Error:', error);
+      const msg = error.response ? `Engine Error (${error.response.status})` : 'Network Latency. Retrying...';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
