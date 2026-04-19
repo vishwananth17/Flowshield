@@ -120,56 +120,39 @@ export default function Demo() {
       
       <div className="relative z-10 grid lg:grid-cols-12 min-h-screen">
         
-        {/* --- API WORKFLOW OVERLAY (Grid-Locked Responsiveness) --- */}
+        {/* --- INFERENCE WIRING OVERLAY (Neural Swarm Hub) --- */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden lg:block overflow-hidden">
-          
-          {/* Label 1: Locked to Gap Between Aside (col-3) and Main (col-5) */}
-          <div className="absolute left-[25%] top-[40%] -translate-x-1/2 flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-               <Globe className="w-5 h-5" />
-            </div>
-            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Merchant SDK</span>
-          </div>
-
-          {/* Label 2: Locked to Gap Between Main (col-5) and Right (col-4) */}
-          <div className="absolute left-[66%] top-[40%] -translate-x-1/2 flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-               <Database className="w-5 h-5" />
-            </div>
-            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Audit Ledger</span>
-          </div>
-
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-             {/* API Request Path (Percent Based) */}
-             <motion.path
-                d="M 25 40 Q 40 40 50 40" 
-                stroke="url(#api-grad)"
-                strokeWidth="0.5"
-                initial={{ opacity: 0 }}
-                animate={isProcessing ? { opacity: 0.4 } : { opacity: 0 }}
-             />
-             
-             {/* API Response Path (Percent Based) */}
-             <motion.path
-                d="M 66 40 Q 80 40 100 40"
-                stroke="url(#api-grad-rev)"
-                strokeWidth="0.5"
-                initial={{ opacity: 0 }}
-                animate={currentPhase === 'resolved' ? { opacity: 0.4 } : { opacity: 0 }}
-             />
-
-             {/* Moving Data Envelopes (Using 100x100 coord system) */}
+             {/* Data Swarm 1: Ingestion */}
              <AnimatePresence>
-               {isProcessing && (
-                  <motion.g
+               {isProcessing && [0,1,2,3].map((i) => (
+                  <motion.circle
+                    key={`swarm-in-${i}`}
+                    r="0.6"
+                    fill="#6366f1"
                     initial={{ offsetDistance: "0%" }}
                     animate={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-                    style={{ offsetPath: "path('M 25 40 Q 40 40 50 40')" }}
-                  >
-                    <circle r="0.8" fill="#6366f1" className="shadow-[0_0_10px_#6366f1]" />
-                  </motion.g>
-               )}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: i*0.2 }}
+                    style={{ offsetPath: `path('M 25 40 Q 40 40 50 40')` }}
+                    className="shadow-[0_0_10px_#6366f1]"
+                  />
+               ))}
+             </AnimatePresence>
+
+             {/* Data Swarm 2: Handover */}
+             <AnimatePresence>
+                {currentPhase === 'resolved' && [0,1,2].map((i) => (
+                    <motion.circle
+                      key={`swarm-out-${i}`}
+                      r="0.6"
+                      fill="#818cf8"
+                      initial={{ offsetDistance: "0%" }}
+                      animate={{ offsetDistance: "100%" }}
+                      transition={{ duration: 1, ease: "easeOut", delay: i*0.1 }}
+                      style={{ offsetPath: `path('M 66 40 Q 80 40 100 40')` }}
+                      className="shadow-[0_0_10px_#818cf8]"
+                    />
+                ))}
              </AnimatePresence>
 
              <defs>
@@ -186,43 +169,75 @@ export default function Demo() {
         </div>
 
         {/* Trigger Panel */}
-        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 space-y-8">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="text-white w-5 h-5" />
+        <aside className="lg:col-span-3 border-r border-white/5 bg-slate-950/50 backdrop-blur-3xl p-6 lg:p-8 space-y-8 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-10">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <ShieldCheck className="text-white w-5 h-5" />
+              </div>
+              <span className="text-lg font-bold tracking-tight">Oracle Hub</span>
             </div>
-            <span className="text-lg font-bold tracking-tight">Oracle Hub</span>
+
+            <div className="space-y-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-6">Select Scenario</div>
+              {demoScenarios.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => !isProcessing && handleRunDemo(s)}
+                  disabled={isProcessing}
+                  className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group relative overflow-hidden ${
+                    activeScenario?.id === s.id 
+                    ? 'bg-indigo-600/10 border-indigo-500' 
+                    : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-950/80 border border-white/5">
+                      {s.icon}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">{s.name}</div>
+                      <div className="text-[11px] text-slate-500">{s.description}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-6">Select Scenario</div>
-            {demoScenarios.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => !isProcessing && handleRunDemo(s)}
-                disabled={isProcessing}
-                className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group relative overflow-hidden ${
-                  activeScenario?.id === s.id 
-                  ? 'bg-indigo-600/10 border-indigo-500' 
-                  : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-950/80 border border-white/5">
-                    {s.icon}
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm">{s.name}</div>
-                    <div className="text-[11px] text-slate-500">{s.description}</div>
-                  </div>
-                </div>
-              </button>
-            ))}
+          {/* SINK NODES (Bottom of Panel) */}
+          <div className="space-y-3 opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all">
+            <div className="text-[9px] uppercase font-bold text-slate-600 mb-2">Input Context</div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+               <div className="w-6 h-6 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center"><CreditCard className="w-3 h-3" /></div>
+               <span>Card Metadata</span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+               <div className="w-6 h-6 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center"><Globe className="w-3 h-3" /></div>
+               <span>Geographic Signals</span>
+            </div>
           </div>
         </aside>
 
         {/* Engine Panel */}
         <main className="lg:col-span-5 bg-[#020617] relative flex flex-col items-center justify-center p-8 lg:p-12">
+          
+          {/* Label 1: Locked to Gap Between Aside (col-3) and Main (col-5) */}
+          <div className="absolute left-0 top-[40%] -translate-x-1/2 flex flex-col items-center gap-2 z-40">
+            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+               <Globe className="w-5 h-5" />
+            </div>
+            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Merchant SDK</span>
+          </div>
+
+          {/* Label 2: Locked to Gap Between Main (col-5) and Right (col-4) */}
+          <div className="absolute right-0 top-[40%] translate-x-1/2 flex flex-col items-center gap-2 z-40">
+            <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+               <Database className="w-5 h-5" />
+            </div>
+            <span className="text-[9px] font-black tracking-[0.2em] text-slate-500 uppercase">Audit Ledger</span>
+          </div>
+
           <div className="w-full max-w-md relative z-10 space-y-12">
             
             {/* 1. THE NARRATOR (Trust Layer) */}
@@ -280,25 +295,14 @@ export default function Demo() {
                       key="active"
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="w-40 h-40 bg-indigo-950/20 rounded-full border-2 border-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.2)] flex flex-col items-center justify-center overflow-hidden"
+                      className="w-52 h-52 bg-slate-950 border border-indigo-500/40 rounded-full flex flex-col items-center justify-center space-y-3 shadow-[0_0_50px_rgba(99,102,241,0.2)]"
                     >
-                      <motion.div 
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ repeat: Infinity, duration: 1 }}
-                        className="text-indigo-400 font-bold mb-1"
-                      >
-                        {progress}%
-                      </motion.div>
-                      <div className="text-[9px] font-black tracking-[0.2em] text-indigo-400/60 uppercase">
-                        {currentPhase}
-                      </div>
-
-                      {/* Scanning Line */}
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/20 to-transparent h-12 w-full"
-                        animate={{ y: [-100, 200] }}
-                        transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-                      />
+                       <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Zenith Engine</div>
+                       <div className="space-y-1 w-full px-8">
+                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'normalizing' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>NORMALIZE</div>
+                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'extracting' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>VECTORIZE</div>
+                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'deciding' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>DECIDE</div>
+                       </div>
                     </motion.div>
                   )}
 
