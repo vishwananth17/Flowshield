@@ -79,8 +79,26 @@ def _extract_features(tx: TransactionAnalyzeRequest) -> dict:
     # UPI collect requests are higher risk (recipient initiates)
     is_upi_collect = channel == "upi_collect"
 
+    # ── Currency Normalization Logic ──────────────────────────────────────────
+    currency = tx.currency.upper() if tx.currency else "INR"
+    amount = float(tx.amount)
+    
+    # Simple conversion factor based on current indices (2026/04 approx)
+    # We scale all global amounts to the INR "Inference Scale"
+    CONVERSION_FACTORS = {
+        'USD': 83.5,
+        'EUR': 90.2,
+        'GBP': 105.4,
+        'SGD': 61.8,
+        'AED': 22.7,
+        'INR': 1.0
+    }
+    
+    factor = CONVERSION_FACTORS.get(currency, 1.0)
+    amount_inr = amount * factor
+
     return {
-        'amount_inr':           float(tx.amount),
+        'amount_inr':           amount_inr,
         'hour_of_day':          hour,
         'day_of_week':          dow,
         'is_weekend':           1 if dow >= 5 else 0,
@@ -113,13 +131,10 @@ class FraudDetectionService:
 
     def analyze(self, tx: TransactionAnalyzeRequest, plan: str = "free") -> FraudResult:
         from app.ml.ensemble import get_ensemble
-        from app.core.billing_config import get_plan_limits, PlanTier
-        
-        # OVERRIDE: Unlock full ensemble for technical validation phase
-        tier_id = "growth"
-        limits = get_plan_limits(tier_id)
+        from app.core.billing_config import get_plan_limits
         
         start = time.time()
+        limits = get_plan_limits(plan)
         
         try:
             features = _extract_features(tx)
