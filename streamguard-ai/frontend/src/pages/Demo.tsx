@@ -278,55 +278,48 @@ export default function Demo() {
               {/* CENTRAL CORE */}
               <div className="relative z-10 text-center">
                 <AnimatePresence mode="wait">
-                  {currentPhase === 'idle' && (
-                    <motion.div
-                      key="idle"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.2 }}
-                      className="w-32 h-32 bg-slate-950 rounded-3xl border-2 border-slate-800 flex flex-col items-center justify-center p-6"
-                    >
-                      <Cpu className="w-10 h-10 text-slate-700 animate-pulse" />
-                      <div className="text-[10px] font-black tracking-widest text-slate-700 mt-2">STANDBY</div>
-                    </motion.div>
-                  )}
-
-                  {isProcessing && currentPhase !== 'resolved' && (
-                    <motion.div
-                      key="active"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="w-52 h-52 bg-slate-950 border border-indigo-500/40 rounded-full flex flex-col items-center justify-center space-y-3 shadow-[0_0_50px_rgba(99,102,241,0.2)]"
-                    >
-                       <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Zenith Engine</div>
-                       <div className="space-y-1 w-full px-8">
-                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'normalizing' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>NORMALIZE</div>
-                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'extracting' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>VECTORIZE</div>
-                         <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg text-[8px] font-bold transition-all ${currentPhase === 'deciding' ? 'opacity-100 scale-105 border-indigo-500/50' : 'opacity-40'}`}>DECIDE</div>
-                       </div>
-                    </motion.div>
-                  )}
-
-                  {currentPhase === 'resolved' && result && (
-                    <motion.div
-                      key="result"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", damping: 12 }}
-                      className={`w-48 h-48 rounded-full border-4 flex flex-col items-center justify-center shadow-2xl ${
-                        result.decision === 'block' 
-                        ? 'border-rose-500 bg-rose-500/10 shadow-rose-500/20' 
-                        : 'border-emerald-500 bg-emerald-500/10 shadow-emerald-500/20'
-                      }`}
-                    >
-                      <div className={`text-4xl font-black tracking-tighter uppercase ${
-                        result.decision === 'block' ? 'text-rose-500' : 'text-emerald-500'
-                      }`}>
-                        {result.decision}
-                      </div>
-                      <div className="text-[10px] font-bold text-white/40 tracking-[0.3em] mt-1 uppercase">Decision</div>
-                    </motion.div>
-                  )}
+                  {/* THE PERSISTENT ACTIVE CORE */}
+                  <motion.div
+                    key="active-hub"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`w-52 h-52 bg-slate-950 border rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_60px_rgba(99,102,241,0.15)] transition-colors duration-700 ${
+                      currentPhase === 'resolved' 
+                      ? (result?.decision === 'block' ? 'border-rose-500/30' : 'border-emerald-500/30') 
+                      : 'border-indigo-500/40'
+                    }`}
+                  >
+                    {!result ? (
+                      <>
+                        <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Zenith Engine</div>
+                        <div className="space-y-1.5 w-full px-8">
+                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'normalizing' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>NORMALIZE</div>
+                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'extracting' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>VECTORIZE</div>
+                          <div className={`bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all duration-500 ${currentPhase === 'deciding' ? 'opacity-100 scale-105 border-indigo-400 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'opacity-30'}`}>DECIDE</div>
+                        </div>
+                      </>
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-center"
+                      >
+                        <div className={`text-5xl font-black tracking-tighter uppercase mb-2 ${
+                          result.decision === 'block' ? 'text-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.4)]' : 'text-emerald-500 drop-shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+                        }`}>
+                          {result.decision}
+                        </div>
+                        <div className="text-[9px] font-black tracking-[0.4em] text-white/30 uppercase">Verdict Rendered</div>
+                        
+                        {/* Persistent Mini-Logic (Proof of Work) */}
+                        <div className="flex gap-2 mt-4 opacity-40">
+                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                           <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 </AnimatePresence>
               </div>
             </div>
