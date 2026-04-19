@@ -103,8 +103,8 @@ export default function Demo() {
         
         {/* HERO TITLE - TRACKING MATCH */}
         <div className="text-center mb-16">
-          <h1 className="text-[58px] font-black tracking-tighter mb-4 leading-tight">
-            Try the <span className="text-[#818cf8]">Glass-Box AI</span>
+          <h1 className="text-[64px] font-black tracking-tighter mb-4 leading-tight">
+            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]">Glass-Box AI</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
@@ -184,21 +184,21 @@ export default function Demo() {
                </div>
             </div>
 
-            {/* DECISION ENGINE - MASSIVE V2 MATCH */}
+            {/* DECISION ENGINE - ABSOLUTE FINAL PROPORTIONS */}
             <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[36px] border border-white/10 p-10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)]">
                <div className="flex justify-between items-start mb-14">
                   <div>
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-black" />
+                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-extrabold" />
                     </div>
-                    <div className={`text-[54px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
+                    <div className={`text-[56px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
                        {active.values.verdict}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 opacity-80">Risk Score</div>
-                    <div className="text-[92px] font-black text-white tracking-tighter leading-none">
-                      {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold">%</span>
+                    <div className="text-[96px] font-black text-white tracking-tighter leading-none">
+                      {active.values.score}<span className="text-3xl text-slate-600 ml-1 font-bold">%</span>
                     </div>
                   </div>
                </div>
@@ -208,20 +208,20 @@ export default function Demo() {
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <Zap className="w-4 h-4 text-blue-500" /> Latency
                      </div>
-                     <div className="text-[34px] font-black text-white italic tracking-tighter">35ms</div>
+                     <div className="text-[36px] font-black text-white italic tracking-tighter">35ms</div>
                   </div>
                   <div className="bg-[#080c14] border border-white/5 rounded-[24px] p-6 shadow-inner">
                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <Activity className="w-4 h-4 text-[#818cf8]" /> Confusion
                      </div>
-                     <div className="text-[34px] font-black text-white italic tracking-tighter">0.75</div>
+                     <div className="text-[36px] font-black text-white italic tracking-tighter">0.75</div>
                   </div>
                </div>
 
                {/* FORENSICS LIST - PIXEL FINISH */}
                <div className="space-y-6">
                   <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 opacity-80">
-                     <span className="text-emerald-500 font-black tracking-widest">{'>_'}</span>
+                     <span className="text-emerald-500 font-extrabold tracking-widest">{'>_'}</span>
                      SHAP Forensics
                   </div>
                   <AnimatePresence mode="wait">
