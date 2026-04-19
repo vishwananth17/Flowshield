@@ -114,12 +114,12 @@ export default function Demo() {
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           
           {/* SELECTION COLUMN */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {SCENARIOS.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setActiveId(s.id)}
-                className={`w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 group ${
+                className={`w-full text-left p-7 rounded-2xl border-2 transition-all duration-300 group ${
                   activeId === s.id 
                   ? 'bg-[#0f172a] border-blue-500 shadow-2xl shadow-blue-500/10' 
                   : 'bg-transparent border-white/5 hover:border-white/10 shadow-sm'
@@ -132,7 +132,7 @@ export default function Demo() {
                     </div>
                     <div>
                       <h3 className="font-bold text-xl mb-1 leading-none">{s.name}</h3>
-                      <p className="text-[13px] text-slate-500 font-medium">{s.description}</p>
+                      <p className="text-[14px] text-slate-500 font-medium">{s.description}</p>
                     </div>
                   </div>
                   <ChevronRight className={`w-5 h-5 text-slate-700 transition-transform ${activeId === s.id ? 'translate-x-1 text-slate-400' : ''}`} />
@@ -197,8 +197,8 @@ export default function Demo() {
                   </div>
                   <div className="text-right">
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 opacity-80">Risk Score</div>
-                    <div className="text-[96px] font-black text-white tracking-tighter leading-none">
-                      {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold">%</span>
+                    <div className="text-[96px] font-black text-white tracking-tighter leading-none flex items-baseline justify-end">
+                      {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold mb-1">%</span>
                     </div>
                   </div>
                </div>
