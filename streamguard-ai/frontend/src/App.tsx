@@ -4,7 +4,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toaster } from 'sonner';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import Demo from '@/pages/Demo';
 import DashboardLayout from '@/pages/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import ApiKeys from '@/pages/ApiKeys';
@@ -28,7 +27,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
-          <Route path="/demo" element={<Demo />} />
           
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
