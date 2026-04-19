@@ -106,6 +106,25 @@ class FlowshieldEnsemble:
             score = max(score, 0.78)
             reasons.append("Very high first transaction amount")
 
+        # ── UPI / India-specific rules ────────────────────────────────────────
+        channel = str(features.get('channel', '')).lower()
+        is_upi  = channel in {"upi", "bhim", "phonepe", "gpay", "paytm", "upi_collect"}
+
+        # UPI Collect fraud: recipient-initiated payment requests are high risk
+        if channel == 'upi_collect' and amount > 5000:
+            score = max(score, 0.75)
+            reasons.append("UPI Collect request above safe threshold — verify payee")
+
+        # SIM swap + UPI: new device + night + UPI channel
+        if features.get('is_new_device', 0) == 1 and features.get('is_night', 0) == 1 and is_upi:
+            score = max(score, 0.80)
+            reasons.append("UPI transaction from new device at night — potential SIM swap")
+
+        # High-velocity UPI (card testing via micro-UPI)
+        if is_upi and int(features.get('tx_count_last_1h', 0)) > 10 and amount < 100:
+            score = max(score, 0.85)
+            reasons.append("Micro-amount UPI velocity — potential card testing pattern")
+
         return score, reasons
 
     def _get_mvi_score(self, features: dict) -> float:

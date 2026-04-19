@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "flowshield"
+version = "1.0.0"
+description = "Official Python SDK for Flowshield AI — Real-time Fraud Detection for Indian Fintechs"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Vishwananth B", email = "bsvishwananth@gmail.com"}
+]
+keywords = ["fraud", "detection", "fintech", "india", "upi", "payments", "ai", "ml"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.28.0",
+]
+
+[project.urls]
+Homepage = "https://flowshield-git-main-vishwananth17s-projects.vercel.app"
+Documentation = "https://docs.flowshield.ai"
+Repository = "https://github.com/vishwananth17/Flowshield"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["flowshield*"]

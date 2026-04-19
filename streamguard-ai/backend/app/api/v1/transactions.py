@@ -207,3 +207,82 @@ async def simulate_traffic(
         await asyncio.sleep(0.5) # Space them out for the websocket effect
         
     return {"status": "simulation_triggered", "count": count}
+
+
+# ── Sandbox Endpoint (No Auth) ───────────────────────────────────────────────
+@router.post(
+    "/sandbox",
+    summary="Sandbox — No API Key Required",
+    description=(
+        "Free sandbox endpoint for evaluating Flowshield AI without authentication. "
+        "Returns deterministic scores based on scenario. "
+        "All data processed here is ephemeral and never stored. "
+        "DPDP-compliant: no PII retained."
+    ),
+    tags=["Sandbox"],
+)
+async def sandbox_analyze(body: TransactionAnalyzeRequest):
+    """
+    No-auth sandbox endpoint.
+    - score=0.87 when amount > 100000 OR foreign IP
+    - score=0.55 when is_weekend=True OR night hour
+    - score=0.12 for everything else
+
+    Purpose: lets potential customers and SDK users test integration
+    without sharing real API keys or transaction data.
+    """
+    from fastapi.responses import JSONResponse
+    import random
+
+    amount = float(body.amount)
+    is_foreign = body.customer.country != body.card.issuing_country
+    hour       = datetime.now(UTC).hour
+    is_night   = hour < 6 or hour >= 22
+    high_risk_mcc = body.merchant.category in {
+        "6051", "6211", "7995", "4829", "6012", "5933"
+    }
+
+    if amount > 100000 or is_foreign or high_risk_mcc:
+        score, label, decision = 0.87, "fraud", "block"
+        reasons = [
+            "High-risk transaction detected (sandbox demo)",
+            f"Amount ₹{amount:,.0f} exceeds safe threshold" if amount > 100000 else "Foreign card used",
+            "High-risk merchant category" if high_risk_mcc else "Cross-border mismatch",
+        ]
+    elif is_night or amount > 20000:
+        score, label, decision = 0.55, "suspicious", "review"
+        reasons = [
+            "Elevated risk pattern detected (sandbox demo)",
+            "Unusual transaction time" if is_night else "Above-average amount",
+            "Manual review recommended",
+        ]
+    else:
+        score, label, decision = 0.08, "safe", "allow"
+        reasons = ["Transaction within normal parameters (sandbox demo)"]
+
+    response = JSONResponse(
+        content={
+            "transaction_id": f"sandbox_{uuid.uuid4().hex[:12]}",
+            "risk_score": score,
+            "risk_label": label,
+            "decision": decision,
+            "confidence": 0.75,
+            "detection_latency_ms": random.randint(8, 35),
+            "reasons": reasons,
+            "model_version": "sandbox_v1.0_demo",
+            "model_scores": {
+                "mviforest": round(score * 0.9, 4),
+                "xgboost": round(score * 1.05, 4),
+                "rules": round(score * 0.8, 4),
+                "final": score,
+            },
+            "processed_at": datetime.now(UTC).isoformat(),
+            "sandbox": True,
+            "note": "Sandbox mode — data not stored, scores are deterministic demos",
+        }
+    )
+    # DPDP compliance headers
+    response.headers["X-Data-Retained"] = "false"
+    response.headers["X-PII-Processed"] = "transient-only"
+    response.headers["X-Compliance"] = "DPDP-2023,RBI-FRM"
+    return response

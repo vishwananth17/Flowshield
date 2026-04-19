@@ -33,17 +33,51 @@ def _extract_features(tx: TransactionAnalyzeRequest) -> dict:
     hour = now.hour
     dow  = now.weekday()
 
-    # MCC risk tier mapping
-    HIGH_RISK_MCC  = {'7995', '4829', '5960', '6211', '6051', '6012', '5933'}
-    MED_RISK_MCC   = {'5999','7011','5912','6099'}
-    mcc = tx.merchant.category
-    
-    if any(mcc.startswith(p) for p in HIGH_RISK_MCC):
+    # ── India-specific MCC Risk Tier Mapping ──────────────────────────────────
+    # Tier 2 = High risk (crypto, quasi-cash, gambling, dark patterns)
+    HIGH_RISK_MCC = {
+        '6051',  # Non-Financial Institutions: Foreign Currency, Quasi-Cash
+        '6211',  # Security Brokers/Dealers
+        '7995',  # Betting/Casino Gambling
+        '4829',  # Wire Transfer — Money Orders
+        '6012',  # Merchandise & Services — Customer Financial Institutions
+        '5933',  # Pawn Shops
+        '6010',  # Manual Cash Disbursements
+        '6011',  # Automated Cash Disbursements
+        '5912',  # Drug Stores and Pharmacies (misused for fraud)
+        '7372',  # Prepackaged software — crypto wallets
+        '6540',  # Non-Financial Institutions — stored value card loading (wallets)
+        '6530',  # Quasi-Cash (UPI off-ramp fraud)
+    }
+    # Tier 1 = Medium risk
+    MED_RISK_MCC = {
+        '5999',  # Miscellaneous Retail
+        '7011',  # Hotels / Lodging
+        '4814',  # Telecom including VOIP (SIM swap fraud)
+        '4899',  # Cable/Other Pay Television Services
+        '5734',  # Computer/Software Stores
+        '5045',  # Computers, Peripherals and Software
+        '6099',  # Financial Institutions — Other
+        '5411',  # Grocery Stores (misused in skimming)
+        '7372',  # Prepackaged Software
+        '5047',  # Medical and Laboratory Equipment
+        '5122',  # Drugs, Drug Proprietaries
+    }
+
+    mcc = str(tx.merchant.category)
+    if mcc in HIGH_RISK_MCC:
         mcc_tier = 2
-    elif any(mcc.startswith(p) for p in MED_RISK_MCC):
+    elif mcc in MED_RISK_MCC:
         mcc_tier = 1
     else:
         mcc_tier = 0
+
+    # ── UPI / India channel detection ────────────────────────────────────────
+    channel = tx.channel.lower() if tx.channel else "api"
+    is_upi  = channel in {"upi", "bhim", "phonepe", "gpay", "paytm", "upi_collect"}
+    is_imps = channel in {"imps", "neft", "rtgs"}
+    # UPI collect requests are higher risk (recipient initiates)
+    is_upi_collect = channel == "upi_collect"
 
     return {
         'amount_inr':           float(tx.amount),

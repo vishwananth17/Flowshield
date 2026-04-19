@@ -1,0 +1,35 @@
+{
+  "validation_type": "Real-World Kaggle Credit Card Fraud",
+  "dataset_source": "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud",
+  "note": "Models trained on Indian synthetic data, validated on European real-world data",
+  "results": [
+    {
+      "model": "MVIForest (Trained on Indian Synthetic Data)",
+      "dataset": "Kaggle Real-World (European Cards)",
+      "n_samples": 28481,
+      "n_fraud": 49,
+      "roc_auc": 0.4223,
+      "pr_auc": 0.0019,
+      "recall": 0.0204,
+      "specificity": 0.9949,
+      "far": 0.0051,
+      "f1_score": 0.0102,
+      "latency_ms": 4677.68,
+      "generalises": false
+    },
+    {
+      "model": "XGBoost (Trained on Indian Synthetic Data)",
+      "dataset": "Kaggle Real-World (European Cards)",
+      "n_samples": 28481,
+      "n_fraud": 49,
+      "roc_auc": 0.6003,
+      "pr_auc": 0.0106,
+      "recall": 0.102,
+      "specificity": 0.995,
+      "far": 0.005,
+      "f1_score": 0.051,
+      "latency_ms": 41.25,
+      "generalises": false
+    }
+  ]
+}
