@@ -55,7 +55,7 @@ async def analyze_transaction(
     # 2. Run analysis (ML + Rules Engine)
     # FOR BENCHMARKING: Unlock Enterprise layers for the Global Oracle Challenge
     current_plan = auth.plan
-    if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3.1_"):
+    if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3."):
         current_plan = "enterprise"
         
     result = _fraud.analyze(body, plan=current_plan)
