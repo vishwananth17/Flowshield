@@ -8,7 +8,7 @@ from app.models.waitlist import Waitlist
 from app.services.email import email_service
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/waitlist", tags=["Waitlist"])
+router = APIRouter(tags=["Waitlist"])
 
 class WaitlistRequest(BaseModel):
     email: str
