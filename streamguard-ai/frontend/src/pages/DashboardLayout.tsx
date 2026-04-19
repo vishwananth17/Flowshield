@@ -111,13 +111,22 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navbar */}
         <header className="h-16 border-b border-[#1F2937] bg-[#111827] flex items-center justify-between px-6">
-          <div className="flex items-center bg-[#1F2937] rounded-lg px-3 py-2 w-96 border border-[#374151]">
-            <Search className="h-4 w-4 text-gray-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Search transactions, alerts..." 
-              className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
-            />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center bg-[#1F2937] rounded-lg px-3 py-2 w-96 border border-[#374151]">
+              <Search className="h-4 w-4 text-gray-400 mr-2" />
+              <input 
+                type="text" 
+                placeholder="Search transactions, alerts..." 
+                className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
+              />
+            </div>
+            <div className="flex items-center gap-2 bg-emerald-500/5 px-3 py-1.5 rounded-full border border-emerald-500/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Live Engine Connected</span>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">

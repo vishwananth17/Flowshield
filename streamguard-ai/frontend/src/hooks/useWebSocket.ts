@@ -29,7 +29,8 @@ export const useWebSocket = () => {
                     const alert = payload.alert;
                     addAlertFromSocket(alert);
                     
-                    // Show toast
+                    // Toast notifications disabled for a cleaner developer experience
+                    /*
                     if (alert.severity === 'critical' || alert.severity === 'high') {
                         toast.error(`New ${alert.severity} alert: ${alert.title}`, {
                             description: alert.description,
@@ -42,13 +43,14 @@ export const useWebSocket = () => {
                         // play sound if critical
                         if (alert.severity === 'critical') {
                             const audio = new Audio('/alert.mp3');
-                            audio.play().catch(() => {}); // system may block auto-play
+                            audio.play().catch(() => {});
                         }
                     } else {
                         toast(`New Alert: ${alert.title}`, {
                             description: alert.description
                         });
                     }
+                    */
                 } else if (payload.type === 'new_transaction') {
                     addTransactionFromSocket(payload.data);
                 }

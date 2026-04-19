@@ -53,8 +53,9 @@ export const AlertDrawer: React.FC<AlertDrawerProps> = ({ alertId, onClose }) =>
   if (!alertId) return null;
 
   return (
-    <div className={`fixed inset-y-0 right-0 w-[480px] bg-slate-900 border-l border-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${alertId ? 'translate-x-0' : 'translate-x-full'}`}>
-      <div className="h-full flex flex-col">
+    <div className={`fixed inset-y-0 right-0 w-[480px] bg-slate-900 border-l border-slate-800 shadow-2xl z-50 slide-in glass-morphism`}>
+      <div className="h-full flex flex-col relative">
+        {loading && <div className="absolute inset-0 z-10 bg-slate-900/40 backdrop-blur-[2px] shimmer" />}
         {/* Header */}
         <div className="p-6 border-b border-slate-800 flex justify-between items-start">
           <div>

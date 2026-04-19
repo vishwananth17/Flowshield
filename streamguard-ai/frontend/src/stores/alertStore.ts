@@ -102,11 +102,13 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
 
   addAlertFromSocket: (alert) => {
     const { alerts, unreadCount } = get();
-    // Prepend if it matches current view (simplified)
+    // Prepend and update unread count
     set({
       alerts: [alert, ...alerts].slice(0, 50),
       unreadCount: unreadCount + 1
     });
+    // Trigger stats refresh so top cards update immediately
+    get().fetchStats();
   }
 }));
 
