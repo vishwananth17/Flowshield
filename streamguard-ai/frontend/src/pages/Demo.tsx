@@ -80,7 +80,7 @@ const DASHBOARD_DNA_SCENARIOS: Scenario[] = [
     id: 'SAFE_UPI',
     name: 'Safe UPI Payment',
     description: 'Typical INR 450 grocery transaction',
-    icon: <ShieldCheck className="w-5 h-5" />,
+    icon: <ShieldCheck className="w-5 h-5 text-[#10b981]" />,
     risk_score: 0.02,
     confidence: 0.99,
     latency: 12,
@@ -96,7 +96,7 @@ const DASHBOARD_DNA_SCENARIOS: Scenario[] = [
     id: 'COLLECT_SCAM',
     name: 'UPI Collect Scam',
     description: 'High-value pull on unverified device',
-    icon: <AlertTriangle className="w-5 h-5" />,
+    icon: <AlertTriangle className="w-5 h-5 text-[#ef4444]" />,
     risk_score: 0.82,
     confidence: 0.94,
     latency: 17,
@@ -112,7 +112,7 @@ const DASHBOARD_DNA_SCENARIOS: Scenario[] = [
     id: 'GLOBAL_CARD',
     name: 'Global Card Theft',
     description: 'EUR 1.8k purchase from US card',
-    icon: <Lock className="w-5 h-5" />,
+    icon: <Lock className="w-5 h-5 text-[#ef4444]" />,
     risk_score: 0.98,
     confidence: 0.98,
     latency: 22,
@@ -147,10 +147,12 @@ export default function Demo() {
     toast.success('Simulation Completed');
   };
 
+  const getVerdictPrimaryColor = (verdict: 'BLOCK' | 'ALLOW') => verdict === 'BLOCK' ? '#ef4444' : '#10b981';
+
   return (
     <div className="flex h-screen bg-[#0A0E1A] text-slate-200 font-sans selection:bg-blue-600/30 overflow-hidden">
       
-      {/* 1. DASHBOARD SIDEBAR (MIRRORED) */}
+      {/* 1. DASHBOARD SIDEBAR */}
       <aside className="w-64 bg-[#030712] border-r border-[#1F2937] flex flex-col hidden lg:flex">
         <div className="p-6 border-b border-[#1F2937] flex items-center gap-3">
           <div className="w-8 h-8 bg-[#2563eb] rounded flex items-center justify-center">
@@ -160,7 +162,6 @@ export default function Demo() {
         </div>
 
         <div className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
-          {/* Main Nav Labels */}
           <div className="space-y-1">
              <SidebarLink icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
              <SidebarLink icon={<ArrowRightLeft className="w-4 h-4" />} label="Transactions" />
@@ -185,7 +186,7 @@ export default function Demo() {
                      <div className={`w-8 h-8 rounded flex items-center justify-center ${
                         state.activeScenario?.id === s.id ? 'bg-[#2563eb] text-white' : 'bg-[#111827]'
                      }`}>
-                        {s.icon}
+                        <span className="w-4 h-4">{s.icon}</span>
                      </div>
                      <span className="text-[12px] font-bold tracking-tight">{s.name}</span>
                   </button>
@@ -196,7 +197,7 @@ export default function Demo() {
 
         <div className="p-6 border-t border-[#1F2937]">
            <SidebarLink icon={<Settings className="w-4 h-4" />} label="Settings" />
-           <SidebarLink icon={<HelpCircle className="w-4 h-4" />} label="Documentation" />
+           <SidebarLink icon={<FileText className="w-4 h-4" />} label="Documentation" />
         </div>
       </aside>
 
@@ -208,19 +209,14 @@ export default function Demo() {
            <div className="flex items-center flex-grow max-w-xl">
               <div className="relative w-full">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                 <input 
-                   disabled 
-                   type="text" 
-                   placeholder="Search scenarios, alerts..." 
-                   className="w-full bg-[#111827] border border-[#1F2937] rounded-lg py-2 pl-10 pr-4 text-sm text-gray-400 focus:outline-none" 
-                 />
+                 <input disabled type="text" placeholder="Search transactions, alerts..." className="w-full bg-[#111827] border border-[#1F2937] rounded-lg py-2 pl-10 pr-4 text-sm text-gray-400 focus:outline-none" />
               </div>
            </div>
 
            <div className="flex items-center gap-6 ml-6">
               <div className="bg-[#111827] border border-[#1F2937] px-3 py-1.5 rounded-full flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest leading-none">Engine Live</span>
+                 <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></div>
+                 <span className="text-[10px] font-bold text-[#10b981] uppercase tracking-widest leading-none">Engine Live</span>
               </div>
               <div className="flex items-center gap-4 text-gray-400">
                  <button><Bell className="w-5 h-5 hover:text-white transition-colors" /></button>
@@ -229,7 +225,7 @@ export default function Demo() {
            </div>
         </header>
 
-        {/* SIMULATION HUB CONTENT */}
+        {/* CONTENT */}
         <div className="p-6 lg:p-10 flex-grow overflow-hidden flex flex-col gap-8">
            
            <div className="flex justify-between items-end">
@@ -248,29 +244,13 @@ export default function Demo() {
 
            <div className="grid lg:grid-cols-12 gap-8 flex-grow">
               
-              {/* THE ENGINE CARD (DNA MIRRORED) */}
+              {/* THE ENGINE CARD */}
               <section className="lg:col-span-7 flex flex-col bg-[#111827] border border-[#1F2937] rounded-xl shadow-2xl relative overflow-hidden">
-                 
-                 <div className="absolute inset-x-0 bottom-0 pointer-events-none z-10 h-1/2">
-                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                       <path d="M 0 0 L 0 100 L 100 100 L 100 0" fill="url(#core-grad)" />
-                       <defs>
-                          <linearGradient id="core-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                             <stop offset="0%" stopColor="#111827" stopOpacity="0" />
-                             <stop offset="100%" stopColor="#2563eb" stopOpacity="0.05" />
-                          </linearGradient>
-                       </defs>
-                    </svg>
-                 </div>
-
                  <div className="p-6 border-b border-[#1F2937] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                        <Cpu className="w-4 h-4 text-[#2563eb]" />
                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Neural Processor Node</span>
                     </div>
-                    {state.status === 'PROCESSING' && (
-                       <span className="text-[10px] font-bold text-[#2563eb] uppercase tracking-widest animate-pulse">Running Inferences...</span>
-                    )}
                  </div>
 
                  <div className="flex-grow flex items-center justify-center p-12 relative overflow-hidden">
@@ -278,11 +258,7 @@ export default function Demo() {
                        <div className="h-6">
                          <AnimatePresence mode="wait">
                            {state.status === 'PROCESSING' && (
-                             <motion.div
-                               key={state.processingStep}
-                               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}
-                               className="text-[11px] font-black text-[#2563eb] uppercase tracking-[0.5em]"
-                             >
+                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[11px] font-black text-[#2563eb] uppercase tracking-[0.5em]">
                                {state.processingStep}
                              </motion.div>
                            )}
@@ -291,22 +267,16 @@ export default function Demo() {
 
                        <div className="relative w-72 h-72 flex items-center justify-center">
                           <div className="absolute inset-0 border border-gray-800 rounded-full" />
-                          <motion.div 
-                             animate={state.status === 'PROCESSING' ? { rotate: 360 } : {}}
-                             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                             className="absolute inset-8 border border-gray-800/50 rounded-full" 
-                          />
-                          
-                          <div className="relative bg-[#0A0E1A] border border-[#1F2937] w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-inner group">
+                          <div className="relative bg-[#0A0E1A] border border-[#1F2937] w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-inner">
                              <AnimatePresence mode="wait">
                                 {state.status === 'RESOLVED' ? (
                                   <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-                                     <CheckCircle2 className={`w-16 h-16 ${state.activeScenario?.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'}`} />
+                                     <CheckCircle2 style={{ color: getVerdictPrimaryColor(state.activeScenario?.verdict || 'ALLOW') }} className="w-16 h-16" />
                                   </motion.div>
                                 ) : (
                                   <div className="flex flex-col items-center">
-                                     <Activity className={`w-10 h-10 ${state.status === 'PROCESSING' ? 'text-[#2563eb] animate-pulse' : 'text-gray-800 opacity-20'}`} />
-                                     <span className="text-[9px] font-black text-gray-800 uppercase tracking-[0.4em] mt-4">Static</span>
+                                     <Activity className={`w-10 h-10 ${state.status === 'PROCESSING' ? 'text-[#2563eb] animate-pulse' : 'text-gray-800'}`} />
+                                     <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mt-4">Standby</span>
                                   </div>
                                 )}
                              </AnimatePresence>
@@ -315,14 +285,12 @@ export default function Demo() {
                     </div>
                  </div>
 
-                 <div className="p-6 border-t border-[#1F2937] flex justify-between">
+                 <div className="p-6 border-t border-[#1F2937] flex justify-between bg-[#0A0E1A]/40 backdrop-blur-sm">
                     <div className="flex items-center gap-2">
-                       <Globe className="w-4 h-4 text-gray-700" />
-                       <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Merchant Gateway</span>
+                       <div className="bg-[#111827] border border-[#1F2937] px-2 py-1 rounded-md text-[9px] font-black text-gray-500 uppercase">Merchant SDK</div>
                     </div>
                     <div className="flex items-center gap-2">
-                       <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Global Audit Log</span>
-                       <Database className="w-4 h-4 text-gray-700" />
+                       <div className="bg-[#111827] border border-[#1F2937] px-2 py-1 rounded-md text-[9px] font-black text-gray-500 uppercase">Audit Ledger</div>
                     </div>
                  </div>
               </section>
@@ -330,36 +298,32 @@ export default function Demo() {
               {/* AUDIT & VERDICT PANEL */}
               <aside className="lg:col-span-5 flex flex-col gap-6">
                  {/* VERDICT CARD */}
-                 <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-xl">
+                 <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-xl min-h-[200px]">
                     <AnimatePresence mode="wait">
                        {state.status === 'RESOLVED' && state.activeScenario ? (
-                          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-                             <div className={`text-6xl font-black uppercase tracking-tighter ${
-                               state.activeScenario.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-500'
-                             }`}>
+                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+                             <div className="text-6xl font-black uppercase tracking-tighter" style={{ color: getVerdictPrimaryColor(state.activeScenario.verdict) }}>
                                 {state.activeScenario.verdict}
                              </div>
                              <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] mt-3">Forensic Verdict</div>
                           </motion.div>
                        ) : (
                           <div className="flex flex-col items-center opacity-10">
-                             <FileText className="w-10 h-10 text-gray-500 mb-4" />
-                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Awaiting Outcome</span>
+                             <TrendingUp className="w-10 h-10 text-gray-500 mb-4" />
+                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Handover Pending</span>
                           </div>
                        )}
                     </AnimatePresence>
                  </div>
 
-                 {/* SHAP WATERFALL */}
+                 {/* RISK BREAKDOWN */}
                  <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-6 flex flex-col gap-6 flex-grow shadow-lg">
-                    <div className="flex items-center justify-between border-b border-[#1F2937] pb-4">
-                       <div className="flex items-center gap-3">
-                          <BarChart3 className="text-[#2563eb] w-4 h-4" />
-                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Risk Analysis</span>
-                       </div>
+                    <div className="flex items-center gap-3 border-b border-[#1F2937] pb-4">
+                       <BarChart3 className="text-[#2563eb] w-4 h-4" />
+                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Risk Breakdown</span>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                        <AnimatePresence mode="wait">
                           {state.status === 'RESOLVED' && state.activeScenario ? (
                              <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }} className="space-y-3">
@@ -367,7 +331,7 @@ export default function Demo() {
                                    <div key={i} className="bg-[#0A0E1A] border border-[#1F2937] p-4 rounded-lg">
                                       <div className="flex justify-between items-center mb-2">
                                          <span className="text-xs font-bold text-gray-500">{f.label}</span>
-                                         <span className={`text-[11px] font-black ${f.type === 'increase' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                         <span className="text-[11px] font-black" style={{ color: f.type === 'increase' ? '#ef4444' : '#10b981' }}>
                                             {f.type === 'increase' ? '+' : '-'}{f.weight}%
                                          </span>
                                       </div>
@@ -375,7 +339,8 @@ export default function Demo() {
                                          <motion.div 
                                             initial={{ width: 0 }} animate={{ width: `${f.weight}%` }}
                                             transition={{ duration: 1.2, ease: "easeOut" }}
-                                            className={`h-full ${f.type === 'increase' ? 'bg-rose-500' : 'bg-[#2563eb]'}`} 
+                                            style={{ backgroundColor: f.type === 'increase' ? '#ef4444' : '#10b981' }}
+                                            className="h-full" 
                                          />
                                       </div>
                                    </div>
@@ -383,7 +348,7 @@ export default function Demo() {
                              </motion.div>
                           ) : (
                              <div className="py-20 flex flex-col items-center justify-center opacity-10">
-                                <Search className="w-12 h-12 text-white mb-4" />
+                                <Database className="w-12 h-12 text-white mb-4" />
                                 <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Audit Idle</span>
                              </div>
                           )}
@@ -404,8 +369,14 @@ function SidebarLink({ icon, label, active = false }: { icon: any; label: string
       <div className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
          active ? 'bg-[#2563eb] text-white shadow-lg shadow-blue-900/20' : 'text-gray-500 hover:text-white hover:bg-[#111827]'
       }`}>
-         {icon}
+         <div className="w-4 h-4 flex items-center justify-center">{icon}</div>
          <span className="text-sm font-medium tracking-tight">{label}</span>
       </div>
    );
+}
+
+function TrendingUp(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+  )
 }
