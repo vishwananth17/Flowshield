@@ -6,12 +6,14 @@ import { Download, Filter, Search } from 'lucide-react';
 import api from '@/services/api';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { toast } from 'sonner';
+import { TransactionDrawer } from '@/components/TransactionDrawer';
 
 export default function Transactions() {
   const { recentTransactions, setInitialTransactions } = useTransactionStore();
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [riskFilter, setRiskFilter] = useState('all');
+  const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -63,7 +65,7 @@ export default function Transactions() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-bold text-white tracking-tight">Transactions Feed</h1>
@@ -134,8 +136,12 @@ export default function Transactions() {
                   </tr>
                 ) : (
                   filteredTransactions.map((tx, idx) => (
-                    <tr key={tx.id} className={`border-b border-[#1F2937] ${idx % 2 === 0 ? 'bg-[#0A0E1A]' : 'bg-[#111827]'} hover:bg-[#1F2937]/50 transition-colors`}>
-                      <td className="px-6 py-4 font-mono text-gray-300">
+                    <tr 
+                      key={tx.id} 
+                      onClick={() => setSelectedTxId(tx.id)}
+                      className={`group border-b border-[#1F2937] ${idx % 2 === 0 ? 'bg-[#0A0E1A]' : 'bg-[#111827]'} hover:bg-blue-500/5 transition-colors cursor-pointer`}
+                    >
+                      <td className="px-6 py-4 font-mono text-gray-300 group-hover:text-blue-400 transition-colors">
                         {tx.external_id || tx.id.substring(0, 13)}
                       </td>
                       <td className="px-6 py-4 font-medium text-white">
@@ -163,8 +169,8 @@ export default function Transactions() {
                       <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
                         {new Date(tx.created_at).toLocaleTimeString()}
                       </td>
-                      <td className="px-6 py-4">
-                        <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 h-8">
+                      <td className="px-6 py-4 text-right">
+                        <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 font-bold text-[10px] uppercase tracking-widest">
                           Details
                         </Button>
                       </td>
@@ -176,6 +182,18 @@ export default function Transactions() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Overlay Backdrop */}
+      {selectedTxId && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-in fade-in duration-300"
+          onClick={() => setSelectedTxId(null)}
+        />
+      )}
+      <TransactionDrawer 
+        txId={selectedTxId} 
+        onClose={() => setSelectedTxId(null)} 
+      />
     </div>
   );
 }

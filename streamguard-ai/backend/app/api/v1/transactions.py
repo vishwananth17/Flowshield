@@ -147,6 +147,28 @@ async def list_transactions(
     return out
 
 
+@router.get(
+    "/{tx_id}",
+    summary="Retrieve Forensic Detail",
+    description="Inspect the full data lineage and AI scoring vectors for a specific transaction record."
+)
+async def get_transaction_detail(
+    tx_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.id == tx_id)
+        .where(Transaction.org_id == user.org_id)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+        
+    return tx
+
+
 @router.post(
     "/simulate", 
     summary="Generate Synthetic Traffic", 
