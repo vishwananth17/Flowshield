@@ -19,16 +19,36 @@ from imblearn.over_sampling import SMOTE
 from features.feature_engineer import FraudFeatureEngineer
 
 def load_dataset():
+    # 1. Load Indian Synthetic Data
     if not os.path.exists('data/fraud_dataset.csv'):
         print("Dataset missing! Run generate_fraud_dataset.py first.")
         sys.exit(1)
         
-    df = pd.read_csv('data/fraud_dataset.csv')
+    df_in = pd.read_csv('data/fraud_dataset.csv')
+    df_in['currency'] = 'INR'
+    
+    # 2. Load and Map European Kaggle Data (for Global Coverage)
+    try:
+        from validate_realworld import load_kaggle_dataset, map_kaggle_to_flowshield
+        df_kg_raw = load_kaggle_dataset()
+        if df_kg_raw is not None:
+            df_kg = map_kaggle_to_flowshield(df_kg_raw)
+            df_kg['is_fraud'] = df_kg_raw['Class']
+            df_kg['currency'] = 'EUR'
+            # Balanced merge: keep Indian focus but add Global coverage
+            df = pd.concat([df_in, df_kg.sample(n=len(df_in), random_state=42)], ignore_index=True)
+            print(f"Global Fusion: Merged {len(df_in)} Indian + {len(df_in)} European samples")
+        else:
+            df = df_in
+    except Exception as e:
+        print(f"Global fusion failed (skipping Kaggle): {e}")
+        df = df_in
+
     engineer = FraudFeatureEngineer()
-    X = engineer.engineer(df[engineer.BASE_FEATURES])
+    X = engineer.engineer(df)
     y = df['is_fraud'].values
-    print(f"Dataset: {len(X)} samples, {X.shape[1]} features")
-    print(f"Fraud rate: {y.mean()*100:.2f}%")
+    print(f"Total Dataset: {len(X)} samples, {X.shape[1]} features")
+    print(f"Overall Fraud rate: {y.mean()*100:.2f}%")
     return X, y, engineer
 
 def handle_imbalance(X_train, y_train):

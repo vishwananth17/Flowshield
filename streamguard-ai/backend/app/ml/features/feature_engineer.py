@@ -25,14 +25,19 @@ class FraudFeatureEngineer:
     def engineer(self, X: pd.DataFrame) -> pd.DataFrame:
         df = X.copy()
 
+        # Currency Normalization (Scale all to USD-equivalent baseline)
+        currency = str(df.get('currency', 'INR')[0]).upper()
+        scale_factor = 83.0 if currency == 'INR' else (1.1 if currency == 'EUR' else 1.0)
+        df['amount_normalized'] = df['amount_inr'] / scale_factor
+
         # Fill missing values with safe defaults
         for col in self.BASE_FEATURES:
             if col not in df.columns:
                 df[col] = 0
 
         # Log transform amounts
-        df['amount_log'] = np.log1p(df['amount_inr'])
-        df['amount_sum_log'] = np.log1p(df['amount_sum_last_1h'])
+        df['amount_log'] = np.log1p(df['amount_normalized'])
+        df['amount_sum_log'] = np.log1p(df['amount_sum_last_1h'] / scale_factor)
 
         # Interaction features
         df['amount_x_risk'] = (
