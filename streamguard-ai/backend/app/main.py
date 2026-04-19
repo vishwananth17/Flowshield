@@ -241,15 +241,17 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
+            "https://flowshield-git-main-vishwananth17s-projects.vercel.app",
             "https://flowshield-inky.vercel.app",
             "https://flowshieldai.com",
             "https://flowshield.ai",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "http://localhost:3000"
         ],
         allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     
     app.add_middleware(GZipMiddleware, minimum_size=500)
@@ -332,7 +334,6 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
             content=content,
         )
 
-    app.include_router(api_router, prefix="/api/v1")
     return app
 
 
