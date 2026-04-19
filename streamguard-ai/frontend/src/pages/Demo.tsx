@@ -86,7 +86,7 @@ export default function Demo() {
 
         <div className="flex items-center gap-5">
            <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
+              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
               <span className="text-[11px] font-bold text-white uppercase tracking-widest leading-none">Verify it's you</span>
            </div>
            <div className="flex items-center gap-5 text-slate-500">
@@ -105,7 +105,7 @@ export default function Demo() {
         {/* HERO TITLE - TRACKING MATCH */}
         <div className="text-center mb-16 relative">
           <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight inline-block relative">
-            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]">Glass-Box AI</span>
+            Try the <span className="text-[#a78bfa] drop-shadow-[0_0_20px_rgba(167,139,250,0.4)]">Glass-Box AI</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
             Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
@@ -141,17 +141,17 @@ export default function Demo() {
               </button>
             ))}
 
-            {/* TRUST BADGES - COLOR ACCURACY */}
-            <div className="pt-10 flex gap-10 items-center">
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+            {/* TRUST BADGES - OPACITY MATCH */}
+            <div className="pt-10 flex gap-10 items-center opacity-50">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <Globe className="w-4 h-4 text-blue-500" />
                   Global Markets Support
                </div>
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <Zap className="w-4 h-4 text-amber-400" />
                   {'<'}50ms Latency
                </div>
-               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+               <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   DPDP Compliant
                </div>
