@@ -103,7 +103,7 @@ export default function Demo() {
         
         {/* HERO TITLE - TRACKING MATCH */}
         <div className="text-center mb-16">
-          <h1 className="text-[64px] font-black tracking-tighter mb-4 leading-tight">
+          <h1 className="text-[64px] font-[900] tracking-tighter mb-4 leading-tight">
             Try the <span className="text-[#a78bfa] drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]">Glass-Box AI</span>
           </h1>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-bold opacity-70">
@@ -167,16 +167,16 @@ export default function Demo() {
                     <span className="text-[#f43f5e] font-bold">await</span> <span className="text-white italic">flowshield</span>.<span className="text-white font-semibold">analyze(&#123;</span>
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400">"tx_high_value_foreign"</span>,
+                    <span className="text-amber-300">transaction_id</span>: <span className="text-emerald-400 font-medium">"tx_high_value_foreign"</span>,
                   </div>
                   <div className="pl-6">
                     <span className="text-amber-300">amount</span>: <span className="text-amber-300">180000</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400">"INR"</span>,
+                    <span className="text-amber-300">currency</span>: <span className="text-emerald-400 font-medium">"INR"</span>,
                   </div>
                   <div className="pl-6">
-                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400">"web"</span>
+                    <span className="text-amber-300">channel</span>: <span className="text-emerald-400 font-medium">"web"</span>
                   </div>
                   <div className="mt-2 text-white font-semibold">
                     &#125;);
@@ -189,7 +189,7 @@ export default function Demo() {
                <div className="flex justify-between items-start mb-14">
                   <div>
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-extrabold" />
+                       Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-[900]" />
                     </div>
                     <div className={`text-[56px] font-black uppercase tracking-tighter leading-none ${active.values.verdict === 'BLOCK' ? 'text-[#ef4444]' : 'text-emerald-400'}`}>
                        {active.values.verdict}
@@ -198,7 +198,7 @@ export default function Demo() {
                   <div className="text-right">
                     <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 opacity-80">Risk Score</div>
                     <div className="text-[96px] font-black text-white tracking-tighter leading-none">
-                      {active.values.score}<span className="text-3xl text-slate-600 ml-1 font-bold">%</span>
+                      {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold">%</span>
                     </div>
                   </div>
                </div>
@@ -228,8 +228,8 @@ export default function Demo() {
                     <motion.div key={activeId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3.5">
                       {active.forensics.map((f, i) => (
                         <div key={i} className="flex items-center gap-5 py-4 px-7 rounded-[22px] bg-[#080c14] border border-white/5 hover:border-white/10 transition-all cursor-default">
-                           <div className="w-2 h-2 rounded-full bg-[#818cf8] shadow-[0_0_12px_rgba(129,140,248,0.8)]" />
-                           <span className="text-[14.5px] text-slate-400 font-bold leading-relaxed tracking-tight">{f}</span>
+                           <div className="w-2.5 h-2.5 rounded-full bg-[#818cf8] shadow-[0_0_12px_rgba(129,140,248,0.9)]" />
+                           <span className="text-[14.5px] text-slate-400 font-[700] leading-relaxed tracking-tight">{f}</span>
                         </div>
                       ))}
                     </motion.div>
