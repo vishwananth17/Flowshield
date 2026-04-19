@@ -171,55 +171,100 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* --- HOW IT WORKS: THE HANDSHAKE (Trust Narrative) --- */}
-      <section className="py-24 px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-indigo-400 font-bold tracking-widest text-[9px] uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">The Architecture of Trust</span>
-          <h2 className="text-3xl md:text-5xl font-black mt-4 mb-6">How our API secures your stack</h2>
+      {/* --- HOW IT WORKS: THE NEURAL TRAFFIC HUB --- */}
+      <section className="py-32 px-6 max-w-6xl mx-auto relative overflow-hidden">
+        <div className="text-center mb-20">
+          <span className="text-indigo-400 font-bold tracking-widest text-[9px] uppercase bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">System Architecture</span>
+          <h2 className="text-3xl md:text-5xl font-black mt-6 tracking-tight">The Forensic Engine in Motion</h2>
         </div>
 
-        <div className="relative grid md:grid-cols-3 gap-12 items-center">
-          {/* Wire Background (Static) */}
-          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-y-1/2 z-0"></div>
+        <div className="grid md:grid-cols-12 gap-8 items-center relative">
+          
+          {/* DATA SWARM SVG LAYER */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <svg className="w-full h-full" viewBox="0 0 800 400" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="swarm-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0" />
+                  <stop offset="50%" stopColor="#6366f1" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              
+              {/* Paths from Left to Center */}
+              <motion.path d="M 150 100 Q 250 100 350 200" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
+              <motion.path d="M 150 200 Q 250 200 350 200" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
+              <motion.path d="M 150 300 Q 250 300 350 200" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
 
-          {/* Step 1: SDK Connect */}
-          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-            <div className="w-20 h-20 rounded-[2rem] bg-slate-900 border border-white/10 flex items-center justify-center shadow-xl">
-              <Code className="w-8 h-8 text-blue-500" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm">1. SDK Connection</h3>
-              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Lightweight integration via our Merchant SDK or direct API.</p>
+              {/* Paths from Center to Right */}
+              <motion.path d="M 450 200 Q 550 100 650 100" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
+              <motion.path d="M 450 200 Q 550 200 650 200" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
+              <motion.path d="M 450 200 Q 550 300 650 300" stroke="url(#swarm-grad)" strokeWidth="0.5" fill="none" />
+
+              {/* Data Swarms */}
+              {[0, 1, 2, 4].map((i) => (
+                <motion.circle
+                  key={`swarm-${i}`}
+                  r="2"
+                  fill="#6366f1"
+                  initial={{ offsetDistance: "0%" }}
+                  animate={{ offsetDistance: "100%" }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: i*0.5 }}
+                  style={{ offsetPath: `path('M 150 ${100 + (i%3)*100} Q 250 ${100 + (i%3)*100} 350 200')` }}
+                  className="shadow-[0_0_10px_#6366f1]"
+                />
+              ))}
+
+              {[3, 5, 6].map((i) => (
+                <motion.circle
+                  key={`swarm-out-${i}`}
+                  r="2"
+                  fill="#818cf8"
+                  initial={{ offsetDistance: "0%" }}
+                  animate={{ offsetDistance: "100%" }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: i*0.5 }}
+                  style={{ offsetPath: `path('M 450 200 Q 550 ${100 + (i%3)*100} 650 ${100 + (i%3)*100}')` }}
+                  className="shadow-[0_0_10px_#818cf8]"
+                />
+              ))}
+            </svg>
+          </div>
+
+          {/* LEFT: RAW DATA INPUTS */}
+          <div className="md:col-span-3 space-y-6 relative z-10">
+            <div className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Unstructured Data</div>
+            <NeuralNode icon={<CreditCard className="w-5 h-5 text-indigo-400" />} label="Card Payload" sub="Amount, BIN, Currency" />
+            <NeuralNode icon={<Globe className="w-5 h-5 text-indigo-400" />} label="Geographic Data" sub="IP, VPN, Proxy Signals" />
+            <NeuralNode icon={<Zap className="w-5 h-5 text-indigo-400" />} label="Velocity Signals" sub="TX Frequency & Batching" />
+          </div>
+
+          {/* MIDDLE: PROCESSING ENGINE */}
+          <div className="md:col-span-6 flex justify-center py-12 relative z-10">
+            <div className="relative w-80 h-80 flex items-center justify-center">
+              {/* Spinning Rings */}
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }} className="absolute inset-0 border border-dashed border-indigo-500/20 rounded-full" />
+              <motion.div animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }} className="absolute inset-6 border border-white/5 rounded-full" />
+              
+              {/* Center Core */}
+              <div className="relative bg-slate-950 border border-indigo-500/40 w-52 h-52 rounded-full flex flex-col items-center justify-center space-y-4 shadow-[0_0_50px_rgba(99,102,241,0.2)] text-center p-6">
+                <div className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Zenith Engine</div>
+                <div className="space-y-2 w-full">
+                  <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-[10px] font-bold">NORMALIZE</div>
+                  <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl text-[10px] font-bold">VECTORIZE</div>
+                  <div className="bg-indigo-500/20 border border-indigo-500/40 px-4 py-2 rounded-xl text-[10px] font-bold shadow-[0_0_15px_rgba(99,102,241,0.1)]">DECIDE</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Step 2: The Oracle */}
-          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-            {/* Pulsing Neural Core */}
-            <div className="relative overflow-hidden w-28 h-28 rounded-full bg-blue-600/10 border-2 border-blue-500 flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.2)]">
-               <ShieldCheck className="w-10 h-10 text-blue-500" />
-               <motion.div 
-                 animate={{ rotate: 360 }}
-                 transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
-                 className="absolute inset-0 border border-dashed border-blue-500/30 rounded-full"
-               />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm">2. Neural Analysis</h3>
-              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Ensemble AI extracts 22+ risk vectors in real-time.</p>
-            </div>
+          {/* RIGHT: STRUCTURED SYSTEMS */}
+          <div className="md:col-span-3 space-y-6 relative z-10">
+            <div className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Structured Systems</div>
+            <NeuralNode icon={<Building2 className="w-5 h-5" />} label="ERP / Finance" sub="Settlement Ledger" color="text-indigo-400" />
+            <NeuralNode icon={<ShieldCheck className="w-5 h-5" />} label="Risk Dashboard" sub="Forensic Visualization" color="text-emerald-400" />
+            <NeuralNode icon={<BarChart3 className="w-5 h-5" />} label="Audit Ledger" sub="Immutible Compliance" color="text-blue-400" />
           </div>
 
-          {/* Step 3: Forensic Audit */}
-          <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-            <div className="w-20 h-20 rounded-[2rem] bg-slate-900 border border-white/10 flex items-center justify-center shadow-xl">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm">3. Forensic Verdict</h3>
-              <p className="text-[11px] text-slate-500 max-w-[150px] mx-auto mt-1">Instant ALLOW/BLOCK with human-readable SHAP forensics.</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -346,6 +391,20 @@ function FeatureCard({ title, icon, desc }: any) {
         </div>
         <h3 className="text-lg font-bold mb-3">{title}</h3>
         <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function NeuralNode({ icon, label, sub, color }: any) {
+  return (
+    <div className="bg-slate-900 border border-white/5 p-4 rounded-2xl flex items-center gap-4 hover:border-indigo-500/30 transition-all group">
+      <div className="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform">
+        {icon}
+      </div>
+      <div>
+        <div className={`text-xs font-bold ${color || 'text-white'}`}>{label}</div>
+        <div className="text-[9px] text-slate-500 uppercase tracking-widest">{sub}</div>
+      </div>
     </div>
   );
 }
