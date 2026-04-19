@@ -244,7 +244,7 @@ async def sandbox_analyze(body: TransactionAnalyzeRequest):
     hour       = datetime.now(UTC).hour
     is_night   = hour < 6 or hour >= 22
     high_risk_mcc = body.merchant.category in {
-        "6051", "6211", "7995", "4829", "6012", "5933"
+        "6051", "6211", "7995", "4829", "6012", "5933", "6530", "6540"
     }
 
     if amount > 100000 or is_foreign or high_risk_mcc:
