@@ -1,0 +1,53 @@
+{
+  "results": [
+    {
+      "model": "IForest (sklearn)",
+      "roc_auc": 0.9971,
+      "recall": 0.79,
+      "specificity": 0.9978,
+      "far": 0.0022,
+      "f1_score": 0.7861,
+      "latency_ms": 43.52
+    },
+    {
+      "model": "MVIForest (paper)",
+      "roc_auc": 0.9969,
+      "recall": 0.81,
+      "specificity": 0.998,
+      "far": 0.002,
+      "f1_score": 0.806,
+      "latency_ms": 1513.89
+    },
+    {
+      "model": "MVIForest (tuned)",
+      "roc_auc": 0.9945,
+      "recall": 0.78,
+      "specificity": 0.9977,
+      "far": 0.0023,
+      "f1_score": 0.7761,
+      "latency_ms": 1735.78
+    }
+  ],
+  "feature_columns": [
+    "amount_inr",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "tx_count_last_1h",
+    "tx_count_last_24h",
+    "amount_sum_last_1h",
+    "amount_vs_avg_ratio",
+    "ip_country_match",
+    "card_country_match",
+    "is_new_device",
+    "merchant_risk_score",
+    "mcc_risk_tier",
+    "is_night",
+    "device_age_days",
+    "unique_merchants_24h",
+    "is_first_transaction"
+  ],
+  "training_samples": 40400,
+  "test_samples": 10100,
+  "fraud_rate": 0.009900990099009901
+}

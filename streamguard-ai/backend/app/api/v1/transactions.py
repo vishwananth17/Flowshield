@@ -104,9 +104,10 @@ async def analyze_transaction(
         "risk_label": result.risk_label,
         "decision": result.decision,
         "confidence": result.confidence,
-        "detection_latency_ms": latency_ms,
+        "detection_latency_ms": result.detection_latency_ms,
         "reasons": result.reasons,
-        "model_version": "ensemble_v2",
+        "model_scores": result.model_scores,
+        "model_version": result.model_version,
         "processed_at": datetime.now(UTC),
     }
 

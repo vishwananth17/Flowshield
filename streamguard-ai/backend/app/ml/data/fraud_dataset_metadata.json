@@ -1,0 +1,33 @@
+{
+    "n_normal": 50000,
+    "n_fraud": 500,
+    "fraud_rate": 0.009900990099009901,
+    "feature_names": [
+        "amount_inr",
+        "hour_of_day",
+        "day_of_week",
+        "tx_count_last_1h",
+        "tx_count_last_24h",
+        "amount_sum_last_1h",
+        "amount_vs_avg_ratio",
+        "ip_country_match",
+        "card_country_match",
+        "is_new_device",
+        "merchant_risk_score",
+        "mcc_risk_tier",
+        "device_age_days",
+        "unique_merchants_24h",
+        "is_first_transaction",
+        "is_fraud",
+        "is_weekend",
+        "is_night"
+    ],
+    "generation_date": "2026-04-19T16:10:14.556130",
+    "fraud_patterns": {
+        "p1_high_amount": 100,
+        "p2_velocity": 100,
+        "p3_geographic": 100,
+        "p4_new_device": 100,
+        "p5_high_risk_merchant": 100
+    }
+}

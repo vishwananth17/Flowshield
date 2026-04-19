@@ -48,4 +48,5 @@ class TransactionAnalyzeResponse(BaseModel):
     detection_latency_ms: int
     reasons: list[str]
     model_version: str
+    model_scores: dict[str, float] | None = None
     processed_at: datetime
