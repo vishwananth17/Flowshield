@@ -86,7 +86,7 @@ export default function Demo() {
 
         <div className="flex items-center gap-5">
            <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
               <span className="text-[11px] font-bold text-white uppercase tracking-widest leading-none">Verify it's you</span>
            </div>
            <div className="flex items-center gap-5 text-slate-500">
@@ -128,7 +128,7 @@ export default function Demo() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                    <div className="p-3 rounded-xl bg-[#080c14] border border-white/5 group-hover:border-white/10 transition-colors">
+                    <div className="p-3.5 rounded-xl bg-[#080c14] border border-white/5 group-hover:border-white/10 transition-colors">
                       {s.icon}
                     </div>
                     <div>
@@ -141,7 +141,7 @@ export default function Demo() {
               </button>
             ))}
 
-            {/* TRUST BADGES - OPACITY MATCH */}
+            {/* TRUST BADGES - COLOR ACCURACY */}
             <div className="pt-10 flex gap-10 items-center opacity-50">
                <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   <Globe className="w-4 h-4 text-blue-500" />
