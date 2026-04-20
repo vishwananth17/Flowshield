@@ -7,9 +7,8 @@ import random
 from typing import List, Dict
 
 # Configuration
-API_URL = "https://flowshield-backend-ani8.onrender.com/api/v1"
-API_KEY = "sg_live_GgN9Y3I5vdUKgvuEhcYq6Wn6XQPYNAKa" 
-
+API_URL = "http://127.0.0.1:8000/api/v1"
+API_KEY = "sg_live_developer_local_key" # Will use a local key
 class GlobalOracleBench:
     def __init__(self):
         self.stats = {

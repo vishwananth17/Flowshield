@@ -19,8 +19,8 @@ class FlowshieldEnsemble:
     Weights: [MVI:0.30, XGB:0.50, Rules:0.20]
     """
 
-    WEIGHTS = {"mvi": 0.30, "xgb": 0.50, "rules": 0.20}
-    FALLBACK = {"mvi": 0.70, "rules": 0.30}
+    WEIGHTS = {"mvi": 0.20, "xgb": 0.30, "rules": 0.50}
+    FALLBACK = {"mvi": 0.40, "rules": 0.60}
 
     # High-risk countries (sanctions / known fraud hotspots)
     HIGH_RISK_COUNTRIES = {'KP','IR','SY','CU','VE','MM','BY'}
@@ -94,9 +94,12 @@ class FlowshieldEnsemble:
             score = max(score, 0.90)
             reasons.append(f"Extreme velocity: {vel_1h} transactions/hour")
 
-        if amount > 200000 and ip_match == 0:
+        if amount > 5000 and ip_match == 0:
             score = max(score, 0.88)
-            reasons.append(f"High-value cross-border transaction (₹{amount:,.0f})")
+            reasons.append(f"Cross-border mismatch on mid-value transaction (₹{amount:,.0f})")
+        elif amount > 1000 and ip_match == 0:
+            score = max(score, 0.55)
+            reasons.append("Cross-border mismatch detected")
 
         if mcc_tier == 2 and new_dev == 1 and is_night == 1:
             score = max(score, 0.82)
@@ -195,14 +198,15 @@ class FlowshieldEnsemble:
 
         final = float(np.clip(final, 0.0, 1.0))
 
-        # Hard rule override — never let rule=1.0 get diluted
-        if rule_score >= 0.95:
-            final = max(final, 0.92)
+        # Hard rule override — never let high-confidence rules get diluted by ML
+        if rule_score >= 0.50:
+            final = max(final, rule_score)
 
         # Build reasons list
         all_reasons = []
         all_reasons.extend(rule_reasons)
         all_reasons.extend(xgb_reasons)
+
 
         if not all_reasons:
             if final > 0.70: all_reasons = ["ML ensemble detected anomalous pattern"]

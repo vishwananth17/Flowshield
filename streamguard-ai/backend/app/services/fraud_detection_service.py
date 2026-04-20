@@ -198,6 +198,10 @@ class FraudDetectionService:
                 "model_scores": {},
                 "model_version": "fallback_v1.0",
             }
+        
+        # QUALITY AUDIT LOG
+        clean_reasons = [r.replace('\u20b9', 'INR') for r in result_dict['reasons']]
+        print(f"==> [AUDIT] Score: {result_dict['risk_score']} | Decision: {result_dict['decision']} | Reasons: {clean_reasons[:1]}")
 
         latency_ms = int((time.time() - start) * 1000)
         
