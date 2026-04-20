@@ -1,15 +1,10 @@
 import axios from 'axios';
 
-const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
-
-const defaultBaseURL = isProduction 
-  ? 'https://flowshield-backend-ani8.onrender.com/api/v1' 
-  : 'http://localhost:8000/api/v1';
-
-// Unified API Base ensuring the /api/v1 prefix is always present
-export const API_BASE_URL = isProduction 
-  ? 'https://flowshield-backend-ani8.onrender.com/api/v1' 
-  : (import.meta.env.VITE_API_URL || defaultBaseURL);
+// Priority: VITE_API_URL env var → Render cloud (production) → localhost (fallback)
+// This ensures local dev always hits the live Render backend via .env
+export const API_BASE_URL: string =
+  import.meta.env.VITE_API_URL ||
+  'https://flowshield-backend-ani8.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

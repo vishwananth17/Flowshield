@@ -10,14 +10,12 @@ export const useWebSocket = () => {
     const { accessToken } = useAuthStore();
 
     useEffect(() => {
-        const isProduction = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('flowshieldai.com');
-        const defaultBaseURL = isProduction 
-            ? 'https://flowshield-backend-ani8.onrender.com' 
-            : 'http://localhost:8000';
-
-        const baseUrl = import.meta.env.VITE_API_URL || defaultBaseURL;
+        // Derive WebSocket URL from same source as api.ts (VITE_API_URL → Render cloud)
+        const baseUrl = (import.meta.env.VITE_API_URL as string) ||
+            'https://flowshield-backend-ani8.onrender.com/api/v1';
+        // Strip /api/v1 suffix to get the root host for the WS path
+        const wsBase = baseUrl.replace(/\/api\/v1$/, '').replace(/^https?:\/\//, '');
         const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-        const wsBase = baseUrl.replace(/^https?:\/\//, '');
         const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
             
         const ws = new WebSocket(wsUrl);
