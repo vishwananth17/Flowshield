@@ -18,70 +18,70 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.redis = redis.from_url(redis_url, decode_responses=True, socket_timeout=2.0, socket_connect_timeout=2.0)
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Coroutine[None, None, Response]]) -> Response:
-        # Only apply to the analyze endpoint
-        if request.url.path != "/api/v1/transactions/analyze" or request.method != "POST":
+        # Only apply to analyze and sandbox endpoints
+        is_analyze = request.url.path == "/api/v1/transactions/analyze"
+        is_sandbox = request.url.path == "/api/v1/transactions/sandbox"
+        
+        if not (is_analyze or is_sandbox) or request.method != "POST":
             return await call_next(request)
 
-        # 1. Identify organization
-        # We need to manually perform auth here because middleware runs before dependencies
-        # Fortunately, the get_analyze_auth logic is accessible
-        # But calling it requires a db session
-        
+        # 1. Identity identification
         org_id = None
         limit = 1000
+        client_ip = request.client.host if request.client else "unknown"
         
-        async with AsyncSessionLocal() as db:
-            try:
-                # We reuse the existing auth dependency logic by calling it manually
-                # Mocking a proper dependency injection call in middleware is complex, 
-                # so we extract the core logic
-                from app.core.security import hash_api_key, safe_decode_token
-                from app.models.api_key import ApiKey
-                from sqlalchemy import select
-                import uuid
+        # Public sandbox uses IP-based limiting
+        if is_sandbox:
+            month_key = f"usage:sandbox_ip:{client_ip}:{datetime.now().year}-{datetime.now().month:02d}"
+            limit = 100 
+        else:
+            async with AsyncSessionLocal() as db:
+                try:
+                    from app.core.security import hash_api_key, safe_decode_token
+                    from app.models.api_key import ApiKey
+                    from sqlalchemy import select
+                    import uuid
 
-                x_api_key = request.headers.get("X-API-Key")
-                token = request.cookies.get("access_token") 
-                if not token:
-                    auth_header = request.headers.get("Authorization")
-                    if auth_header and auth_header.startswith("Bearer "):
-                        token = auth_header[7:]
+                    x_api_key = request.headers.get("X-API-Key")
+                    token = request.cookies.get("access_token") 
+                    if not token:
+                        auth_header = request.headers.get("Authorization")
+                        if auth_header and auth_header.startswith("Bearer "):
+                            token = auth_header[7:]
 
-                if x_api_key:
-                    key_hash = hash_api_key(x_api_key.strip())
-                    stmt = select(ApiKey).where(ApiKey.key_hash == key_hash, ApiKey.is_active == True)
-                    result = await db.execute(stmt)
-                    api_key = result.scalar_one_or_none()
-                    if api_key:
-                        org_id = api_key.org_id
-                elif token:
-                    payload = safe_decode_token(token)
-                    if payload and payload.get("sub"):
-                        user_id = uuid.UUID(payload["sub"])
-                        from app.models.user import User
-                        stmt = select(User).where(User.id == user_id)
+                    if x_api_key:
+                        key_hash = hash_api_key(x_api_key.strip())
+                        stmt = select(ApiKey).where(ApiKey.key_hash == key_hash, ApiKey.is_active == True)
                         result = await db.execute(stmt)
-                        user = result.scalar_one_or_none()
-                        if user:
-                            org_id = user.org_id
+                        api_key = result.scalar_one_or_none()
+                        if api_key:
+                            org_id = api_key.org_id
+                    elif token:
+                        payload = safe_decode_token(token)
+                        if payload and payload.get("sub"):
+                            user_id = uuid.UUID(payload["sub"])
+                            from app.models.user import User
+                            stmt = select(User).where(User.id == user_id)
+                            result = await db.execute(stmt)
+                            user = result.scalar_one_or_none()
+                            if user:
+                                org_id = user.org_id
 
-                if not org_id:
-                    # Let the normal auth dependency handle the 401 later if we can't find it here
-                    return await call_next(request)
+                    if not org_id:
+                        return await call_next(request)
 
-                # Fetch org limits
-                org_stmt = select(Organization).where(Organization.id == org_id)
-                org_result = await db.execute(org_stmt)
-                org = org_result.scalar_one_or_none()
-                if not org:
+                    org_stmt = select(Organization).where(Organization.id == org_id)
+                    org_result = await db.execute(org_stmt)
+                    org = org_result.scalar_one_or_none()
+                    if not org:
+                        return await call_next(request)
+                    
+                    limit = org.monthly_request_limit
+                    month_key = f"usage:{org_id}:{datetime.now().year}-{datetime.now().month:02d}"
+                    
+                except Exception as e:
+                    print(f"Rate Limiter Auth Error: {e}")
                     return await call_next(request)
-                
-                limit = org.monthly_request_limit
-                
-            except Exception as e:
-                # Log error and continue to avoid breaking the app
-                print(f"Rate Limiter Auth Error: {e}")
-                return await call_next(request)
 
         # 2. Check Redis for usage
         try:

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Key, Copy } from 'lucide-react';
+import { Key, Copy, Loader2 } from 'lucide-react';
 import api from '@/services/api';
+import { toast } from 'sonner';
 
 interface ApiKey {
   id: string;
@@ -45,17 +46,24 @@ export default function ApiKeys() {
       setCreatedKey(res.data.raw_key);
       setNewKeyName('');
       fetchKeys();
-    } catch (e) {
+      toast.success('Encryption node generated successfully');
+    } catch (e: any) {
       console.error(e);
+      toast.error(e.response?.data?.error?.message || 'Failed to generate key');
     }
   };
 
   const handleRevoke = async (id: string) => {
+    const confirmRevoke = window.confirm("Are you sure? This will immediately disconnect any systems using this key.");
+    if (!confirmRevoke) return;
+    
     try {
       await api.delete(`/api-keys/${id}`);
       fetchKeys();
-    } catch (e) {
+      toast.success('Key access revoked permanently');
+    } catch (e: any) {
       console.error(e);
+      toast.error(e.response?.data?.error?.message || 'Revocation failed');
     }
   };
 
@@ -81,7 +89,7 @@ export default function ApiKeys() {
               className="border-emerald-500 bg-emerald-500 text-emerald-900 hover:bg-emerald-400"
               onClick={() => {
                 navigator.clipboard.writeText(createdKey);
-                alert('API Key copied to clipboard!');
+                toast.success('API Key copied to encryption buffer');
               }}
             >
               <Copy className="h-4 w-4 mr-2" /> Copy

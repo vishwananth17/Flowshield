@@ -240,7 +240,7 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=settings.cors_origin_list,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -258,8 +258,8 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
     # Commenting out for isolation
 
     # Commenting out for isolation
-    # app.add_middleware(RequestLoggingMiddleware)
-    # app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:

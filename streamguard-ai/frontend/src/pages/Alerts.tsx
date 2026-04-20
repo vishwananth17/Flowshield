@@ -232,13 +232,13 @@ export const AlertsPage: React.FC = () => {
                         <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${
-                              alert.risk_score >= 0.8 ? 'bg-red-500' : 
-                              alert.risk_score >= 0.5 ? 'bg-amber-500' : 'bg-green-500'
+                              Number(alert.risk_score || 0) >= 0.8 ? 'bg-red-500' : 
+                              Number(alert.risk_score || 0) >= 0.5 ? 'bg-amber-500' : 'bg-green-500'
                             }`}
-                            style={{ width: `${alert.risk_score * 100}%` }}
+                            style={{ width: `${Math.min(Number(alert.risk_score || 0) * 100, 100)}%` }}
                           />
                         </div>
-                        <span className="text-[10px] font-bold text-slate-500 font-mono">{(alert.risk_score * 100).toFixed(0)}</span>
+                        <span className="text-[10px] font-bold text-slate-500 font-mono">{(Number(alert.risk_score || 0) * 100).toFixed(0)}</span>
                       </div>
                     </td>
                     <td className="p-4 text-center">
