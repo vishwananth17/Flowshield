@@ -16,8 +16,7 @@ import {
   Shield,
   CreditCard,
   Menu,
-  X,
-  PlayCircle
+  X
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -46,7 +45,6 @@ export default function DashboardLayout() {
     { name: 'Transactions', path: '/dashboard/transactions', icon: Activity },
     { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle },
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
-    { name: 'Simulation', path: '/demo', icon: PlayCircle }, // Quick Access to Demo
     { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
     { name: 'Team', path: '/dashboard/team', icon: Users },
     { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
