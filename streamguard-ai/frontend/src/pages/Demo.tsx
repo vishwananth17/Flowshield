@@ -1,391 +1,226 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Shield, 
-  Zap, 
-  ChevronRight, 
+  ShieldCheck, 
   Activity, 
-  Database, 
   Lock, 
+  ChevronRight, 
   Globe, 
-  Smartphone, 
-  RotateCcw,
-  CheckCircle2,
-  AlertCircle,
-  FileSearch,
-  ArrowRight
+  Zap, 
+  Database,
+  Search,
+  Bell,
+  LayoutGrid
 } from 'lucide-react';
 
-// --- TYPES & INTERFACES ---
-type SimulationState = 'IDLE' | 'PROCESSING' | 'RESOLVED';
-type ActiveScenario = 'SAFE_UPI' | 'COLLECT_SCAM' | 'GLOBAL_CARD';
-
-interface ForensicFactor {
-  label: string;
-  weight: number;
-  type: 'RISK' | 'SAFETY';
-}
-
-interface ScenarioData {
-  id: ActiveScenario;
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  riskScore: number;
-  verdict: 'ALLOW' | 'BLOCK';
-  latency: string;
-  confidence: number;
-  factors: ForensicFactor[];
-}
-
-// --- CONSTANTS ---
-const SCENARIOS: ScenarioData[] = [
+const SCENARIOS = [
   {
-    id: 'SAFE_UPI',
-    title: 'Verified Merchant TX',
-    subtitle: 'Standard recurring subscription',
-    icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-    riskScore: 4,
-    verdict: 'ALLOW',
-    latency: '34ms',
-    confidence: 0.99,
-    factors: [
-      { label: 'Trusted Merchant ID', weight: -40, type: 'SAFETY' },
-      { label: 'Verified IP History', weight: -20, type: 'SAFETY' },
-      { label: 'Consistent Velocity', weight: -15, type: 'SAFETY' }
-    ]
+    id: 'SAFE',
+    title: 'Safe UPI Payment',
+    description: 'Typical ₹450 grocery transaction from Mumbai',
+    icon: <ShieldCheck className="w-5 h-5 text-emerald-500" />,
+    values: { verdict: 'ALLOW', score: '0.02' }
   },
   {
-    id: 'COLLECT_SCAM',
+    id: 'SCAM',
     title: 'UPI Collect Scam',
-    subtitle: 'Suspicious high-value request',
-    icon: <Smartphone className="w-5 h-5 text-rose-500" />,
-    riskScore: 92,
-    verdict: 'BLOCK',
-    latency: '42ms',
-    confidence: 0.96,
-    factors: [
-      { label: 'Unsolicited Push Request', weight: 45, type: 'RISK' },
-      { label: 'Recent Domain Registration', weight: 25, type: 'RISK' },
-      { label: 'New Device Fingerprint', weight: 15, type: 'RISK' }
-    ]
+    description: 'High-value pull request on a new device',
+    icon: <Activity className="w-5 h-5 text-amber-500" />,
+    values: { verdict: 'BLOCK', score: '72.4' }
   },
   {
-    id: 'GLOBAL_CARD',
+    id: 'THEFT',
     title: 'Global Card Theft',
-    subtitle: 'US Card + Indian IP Mismatch',
-    icon: <Globe className="w-5 h-5 text-rose-600" />,
-    riskScore: 87,
-    verdict: 'BLOCK',
-    latency: '38ms',
-    confidence: 0.98,
-    factors: [
-      { label: 'Cross-Border IP Mismatch', weight: 50, type: 'RISK' },
-      { label: 'Amount > Safe Threshold', weight: 20, type: 'RISK' },
-      { label: 'High-Risk Merchant Cat', weight: 12, type: 'RISK' }
-    ]
+    description: '₹1.8L purchase from US card on Indian IP',
+    icon: <Lock className="w-5 h-5 text-rose-500" />,
+    values: { verdict: 'BLOCK', score: '87.0' }
   }
 ];
 
-// --- COMPONENTS ---
-
-const ForensicBar = ({ factor, index }: { factor: ForensicFactor; index: number }) => {
-  const isRisk = factor.type === 'RISK';
-  return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 1.2 + (index * 0.15), duration: 0.4 }}
-      className="group"
-    >
-      <div className="flex justify-between items-end mb-1.5">
-        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight">{factor.label}</span>
-        <span className={`text-[11px] font-black ${isRisk ? 'text-rose-600' : 'text-emerald-600'}`}>
-          {isRisk ? '+' : ''}{factor.weight}%
-        </span>
-      </div>
-      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${Math.abs(factor.weight)}%` }}
-          transition={{ delay: 1.3 + (index * 0.15), duration: 0.8, ease: "circOut" }}
-          className={`h-full rounded-full ${isRisk ? 'bg-rose-500' : 'bg-emerald-500'}`}
-        />
-      </div>
-    </motion.div>
-  );
-};
-
 export default function Demo() {
-  const [state, setState] = useState<SimulationState>('IDLE');
-  const [activeId, setActiveId] = useState<ActiveScenario | null>(null);
-  const [processingText, setProcessingText] = useState('');
-
-  // Deployment Nonce: 1776664427400 (V1.3 Enterprise Oracle)
-  const activeScenario = SCENARIOS.find(s => s.id === activeId);
-
-  const runSimulation = (id: ActiveScenario) => {
-    if (state === 'PROCESSING') return;
-    setActiveId(id);
-    setState('PROCESSING');
-
-    // Processing Sequence
-    const steps = ["Normalizing Currency...", "Extracting Vectors...", "Running MVIForest...", "Generating Proof..."];
-    let i = 0;
-    const interval = setInterval(() => {
-      setProcessingText(steps[i]);
-      i++;
-      if (i >= steps.length) clearInterval(interval);
-    }, 150);
-
-    setTimeout(() => {
-      setState('RESOLVED');
-    }, 1000);
-  };
-
-  const reset = () => {
-    setState('IDLE');
-    setActiveId(null);
-    setProcessingText('');
-  };
+  const [activeId, setActiveId] = useState('THEFT');
+  const active = SCENARIOS.find(s => s.id === activeId)!;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 overflow-hidden pt-6">
-      {/* HEADER NAV - INSTITUTIONAL LOCK */}
-      <nav className="max-w-7xl mx-auto px-6 flex justify-between items-center mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-            <Shield className="text-white w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tighter text-slate-900 leading-none">FLOWSHIELD</h1>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Forensic Lab V1.3</span>
-          </div>
+    <div className="min-h-screen bg-[#020617] text-slate-50 font-sans selection:bg-indigo-500/30 overflow-x-hidden relative">
+      
+      {/* PRODUCTION APP SHELL (FROM SCREENSHOT) */}
+      <nav className="h-14 border-b border-white/5 bg-[#020617] flex items-center justify-between px-6 sticky top-0 z-50">
+        <div className="flex items-center gap-6">
+           <div className="flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5 text-slate-500 hover:text-white transition-colors cursor-pointer" />
+           </div>
+           <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+                 <ShieldCheck className="text-white w-5 h-5" />
+              </div>
+              <span className="font-bold text-lg tracking-tight">Flowshield AI</span>
+           </div>
         </div>
-        
-        <button 
-          onClick={reset}
-          className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all group flex items-center gap-2"
-        >
-          <RotateCcw className="w-4 h-4 text-slate-400 group-hover:rotate-[-90deg] transition-transform" />
-          <span className="text-xs font-bold text-slate-600">Reset Engine</span>
-        </button>
+
+        <div className="flex-grow max-w-xl mx-8">
+           <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <input 
+                disabled 
+                type="text" 
+                placeholder="Search transactions, alerts..." 
+                className="w-full bg-[#0a0f1a] border border-white/5 rounded-md py-1.5 pl-10 pr-4 text-[12px] font-medium text-slate-500 focus:outline-none" 
+              />
+           </div>
+        </div>
+
+        <div className="flex items-center gap-5">
+           <div className="bg-[#1e40af] border border-blue-400/20 px-3 py-1 rounded-md flex items-center gap-2 shadow-lg shadow-blue-900/40 cursor-default">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_12px_#10B981]" />
+              <span className="text-[11px] font-bold text-white tracking-widest leading-none" style={{ textTransform: 'none' }}>Verify it's you</span>
+           </div>
+           <div className="flex items-center gap-5 text-slate-500">
+              <Bell className="w-4 h-4 cursor-pointer hover:text-white transition-colors" />
+              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white font-black text-[10px] cursor-pointer">V</div>
+           </div>
+        </div>
       </nav>
 
-      {/* THE ZENITH ALIGNMENT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-140px)] max-h-[850px] p-6 max-w-7xl mx-auto relative">
-        
-        {/* PANEL 1: TRIGGER PROTOCOL (LEFT) */}
-        <div className="col-span-3 space-y-4">
-          <div className="px-1 mb-6">
-            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Trigger Protocol</h2>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">Select a live transaction pattern to initialize target telemetry.</p>
-          </div>
+      {/* ATMOSPHERIC BACKGROUND BLOOMS */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[1100px] h-[500px] bg-blue-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-          <div className="space-y-3">
-            {SCENARIOS.map((s) => (
+      <main className="max-w-7xl mx-auto px-8 py-20 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        
+        {/* LEFT COLUMN: THE TRIGGER PROTOCOL */}
+        <div className="space-y-12">
+          <header className="space-y-4">
+            <h1 className="text-5xl lg:text-7xl font-black tracking-tighter leading-none text-slate-100">
+              Try the <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 brightness-125 drop-shadow-[0_0_20px_rgba(129,140,248,0.3)]">Glass-Box AI</span>
+            </h1>
+            <p className="text-slate-400 text-lg lg:text-xl font-bold opacity-80 leading-relaxed max-w-lg">
+              Experience the precision of the MVIForest ensemble. Select a pattern below to see how our forensics engine decomposes fraud signals in real-time.
+            </p>
+          </header>
+
+          {/* SCENARIO BUTTONS */}
+          <div className="space-y-4">
+            {SCENARIOS.map((scenario) => (
               <button
-                key={s.id}
-                disabled={state === 'PROCESSING'}
-                onClick={() => runSimulation(s.id)}
-                className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 group relative overflow-hidden ${
-                  activeId === s.id 
-                    ? 'border-indigo-500 bg-white shadow-xl shadow-indigo-100/50 ring-1 ring-indigo-100' 
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:translate-y-[-2px] shadow-sm'
-                } ${state === 'PROCESSING' && activeId !== s.id ? 'opacity-40 grayscale' : ''}`}
+                key={scenario.id}
+                onClick={() => setActiveId(scenario.id)}
+                className={`w-full text-left p-7 rounded-[22px] border-2 transition-all duration-300 group flex items-center justify-between ${
+                  activeId === scenario.id
+                    ? 'bg-slate-900 border-indigo-500/50 shadow-2xl shadow-indigo-500/10'
+                    : 'bg-transparent border-white/5 hover:bg-slate-800/50'
+                }`}
               >
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className={`p-2.5 rounded-xl transition-colors ${activeId === s.id ? 'bg-indigo-50' : 'bg-slate-50 group-hover:bg-slate-100'}`}>
-                    {s.icon}
+                <div className="flex items-center gap-5">
+                  <div className={`p-4 rounded-xl bg-black border border-white/5 transition-colors ${activeId === scenario.id ? 'border-indigo-500/30' : ''}`}>
+                    {scenario.icon}
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 leading-tight">{s.title}</h3>
-                    <p className="text-[11px] text-slate-400 font-medium">{s.subtitle}</p>
+                    <h3 className="font-bold text-xl text-slate-100 mb-1 leading-none">{scenario.title}</h3>
+                    <p className="text-[14px] text-slate-500 font-medium tracking-tight">{scenario.description}</p>
                   </div>
                 </div>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-100 transition-opacity">
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </div>
+                <ChevronRight className={`w-5 h-5 text-slate-700 transition-transform ${activeId === scenario.id ? 'translate-x-1 text-slate-400' : 'group-hover:translate-x-1 group-hover:text-slate-500'}`} />
               </button>
             ))}
           </div>
 
-          {/* STATUS BADGE */}
-          <div className="mt-8 p-4 rounded-2xl bg-slate-100/50 border border-slate-200/50">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className={`w-3 h-3 ${state === 'PROCESSING' ? 'text-indigo-500 animate-pulse' : 'text-slate-400'}`} />
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Status</span>
+          {/* FOOTER BADGES */}
+          <div className="flex flex-wrap items-center gap-10 opacity-50">
+            <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
+              <Globe className="w-4 h-4 text-blue-500" />
+              Global Markets Support
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-700">Inference Core</span>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                state === 'IDLE' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-100 text-indigo-600'
-              }`}>{state}</span>
+            <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
+              <Zap className="w-4 h-4 text-amber-400" />
+              {'<'}50ms Latency
+            </div>
+            <div className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
+              <Database className="w-4 h-4 text-emerald-500" />
+              DPDP Compliant
             </div>
           </div>
         </div>
 
-        {/* PANEL 2: THE ZENITH CORE (CENTER) */}
-        <div className="col-span-5 flex flex-col items-center justify-center relative">
+        {/* RIGHT COLUMN: THE ENGINE & FORENSICS */}
+        <div className="space-y-8">
           
-          {/* DATA PACKET LAYER (Framer Motion) */}
-          <AnimatePresence>
-            {state === 'PROCESSING' && (
-              <motion.div 
-                initial={{ x: -200, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: 200, opacity: 0 }}
-                transition={{ duration: 0.4, ease: "anticipate" }}
-                className="absolute z-50 pointer-events-none"
-              >
-                <div className="w-3 h-3 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)] ring-4 ring-indigo-100" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* CODE PAYLOAD BOX (PROMPT TOKENS) */}
+          <div className="bg-[#020617] rounded-[32px] border border-slate-800/50 p-8 font-mono text-[15px] shadow-2xl">
+            <pre className="leading-relaxed">
+              <code className="text-slate-300">
+                <span className="text-blue-400 italic">await</span> <span className="text-slate-100">flowshield</span>.<span className="text-slate-100 font-semibold">analyze</span>(&#123;{'\n'}
+                {'  '}<span className="text-indigo-300 font-medium">transaction_id</span>: <span className="text-emerald-300">"tx_high_value_foreign"</span>,{'\n'}
+                {'  '}<span className="text-indigo-300 font-medium">amount</span>: <span className="text-slate-100">180000</span>,{'\n'}
+                {'  '}<span className="text-indigo-300 font-medium">currency</span>: <span className="text-emerald-300">"INR"</span>,{'\n'}
+                {'  '}<span className="text-indigo-300 font-medium">channel</span>: <span className="text-emerald-300">"web"</span>{'\n'}
+                &#125;);
+              </code>
+            </pre>
+          </div>
 
-          {/* CORE VISUALIZER */}
-          <div className="relative w-full aspect-square max-w-[400px] flex items-center justify-center">
-            {/* Concentric Rings */}
-            <motion.div 
-              animate={state === 'PROCESSING' ? { scale: [1, 1.05, 1], rotate: 360 } : {}}
-              transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-              className="absolute inset-0 rounded-full border border-slate-200 border-dashed"
-            />
-            <div className="absolute inset-10 rounded-full border border-slate-100" />
-            <div className="absolute inset-20 rounded-full border border-slate-200/50" />
+          {/* DECISION ENGINE (SCREENSHOT HIERARCHY) */}
+          <div className="bg-[#0f172a]/95 backdrop-blur-3xl rounded-[36px] border border-white/10 p-10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)]">
             
-            {/* Main Center Core */}
-            <div className="relative w-56 h-56 bg-white rounded-full border-4 border-slate-50 shadow-2xl flex flex-col items-center justify-center p-8 text-center ring-1 ring-slate-200">
-               <motion.div 
-                animate={state === 'PROCESSING' ? { opacity: [1, 0.4, 1] } : {}}
-                transition={{ repeat: Infinity, duration: 0.8 }}
-                className="mb-4"
-               >
-                 {state === 'IDLE' && <Database className="w-10 h-10 text-slate-200" />}
-                 {state === 'PROCESSING' && <Zap className="w-10 h-10 text-indigo-600" />}
-                 {state === 'RESOLVED' && (
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-0 ${
-                      activeScenario?.verdict === 'ALLOW' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                    }`}>
-                      {activeScenario?.verdict === 'ALLOW' ? <CheckCircle2 className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
-                    </div>
-                 )}
-               </motion.div>
+            <header className="flex justify-between items-start mb-14">
+              <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                Decision Engine <ChevronRight className="w-4 h-4 text-slate-700 font-black" />
+              </div>
+              <div className="text-right">
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 opacity-80">Risk Score</div>
+                <div className="text-[100px] font-black text-white tracking-tighter leading-none flex items-baseline justify-end">
+                  {active.values.score}<span className="text-[32px] text-slate-600 ml-1 font-bold mb-1">%</span>
+                </div>
+              </div>
+            </header>
 
-               <div className="h-8">
-                 <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={state === 'PROCESSING' ? processingText : state}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="text-xs font-black text-slate-800 uppercase tracking-widest"
-                    >
-                      {state === 'IDLE' && "Awaiting Payload"}
-                      {state === 'PROCESSING' && processingText}
-                      {state === 'RESOLVED' && "Analysis Complete"}
-                    </motion.div>
-                 </AnimatePresence>
-               </div>
+            {/* VERDICT ROW */}
+            <div className={`text-6xl font-black uppercase tracking-tighter leading-none mb-14 ${active.values.verdict === 'BLOCK' ? 'text-rose-500' : 'text-emerald-400'}`}>
+              {active.values.verdict}
             </div>
 
-            {/* Connecting Lines (Institutional Aesthetic) */}
-            <div className="absolute left-0 w-12 h-[1px] bg-slate-200 hidden lg:block" />
-            <div className="absolute right-0 w-12 h-[1px] bg-slate-200 hidden lg:block" />
-          </div>
-        </div>
-
-        {/* PANEL 3: AUDIT LEDGER (RIGHT) */}
-        <div className="col-span-4 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          {/* LEDGER HEADER */}
-          <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <div>
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Forensic Verdict</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-Time Decision Log</p>
-            </div>
-            <FileSearch className="w-5 h-5 text-slate-300" />
-          </div>
-
-          <div className="p-8 flex-grow space-y-10">
-            {/* VERDICT CARD */}
-            <div className="min-h-[140px] flex items-center justify-center border-2 border-dashed border-slate-100 rounded-3xl relative overflow-hidden">
-               <AnimatePresence>
-                 {state === 'RESOLVED' && activeScenario ? (
-                    <motion.div 
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.4, ease: "backOut" }}
-                      className="text-center w-full px-6"
-                      aria-live="polite"
-                    >
-                      <div className="flex justify-between items-center mb-6">
-                        <div className="text-left">
-                          <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Risk Score</span>
-                          <span className={`text-4xl font-black ${activeScenario.verdict === 'ALLOW' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {activeScenario.riskScore}.0
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Latency</span>
-                          <span className="text-xl font-bold text-slate-800 italic">{activeScenario.latency}</span>
-                        </div>
-                      </div>
-
-                      <div className={`py-4 rounded-2xl font-black text-6xl tracking-tighter shadow-sm ${
-                        activeScenario.verdict === 'ALLOW' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
-                      }`}>
-                        {activeScenario.verdict}
-                      </div>
-
-                      <div className="mt-6 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <span>Confidence: {(activeScenario.confidence * 100).toFixed(0)}%</span>
-                        <span>Deterministic AI</span>
-                      </div>
-                    </motion.div>
-                 ) : (
-                    <div className="text-slate-300 font-bold uppercase tracking-widest text-xs">
-                      No Active Inference
-                    </div>
-                 )}
-               </AnimatePresence>
+            {/* TELEMETRY ROW */}
+            <div className="grid grid-cols-2 gap-5 mb-10">
+              <div className="bg-slate-950 border border-slate-800/50 rounded-2xl p-6 shadow-inner">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5">
+                  <Zap className="w-4 h-4 text-blue-500" /> Latency
+                </div>
+                <div className="text-[36px] font-black text-white italic tracking-tighter">35ms</div>
+              </div>
+              <div className="bg-slate-950 border border-slate-800/50 rounded-2xl p-6 shadow-inner">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2.5">
+                  <Activity className="w-4 h-4 text-indigo-400" /> Confusion
+                </div>
+                <div className="text-[36px] font-black text-white italic tracking-tighter">0.75</div>
+              </div>
             </div>
 
-            {/* SHAP EXPLAINABILITY WATERFALL */}
+            {/* SHAP FORENSICS LIST (PIXEL FINISH) */}
             <div className="space-y-6">
-               <div className="flex items-center gap-2 mb-4">
-                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Glass-Box SHAP Attribution</span>
-               </div>
-               
-               <div className="space-y-5">
-                 {state === 'RESOLVED' && activeScenario ? (
-                    activeScenario.factors.map((f, idx) => (
-                      <ForensicBar key={f.label} factor={f} index={idx} />
-                    ))
-                 ) : (
-                    [1, 2, 3].map((i) => (
-                      <div key={i} className="opacity-20">
-                         <div className="flex justify-between mb-1.5">
-                            <div className="h-2 w-24 bg-slate-200 rounded" />
-                            <div className="h-2 w-8 bg-slate-200 rounded" />
-                         </div>
-                         <div className="h-1.5 w-full bg-slate-100 rounded" />
-                      </div>
-                    ))
-                 )}
-               </div>
+              <div className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 opacity-80 font-mono">
+                <span className="text-emerald-500 font-extrabold tracking-widest">{'>_'}</span>
+                SHAP Forensics
+              </div>
+              <div className="space-y-3.5">
+                {[
+                  'High-risk transaction detected (sandbox demo)',
+                  'Amount ₹180,000 exceeds safe threshold',
+                  'High-risk merchant category'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 py-4 px-7 rounded-[22px] bg-slate-900 border border-white/5 hover:border-white/10 transition-all cursor-default">
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.9)]" />
+                    <span className="text-[14.5px] text-slate-300 font-[800] leading-relaxed tracking-tight">{item}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
           </div>
 
-          {/* FOOTER METADATA */}
-          <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-              <Lock className="w-3 h-3" /> GDPR & DPDP Compliant Forensic Engine
-            </p>
-          </div>
         </div>
-
-      </div>
+      </main>
     </div>
   );
 }
+
+// DEPLOYMENT_NONCE: 1776638750 - Absolute Signature Logic Sync
