@@ -16,6 +16,7 @@ import Team from '@/pages/Team';
 import Billing from '@/pages/Billing';
 import Profile from '@/pages/Profile';
 import Landing from '@/pages/Landing';
+import DevPortal from '@/pages/DevPortal';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/developers" element={<DevPortal />} />
           {/* Legacy Decommissioned Routes */}
           <Route path="/demo" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -113,6 +113,7 @@ export default function Landing() {
         <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-400">
           <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
           <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
+          <Link to="/developers" className="hover:text-blue-400 transition-colors">Developers</Link>
           <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
         </div>
         <div className="flex items-center space-x-2 md:space-x-4">
@@ -162,9 +163,9 @@ export default function Landing() {
               </Link>
             </Button>
             <Button asChild variant="ghost" className="text-slate-500 hover:text-white h-12 px-8 rounded-xl font-bold">
-              <Link to="/docs" className="flex items-center gap-2">
+              <Link to="/developers" className="flex items-center gap-2">
                 <Code className="w-4 h-4" />
-                Developer Quickstart
+                Developer Oracle
               </Link>
             </Button>
           </div>
