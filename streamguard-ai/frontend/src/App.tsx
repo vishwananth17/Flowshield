@@ -17,6 +17,8 @@ import Billing from '@/pages/Billing';
 import Profile from '@/pages/Profile';
 import Landing from '@/pages/Landing';
 import DevPortal from '@/pages/DevPortal';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/developers" element={<DevPortal />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           {/* Legacy Decommissioned Routes */}
           <Route path="/demo" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

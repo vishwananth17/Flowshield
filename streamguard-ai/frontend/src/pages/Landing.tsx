@@ -313,6 +313,61 @@ export default function Landing() {
       </section>
 
       <EnterpriseModal isOpen={isEnterpriseModalOpen} onClose={() => setIsEnterpriseModalOpen(false)} />
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 pt-20 pb-12 px-6 bg-[#01040a]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center space-x-2 mb-6">
+              <div className="bg-blue-600 p-1.5 rounded-lg">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-bold tracking-tight">Flowshield AI</span>
+            </div>
+            <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
+              Autonomous fraud intelligence for high-volume commerce and fintech platforms.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Protocol</h4>
+            <ul className="space-y-4 text-xs font-medium text-slate-500">
+              <li><a href="#features" className="hover:text-blue-400 transition-colors">Forensic Engine</a></li>
+              <li><a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing Tiers</a></li>
+              <li><Link to="/register" className="hover:text-blue-400 transition-colors">Institutional Access</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Developers</h4>
+            <ul className="space-y-4 text-xs font-medium text-slate-500">
+              <li><Link to="/developers" className="hover:text-blue-400 transition-colors">Developer Oracle</Link></li>
+              <li><Link to="/docs" className="hover:text-blue-400 transition-colors">API Reference</Link></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">System Status</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Legal</h4>
+            <ul className="space-y-4 text-xs font-medium text-slate-500">
+              <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Protocol</Link></li>
+              <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Engagement</Link></li>
+              <li><a href="mailto:security@flowshield.ai" className="hover:text-blue-400 transition-colors">Security Disclosure</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:row items-center justify-between gap-4">
+          <p className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">
+            © 2026 FLOWSHIELD AI \ DEPLOYED ON RENDER \ ALL RIGHTS RESERVED
+          </p>
+          <div className="flex items-center space-x-6 text-slate-600">
+            <Globe className="w-4 h-4 hover:text-white transition-colors cursor-pointer" />
+            <MessageSquare className="w-4 h-4 hover:text-white transition-colors cursor-pointer" />
+            <ArrowRight className="w-4 h-4 hover:text-white transition-colors cursor-pointer" />
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

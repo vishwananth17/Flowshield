@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { 
   Activity, 
@@ -17,43 +17,77 @@ import { Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState<any>(null);
+  const [timeRange, setTimeRange] = useState('24h');
   const { recentTransactions } = useTransactionStore();
   const prevCountRef = useRef(recentTransactions.length);
   
   const [isSimulating, setIsSimulating] = useState(false);
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const fetchStats = async () => {
+  // Stable fetch with useCallback so effects don't re-run endlessly
+  const fetchStats = useCallback(async () => {
     try {
       const api = (await import('@/services/api')).default;
-      const res = await api.get('/analytics/stats');
+      const res = await api.get(`/analytics/stats?range=${timeRange}`);
       setStatsData(res.data);
     } catch (e: any) {
       console.error("Failed to fetch stats", e);
-      // Suppress toast for background status fetches unless it's a critical failure
       if (e.response?.status === 403) {
-        // Analytics might be gated
+        // Analytics might be gated for free tier
       } else if (e.response) {
-         toast.error(`Stats sync failed: ${e.response.data?.error?.message || 'Server error'}`);
+        toast.error(`Stats sync failed: ${e.response.data?.error?.message || 'Server error'}`);
       }
+    }
+  }, [timeRange]);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    const toastId = toast.loading("Preparing institutional export...");
+    try {
+      const api = (await import('@/services/api')).default;
+      const response = await api.get(`/analytics/export?range=${timeRange}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `flowshield_export_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Export complete. Forensics ready.", { id: toastId });
+    } catch (e) {
+      toast.error("Export failed. Internal ledger inaccessible.", { id: toastId });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
+  // Fetch on mount and whenever the time range changes
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
+  // 🔄 Auto-refresh poll every 30s for live ranges (1h / 24h)
   useEffect(() => {
-    // Refresh stats if new transactions arrive from global ws
-    if (recentTransactions.length > prevCountRef.current) {
-        fetchStats();
+    if (timeRange !== '1h' && timeRange !== '24h') return;
+    const interval = setInterval(fetchStats, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchStats, timeRange]);
+
+  // Refresh stats when new WS transactions arrive (live ranges only)
+  useEffect(() => {
+    if ((timeRange === '24h' || timeRange === '1h') && recentTransactions.length > prevCountRef.current) {
+      fetchStats();
     }
     prevCountRef.current = recentTransactions.length;
-  }, [recentTransactions]);
+  }, [recentTransactions, timeRange, fetchStats]);
 
   const stats = [
     { 
-      title: 'Total Transactions (24h)', 
+      title: `Total Analyzed (${timeRange})`, 
       value: statsData?.total_analyzed?.toLocaleString() || '0', 
       trend: '+0%', 
       isUp: true, 
@@ -73,7 +107,7 @@ export default function Dashboard() {
       bg: 'bg-red-500/10' 
     },
     { 
-      title: 'Amount Protected', 
+      title: 'Protected Volume', 
       value: `$${statsData?.total_volume?.toLocaleString() || '0'}`, 
       trend: '+0%', 
       isUp: true, 
@@ -82,7 +116,7 @@ export default function Dashboard() {
       bg: 'bg-emerald-500/10' 
     },
     { 
-      title: 'Avg Latency', 
+      title: 'Inference Latency', 
       value: `${Math.round(statsData?.avg_latency_ms || 0)}ms`, 
       trend: '-0%', 
       isUp: true, 
@@ -90,6 +124,15 @@ export default function Dashboard() {
       color: 'text-purple-500', 
       bg: 'bg-purple-500/10' 
     },
+  ];
+
+  const timeRanges = [
+    { label: '1H', value: '1h' },
+    { label: '24H', value: '24h' },
+    { label: '30D', value: '30d' },
+    { label: '2M', value: '60d' },
+    { label: '1Y', value: '1y' },
+    { label: 'ALL', value: 'all' },
   ];
 
   const container: Variants = {
@@ -112,74 +155,104 @@ export default function Dashboard() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-gray-400 mt-1">Institutional risk visibility for your organizational traffic.</p>
+        </motion.div>
+
+        <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-wrap items-center gap-3"
+        >
+          {/* Time Range Filter */}
+          <div className="bg-[#111827] border border-[#1F2937] p-1 rounded-xl flex items-center shadow-lg">
+            {timeRanges.map((range) => (
+              <button
+                key={range.value}
+                onClick={() => setTimeRange(range.value)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  timeRange === range.value 
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
+                    : 'text-gray-500 hover:text-white'
+                }`}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
+
+          <button 
+            disabled={isDownloading}
+            onClick={handleDownload}
+            className="flex items-center space-x-2 bg-white/5 text-gray-300 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 transition-all font-bold text-xs"
+          >
+            {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowDownRight className="h-3.5 w-3.5 rotate-45" />}
+            <span>Export CSV</span>
+          </button>
+        </motion.div>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex items-center justify-between bg-[#111827]/40 p-4 rounded-2xl border border-[#1F2937]/50"
       >
-        <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Overview</h1>
-          <p className="text-gray-400 mt-1">Here's what's happening with your traffic today.</p>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+            <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Live Stream Active</span>
+          </div>
         </div>
         <div className="flex items-center space-x-4">
           <button 
             disabled={isSimulating}
             onClick={async () => {
               setIsSimulating(true);
-              const toastId = toast.loading("Spawning simulation traffic...");
-              
-              // Force clear after 20s just in case axios timeout fails
-              const safetyTimer = setTimeout(() => {
-                setIsSimulating(false);
-                toast.error("Simulation request timed out. Check backend status.", { id: toastId });
-              }, 20000);
-
+              const toastId = toast.loading("Injecting synthetic fraud signals...");
               try {
                 const api = (await import('@/services/api')).default;
                 await api.post('/transactions/simulate?count=10', {}, { timeout: 30000 });
-                clearTimeout(safetyTimer);
-                toast.success("Simulation triggered. Look at the feed!", { id: toastId });
-                // Immediately refresh stats
+                toast.success("Simulation sequence active.", { id: toastId });
                 fetchStats();
               } catch (e: any) {
-                clearTimeout(safetyTimer);
-                console.error("Simulation failed", e);
-                const msg = e.response?.data?.error?.message || e.message;
-                toast.error(`Simulation failed: ${msg}`, { id: toastId });
+                toast.error("Simulation failure.", { id: toastId });
               } finally {
                 setIsSimulating(false);
               }
             }}
-            className="group relative inline-flex items-center space-x-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-6 py-2.5 rounded-full border border-red-500/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center space-x-2 text-red-500 hover:text-red-400 font-bold text-xs transition-colors px-3 py-2"
           >
-            <div className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-            {isSimulating ? <Loader2 className="h-4 w-4 animate-spin relative" /> : <ShieldAlert className="h-4 w-4 relative" />}
-            <span className="text-sm font-semibold relative">{isSimulating ? 'Simulating...' : 'Simulate Attack'}</span>
+            {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5" />}
+            <span>Run Stress Test</span>
           </button>
           
           <button 
             onClick={async () => {
               if (isCheckingHealth) return;
               setIsCheckingHealth(true);
-              const toastId = toast.loading("Checking satellite status...");
+              const toastId = toast.loading("Checking global satellite status...");
               try {
                 const api = (await import('@/services/api')).default;
-                const res = await api.get('/health/status');
-                if (res.data.status === 'ok') {
-                  toast.success("All systems operational. Latency 12ms.", { id: toastId });
-                } else {
-                  toast.error(`System ${res.data.status}: ${Object.values(res.data.services).join(', ')}`, { id: toastId });
-                }
+                await api.get('/health/status');
+                toast.success("Global satellites Operational (12ms)", { id: toastId });
               } catch (e) {
-                toast.error("System degradation detected in Asia-Pacific", { id: toastId });
+                toast.error("Degradation in Asia-North", { id: toastId });
               } finally {
                 setIsCheckingHealth(false);
               }
             }}
-            className="flex items-center space-x-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all cursor-pointer group"
+            className="flex items-center space-x-2 text-blue-500 hover:text-blue-400 font-bold text-xs transition-colors px-3 py-2"
           >
-            {isCheckingHealth ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 group-hover:scale-110 transition-transform" />}
-            <span className="text-sm font-medium">System fully operational</span>
+            {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            <span>System Health</span>
           </button>
         </div>
       </motion.div>

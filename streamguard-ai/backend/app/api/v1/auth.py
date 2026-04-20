@@ -116,6 +116,12 @@ async def register(
     await db.refresh(org)
     await db.refresh(user)
 
+    # Growth Telemetry Audit
+    print(f"\n[GROWTH_AUDIT] New Institutional Onboarding:")
+    print(f"  - Organization: {org.name}")
+    print(f"  - Identity:     {user.email}")
+    print(f"  - Status:       DETERMINISTIC_ACTIVE\n")
+
     access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)
 

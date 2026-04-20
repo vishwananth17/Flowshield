@@ -5,7 +5,6 @@ import {
   Code2, 
   Cpu, 
   Globe, 
-  Github, 
   Search, 
   ArrowRight, 
   Zap, 
@@ -100,7 +99,7 @@ export default function DevPortal() {
             <a href="#" className="hover:text-white transition-colors">API Reference</a>
             <a href="#" className="hover:text-white transition-colors">Changelog</a>
             <Button size="sm" variant="outline" className="border-slate-700 bg-slate-900/50 hover:bg-slate-800">
-              <Github className="w-4 h-4 mr-2" />
+              <Terminal className="w-4 h-4 mr-2" />
               OSS Repo
             </Button>
           </div>
