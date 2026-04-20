@@ -7,59 +7,59 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --bg-primary: #0A0E1A;       /* Deep navy — main background */
-    --bg-secondary: #111827;     /* Card backgrounds */
-    --bg-tertiary: #1F2937;      /* Input fields, hover states */
-    --bg-elevated: #1A2235;      /* Modals, dropdowns */
+    --bg-primary: #F8FAFC;       /* Slate 50 — main background */
+    --bg-secondary: #FFFFFF;     /* White card backgrounds */
+    --bg-tertiary: #F1F5F9;      /* Slate 100 — Input fields, hover states */
+    --bg-elevated: #FFFFFF;      /* Modals, dropdowns */
 
     /* Brand */
-    --accent-blue: #3B82F6;      /* Primary CTA, links */
-    --accent-blue-bright: #60A5FA;
-    --accent-emerald: #10B981;   /* Success, safe transactions */
-    --accent-red: #EF4444;       /* Fraud alerts, danger */
-    --accent-amber: #F59E0B;     /* Warnings, suspicious */
-    --accent-purple: #8B5CF6;    /* Premium features, AI */
+    --accent-blue: #2563EB;      /* Blue 600 */
+    --accent-blue-bright: #3B82F6;
+    --accent-emerald: #059669;   /* Emerald 600 */
+    --accent-red: #DC2626;       /* Red 600 */
+    --accent-amber: #D97706;     /* Amber 600 */
+    --accent-purple: #7C3AED;    /* Violet 600 */
 
     /* Text */
-    --text-primary: #F9FAFB;
-    --text-secondary: #9CA3AF;
-    --text-muted: #4B5563;
+    --text-primary: #0F172A;     /* Slate 900 */
+    --text-secondary: #475569;   /* Slate 600 */
+    --text-muted: #94A3B8;       /* Slate 400 */
 
     /* Borders */
-    --border-primary: #1F2937;
-    --border-accent: #3B82F6;
+    --border-primary: #E2E8F0;   /* Slate 200 */
+    --border-accent: #2563EB;
 
     /* Status */
-    --status-safe: #10B981;
-    --status-suspicious: #F59E0B;
-    --status-fraud: #EF4444;
-    --status-review: #8B5CF6;
+    --status-safe: #059669;
+    --status-suspicious: #D97706;
+    --status-fraud: #DC2626;
+    --status-review: #7C3AED;
 
     --font-display: 'Space Grotesk', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --font-body: 'Space Grotesk', sans-serif;
     
-    /* Shadcn defaults */
-    --background: 226 44% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 226 44% 7%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Shadcn defaults - Light Mode */
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --radius: 0.5rem;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
   }
 }
 
@@ -70,9 +70,10 @@
   body {
     @apply bg-background text-foreground font-body;
     background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+    @apply font-display tracking-tight text-slate-900;
   }
 }
 

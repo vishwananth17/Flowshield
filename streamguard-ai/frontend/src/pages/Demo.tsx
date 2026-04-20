@@ -121,6 +121,7 @@ export default function Demo() {
   const [activeId, setActiveId] = useState<ActiveScenario | null>(null);
   const [processingText, setProcessingText] = useState('');
 
+  // Deployment Nonce: 1776664427400 (V1.3 Enterprise Oracle)
   const activeScenario = SCENARIOS.find(s => s.id === activeId);
 
   const runSimulation = (id: ActiveScenario) => {
