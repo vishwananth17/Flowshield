@@ -27,6 +27,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
+          {/* Legacy Decommissioned Routes */}
+          <Route path="/demo" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
           
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
