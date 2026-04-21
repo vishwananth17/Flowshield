@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1 import api_router
 from app.core.config import get_settings
-from app.core.middleware import SecurityHeadersMiddleware
+from app.core.middleware import RequestLoggingMiddleware
 from app.core.rate_limiter import RateLimitMiddleware
 
 # Configure logging
@@ -39,7 +39,7 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RequestLoggingMiddleware)
     
     if settings.redis_url:
         app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
