@@ -6,40 +6,46 @@ URL = "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze"
 API_KEY = "sg_live_5rr6HhGRQyM.jkkZyl0Jg5JKuXu5My-L4q-9e0QarJY9oGUETwPkXSQ"
 
 payload = {
-    "transaction_id": "COMM_AUDIT_FINAL_999",
-    "amount": 2999.00,
+    "transaction_id": "TX_LIVE_998877",
+    "amount": 45000.0,
     "currency": "INR",
     "merchant": {
-        "id": "m_commercial_001",
-        "name": "Production Audit",
-        "category": "Inst",
-        "country": "US"
+        "id": "m_123",
+        "name": "Reliance Digital",
+        "category": "5732",
+        "country": "IN"
     },
     "card": {
-        "last_four": "9999",
-        "type": "credit",
-        "issuing_country": "US"
+        "last_four": "4455",
+        "type": "debit",
+        "issuing_country": "IN"
     },
     "customer": {
-        "id": "c_premium_user",
-        "email": "audit@flowshield.ai",
-        "ip": "1.1.1.1",
-        "country": "US",
-        "city": "Audit City",
-        "device_fingerprint": "audit_fp_999"
+        "id": "cust_8899",
+        "email": "vishwa@live.in",
+        "country": "IN",
+        "ip": "106.201.12.45"
     },
-    "channel": "api"
+    "channel": "web"
 }
 
-async def test():
-    async with httpx.AsyncClient() as client:
-        print(f"Propagating Commercial Heartbeat to {URL}...")
-        headers = {"X-API-Key": API_KEY}
-        resp = await client.post(URL, json=payload, headers=headers)
-        if resp.status_code == 200:
-            print(f"SUCCESS: API Gateway Authorized. Result: {resp.json()}")
-        else:
-            print(f"FAILURE ({resp.status_code}): {resp.text}")
+async def pulse():
+    print(f"Propagating Commercial Heartbeat to {URL}...")
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "X-API-Key": API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(URL, json=payload, headers=headers)
+            if response.status_code == 200:
+                print(f"SUCCESS: API Gateway Authorized. Result: {response.json()}")
+            else:
+                print(f"FAILURE ({response.status_code}): {response.text}")
+        except Exception as e:
+            print(f"COMM_PULSE_CRITICAL: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(test())
+    asyncio.run(pulse())
