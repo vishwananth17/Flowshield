@@ -1,4 +1,5 @@
 import uuid
+import logging
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -11,6 +12,8 @@ from app.core.security import hash_api_key, safe_decode_token
 from app.db.session import get_db
 from app.models.api_key import ApiKey
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
