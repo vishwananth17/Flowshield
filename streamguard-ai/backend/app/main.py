@@ -75,7 +75,7 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
 
 > **Production Gateway**: `https://flowshield-backend-ani8.onrender.com/api/v1`
         """,
-        version="1.0.0",
+        version="1.0.1-forensic",
         contact={
           "name": "Flowshield Enterprise Engineering",
           "email": "engineering@flowshield.ai",
