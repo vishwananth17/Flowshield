@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import api_router
 from app.core.config import get_settings
 from app.core.middleware import RequestLoggingMiddleware
 from app.core.rate_limiter import RateLimitMiddleware
@@ -21,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 def create_application() -> FastAPI:
     settings = get_settings()
+    from app.api.v1.router import api_router
     
     app = FastAPI(
         title=settings.project_name,
