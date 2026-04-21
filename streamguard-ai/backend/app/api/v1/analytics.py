@@ -47,7 +47,7 @@ async def get_stats(
     start: datetime | None = None,
     end: datetime | None = None
 ):
-    check_analytics_access(user.plan)
+    check_analytics_access(user.organization.plan)
     
     # ── Temporal Logic Synthesis ──────────────────────────────────────────
     now = datetime.utcnow()
@@ -132,7 +132,7 @@ async def export_analytics(
     user: CurrentUser,
     range: str = Query("24h", pattern="^(1h|24h|30d|60d|1y|all|custom)$"),
 ):
-    check_analytics_access(user.plan)
+    check_analytics_access(user.organization.plan)
     
     now = datetime.utcnow()
     filter_date = None
