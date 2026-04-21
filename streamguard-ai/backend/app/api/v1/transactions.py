@@ -44,80 +44,84 @@ class TransactionListItem(BaseModel):
     summary="Transaction Risk Analysis",
     description="Perform high-fidelity heuristic and ML-driven risk assessment on a single transaction. Includes SHAP explainability and immediate event broadcasting."
 )
+@router.post(
+    "/analyze",
+    response_model=TransactionAnalyzeResponse,
+    summary="Transaction Risk Analysis",
+    description="Perform high-fidelity heuristic and ML-driven risk assessment on a single transaction. Includes SHAP explainability and immediate event broadcasting."
+)
 async def analyze_transaction(
     body: TransactionAnalyzeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
-    # 1. Start timer for latency tracking
-    start_time = time.perf_counter()
-    
-    # 2. Run analysis (ML + Rules Engine)
-    # FOR BENCHMARKING: Unlock Enterprise layers for the Global Oracle Challenge
-    current_plan = auth.plan
-    if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3."):
-        current_plan = "enterprise"
+    try:
+        # 1. Start timer for latency tracking
+        start_time = time.perf_counter()
         
-    result = _fraud.analyze(body, plan=current_plan)
-    
-    # 3. Calculate latency
-    latency_ms = int((time.perf_counter() - start_time) * 1000)
-    
-    # 4. Persistence
-    internal_id = uuid.uuid4()
-    row_data = transaction_row_from_request(
-        auth.org_id, body, result, internal_id, latency_ms
-    )
-    
-    # Add to DB
-    new_tx = Transaction(**row_data)
-    db.add(new_tx)
-    await db.commit()
-    
-    # 5. Background Tasks (Alerting)
-    task = asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
-    _background_tasks.add(task)
-    task.add_done_callback(_background_tasks.discard)
+        # 2. Run analysis (ML + Rules Engine)
+        current_plan = auth.plan
+        if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3."):
+            current_plan = "enterprise"
+            
+        result = _fraud.analyze(body, plan=current_plan)
+        
+        # 3. Calculate latency
+        latency_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        # 4. Persistence
+        internal_id = uuid.uuid4()
+        row_data = transaction_row_from_request(
+            auth.org_id, body, result, internal_id, latency_ms
+        )
+        
+        # Add to DB
+        new_tx = Transaction(**row_data)
+        db.add(new_tx)
+        await db.commit()
+        
+        # 5. Background Tasks (Alerting)
+        task = asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
-    # 6. WebSocket Broadcast (Dashboard Live Feed)
-    try:
-        await ws_manager.broadcast(str(auth.org_id), {
-            "type": "new_transaction",
-            "org_id": str(auth.org_id),
-            "data": {
-                "id": str(internal_id),
-                "external_id": body.transaction_id,
-                "merchant_name": body.merchant.name,
-                "amount": float(body.amount),
-                "currency": body.currency,
-                "risk_score": float(result.risk_score),
-                "risk_label": result.risk_label,
-                "decision": result.decision,
-                "created_at": datetime.now(UTC).isoformat()
-            }
-        })
+        # 6. WebSocket Broadcast (Dashboard Live Feed)
+        try:
+            await ws_manager.broadcast(str(auth.org_id), {
+                "type": "new_transaction",
+                "org_id": str(auth.org_id),
+                "data": {
+                    "id": str(internal_id),
+                    "external_id": body.transaction_id,
+                    "merchant_name": body.merchant.name,
+                    "amount": float(body.amount),
+                    "currency": body.currency,
+                    "risk_score": float(result.risk_score),
+                    "risk_label": result.risk_label,
+                    "decision": result.decision,
+                    "created_at": datetime.now(UTC).isoformat()
+                }
+            })
+        except Exception as e:
+            logger.warning(f"WebSocket broadcast failed for org {auth.org_id}: {e}")
+
+        return {
+            "transaction_id": str(internal_id),
+            "risk_score": result.risk_score,
+            "risk_label": result.risk_label,
+            "decision": result.decision,
+            "confidence": result.confidence,
+            "detection_latency_ms": result.detection_latency_ms,
+            "reasons": result.reasons,
+            "model_scores": result.model_scores,
+            "model_version": result.model_version,
+            "processed_at": datetime.now(UTC),
+        }
     except Exception as e:
-        logger.warning(f"WebSocket broadcast failed for org {auth.org_id}: {e}")
-
-    # 7. Kafka (Optional - enabled if configured)
-    try:
-        if kafka_streamer.producer:
-            await kafka_streamer.emit_transaction(row_data)
-    except Exception:
-        pass # Don't block API if Kafka is down
-
-    return {
-        "transaction_id": str(internal_id),
-        "risk_score": result.risk_score,
-        "risk_label": result.risk_label,
-        "decision": result.decision,
-        "confidence": result.confidence,
-        "detection_latency_ms": result.detection_latency_ms,
-        "reasons": result.reasons,
-        "model_scores": result.model_scores,
-        "model_version": result.model_version,
-        "processed_at": datetime.now(UTC),
-    }
+        import traceback
+        error_msg = f"PRODUCTION_CRASH: {str(e)} | TRACE: {traceback.format_exc()}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.get(
