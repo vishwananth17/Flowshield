@@ -27,6 +27,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # 1. Identity identification
         org_id = None
+        org = None
         limit = 1000
         client_ip = request.client.host if request.client else "unknown"
         
@@ -86,7 +87,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # 2. Check Redis for usage
         try:
             now = datetime.now()
-            month_key = f"usage:{org_id}:{now.year}-{now.month:02d}"
+            # If not sandbox, month_key is already set for the org.
+            # If sandbox, it's set for the IP.
             
             current_usage = await self.redis.get(month_key)
             current_count = int(current_usage) if current_usage else 0
@@ -114,7 +116,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             print(f"Rate Limiter Redis Error: {e}")
             # Fallback: allow the request and use DB count + 1 as estimation
-            new_count = (org.monthly_request_count or 0) + 1
+            # If it's a sandbox, we don't have a DB count to fallback to
+            new_count = ((org.monthly_request_count if org else 0) or 0) + 1
 
         # 4. Async update DB every 100 increments
         if new_count % 100 == 0:
