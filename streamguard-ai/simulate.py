@@ -2,8 +2,8 @@ import requests
 import random
 import time
 
-API_KEY = "sg_live___B_64wEMOuszKOe94l2y5pj9Piz4WbS"
-URL = "http://localhost:8000/api/v1/transactions/analyze"
+API_KEY = "sg_live_BTgUphDPHZu5ekm1fIJhl_cMaVINVkOl"
+URL = "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze"
 
 SCENARIOS = [
     # Normal transactions (should be SAFE)
@@ -61,7 +61,15 @@ for i in range(50):
     }
 
     try:
-        r = requests.post(URL, json=payload, headers={"X-API-Key": API_KEY})
+        headers = {
+            "X-API-Key": API_KEY,
+            "User-Agent": "curl/8.18.0"
+        }
+        r = requests.post(URL, json=payload, headers=headers)
+        if r.status_code != 200:
+            print(f"[{i+1:02d}] ERROR {r.status_code} \u2014 {r.text}")
+            continue
+        
         data = r.json()
         label = data.get("risk_label", "unknown").upper()
         score = data.get("risk_score", 0)
@@ -70,7 +78,7 @@ for i in range(50):
         color = "\033[92m" if label == "SAFE" else "\033[93m" if label == "SUSPICIOUS" else "\033[91m"
         reset = "\033[0m"
         
-        print(f"[{i+1:02d}] {color}{label:12}{reset} | Score: {score:.2f} | {latency}ms | \u20B9{scenario['amount']:>8,} | {scenario['merchant']}")
+        print(f"[{i+1:02d}] {color}{label:12}{reset} | Score: {score:.2f} | {latency}ms | INR {scenario['amount']:>8,} | {scenario['merchant']}")
     
     except Exception as e:
         print(f"[{i+1:02d}] ERROR \u2014 {e}")

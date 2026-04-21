@@ -184,16 +184,27 @@ export default function Dashboard() {
                 {range.label}
               </button>
             ))}
+            <button
+                onClick={() => setTimeRange('custom')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  timeRange === 'custom' 
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20' 
+                    : 'text-gray-500 hover:text-white'
+                }`}
+              >
+                CUSTOM
+              </button>
           </div>
 
           <button 
             disabled={isDownloading}
             onClick={handleDownload}
-            className="flex items-center space-x-2 bg-white/5 text-gray-300 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 transition-all font-bold text-xs"
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-blue-900/20 transition-all font-bold text-xs"
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowDownRight className="h-3.5 w-3.5 rotate-45" />}
-            <span>Export CSV</span>
+            <span>Download Report</span>
           </button>
+
         </motion.div>
       </div>
 
