@@ -309,21 +309,17 @@ Flowshield AI offers high-throughput, sub-100ms fraud analysis for the modern fi
     async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         rid = getattr(request.state, "request_id", "")
         import traceback
-        logger.error(f"Global error {rid}: {exc}\n{traceback.format_exc()}")
-        settings = get_settings()
-        content = {
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": "Internal Server Error" if settings.environment == "production" else str(exc),
-                "request_id": rid,
-            }
-        }
-        if settings.environment != "production":
-            content["error"]["traceback"] = traceback.format_exc()
-            
+        error_msg = f"GLOBAL_CRASH: {str(exc)} | TRACE: {traceback.format_exc()}"
+        logger.error(error_msg)
         return JSONResponse(
             status_code=500,
-            content=content,
+            content={
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": error_msg,
+                    "request_id": rid,
+                }
+            },
         )
 
     return app
