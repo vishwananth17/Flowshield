@@ -80,21 +80,24 @@ async def analyze_transaction(
     task.add_done_callback(_background_tasks.discard)
 
     # 6. WebSocket Broadcast (Dashboard Live Feed)
-    await ws_manager.broadcast(str(auth.org_id), {
-        "type": "new_transaction",
-        "org_id": str(auth.org_id),
-        "data": {
-            "id": str(internal_id),
-            "external_id": body.transaction_id,
-            "merchant_name": body.merchant.name,
-            "amount": float(body.amount),
-            "currency": body.currency,
-            "risk_score": float(result.risk_score),
-            "risk_label": result.risk_label,
-            "decision": result.decision,
-            "created_at": datetime.now(UTC).isoformat()
-        }
-    })
+    try:
+        await ws_manager.broadcast(str(auth.org_id), {
+            "type": "new_transaction",
+            "org_id": str(auth.org_id),
+            "data": {
+                "id": str(internal_id),
+                "external_id": body.transaction_id,
+                "merchant_name": body.merchant.name,
+                "amount": float(body.amount),
+                "currency": body.currency,
+                "risk_score": float(result.risk_score),
+                "risk_label": result.risk_label,
+                "decision": result.decision,
+                "created_at": datetime.now(UTC).isoformat()
+            }
+        })
+    except Exception as e:
+        logger.warning(f"WebSocket broadcast failed for org {auth.org_id}: {e}")
 
     # 7. Kafka (Optional - enabled if configured)
     try:
