@@ -96,7 +96,10 @@ async def get_analyze_auth(
     api_key_obj = None
 
     if x_api_key:
+        prefix = x_api_key.split(".")[0] if "." in x_api_key else ""
         key_hash = hash_api_key(x_api_key.strip())
+        logger.info(f"AUTH_TRACE: Prefix={prefix} | Hash={key_hash}")
+
         result = await db.execute(
             select(ApiKey).where(ApiKey.key_hash == key_hash, ApiKey.is_active.is_(True))
         )

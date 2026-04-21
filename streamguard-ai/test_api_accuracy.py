@@ -2,7 +2,7 @@ import httpx
 import asyncio
 import json
 
-URL = "https://flowshieldai-backend-production.up.railway.app/api/v1/transactions/analyze"
+URL = "https://flowshield-backend-ani8.onrender.com/api/v1/transactions/analyze"
 API_KEY = "sg_live_5rr6HhGRQyM.jkkZyl0Jg5JKuXu5My-L4q-9e0QarJY9oGUETwPkXSQ"
 
 payload = {
