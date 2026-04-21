@@ -86,11 +86,11 @@ export default function DashboardLayout() {
                   )}
                   {item.name === 'Plans & Billing' && (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      useAuthStore.getState().organization?.plan === 'growth' 
-                        ? 'bg-blue-500 text-white' 
+                      ['growth', 'standard', 'premium'].includes(user?.organization?.plan || '')
+                        ? 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)]' 
                         : 'bg-gray-700 text-gray-400'
                     }`}>
-                      {useAuthStore.getState().organization?.plan === 'growth' ? 'PRO' : 'FREE'}
+                      {['growth', 'standard', 'premium'].includes(user?.organization?.plan || '') ? 'PREMIUM' : 'FREE'}
                     </span>
                   )}
                 </Link>
