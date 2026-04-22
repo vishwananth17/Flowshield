@@ -23,7 +23,7 @@ def create_application() -> FastAPI:
     settings = get_settings()
     
     app = FastAPI(
-        title=settings.project_name,
+        title=settings.app_name,
         version="1.0.1-FORENSIC-V3",
         description="Flowshield AI — Real-time high-fidelity fraud detection gateway.",
         docs_url="/docs" if settings.environment != "production" else None,
@@ -45,7 +45,7 @@ def create_application() -> FastAPI:
         app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
 
     # API Router
-    app.include_router(api_router, prefix=settings.api_v1_str)
+    app.include_router(api_router, prefix="/api/v1")
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
