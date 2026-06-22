@@ -28,11 +28,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: npm run dev
     environment:
       - DATABASE_URL=postgresql://continumai:password@db:5432/fraud_db
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=supersecretkey
+      - SUPABASE_URL=https://mockproject.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vY2twcm9qZWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzg4MDk2MDAsImV4cCI6MTk5NDM4NTYwMH0.mockanonkey
+      - SUPABASE_JWT_SECRET=supersecretsupabasejwtsecretmustbe64charslongtobevalidforproduction1234
+      - DB_ENCRYPTION_KEY=supersecretkey32charstoencryptdb
+      - ENVIRONMENT=development
     ports:
       - "8000:8000"
     depends_on:
