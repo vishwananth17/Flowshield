@@ -40,9 +40,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   refreshUser: async () => {
     try {
       const res = await api.get('/auth/me');
+      const token = res.data.access_token;
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
       set({ 
         user: res.data.user, 
-        organization: res.data.organization 
+        organization: res.data.organization,
+        accessToken: token || null
       });
     } catch (e) {
       console.error("Failed to refresh user data", e);
@@ -51,16 +56,33 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   checkAuth: async () => {
     try {
+      // Refresh the access token from refresh token cookie on start
+      try {
+        const refreshRes = await api.post('/auth/refresh');
+        const token = refreshRes.data.access_token;
+        if (token) {
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          set({ accessToken: token });
+        }
+      } catch (err) {
+        // Safe to ignore if refresh cookie is missing or invalid on initial load
+      }
+
       const res = await api.get('/auth/me');
+      const token = res.data.access_token || get().accessToken;
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+
       set({ 
         user: res.data.user, 
         organization: res.data.organization,
-        accessToken: localStorage.getItem('flowshield_token'),
+        accessToken: token,
         isAuthenticated: true, 
         isLoading: false 
       });
     } catch (error) {
-      localStorage.removeItem('flowshield_token');
+      api.defaults.headers.common['Authorization'] = '';
       set({ user: null, organization: null, accessToken: null, isAuthenticated: false, isLoading: false });
     }
   },
@@ -70,7 +92,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const res = await api.post('/auth/login', credentials);
       const token = res.data.access_token;
-      if (token) localStorage.setItem('flowshield_token', token);
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
       
       set({ 
         user: res.data.user, 
@@ -80,6 +104,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isLoading: false 
       });
     } catch (error) {
+      api.defaults.headers.common['Authorization'] = '';
       set({ isLoading: false });
       throw error;
     }
@@ -90,7 +115,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const res = await api.post('/auth/register', data);
       const token = res.data.access_token;
-      if (token) localStorage.setItem('flowshield_token', token);
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
 
       set({ 
         user: res.data.user, 
@@ -100,6 +127,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isLoading: false
       });
     } catch (error) {
+      api.defaults.headers.common['Authorization'] = '';
       set({ isLoading: false });
       throw error;
     }
@@ -109,8 +137,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       await api.post('/auth/logout');
     } catch (e) {}
-    localStorage.removeItem('flowshield_token');
+    api.defaults.headers.common['Authorization'] = '';
     set({ user: null, organization: null, accessToken: null, isAuthenticated: false });
+    
+    // Prevent browser back after logout (Layer 15.5)
+    window.history.pushState(null, '', '/login');
+    window.addEventListener('popstate', () => {
+      window.history.pushState(null, '', '/login');
+    });
   }
 }));
-

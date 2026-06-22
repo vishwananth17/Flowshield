@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime
 
 class TransactionRequest(BaseModel):
@@ -30,3 +30,51 @@ class ModelStatusResponse(BaseModel):
     status: str
     version: str
     accuracy_estimate: float
+
+# ------------------------------------------------------------
+# Authentication Schemas (Layer 2)
+# ------------------------------------------------------------
+
+class UserRegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: Optional[str] = None
+    organization_name: str
+
+class UserLoginRequest(BaseModel):
+    email: str
+    password: str
+
+class UserOut(BaseModel):
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    role: str
+    org_id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True  # Pydantic v2
+        orm_mode = True        # Pydantic v1
+
+class OrganizationOut(BaseModel):
+    id: str
+    name: str
+    plan: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+class AuthResponse(BaseModel):
+    user: UserOut
+    organization: OrganizationOut
+    access_token: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str

@@ -27,11 +27,11 @@ Write-Host "🚀 Backend deploying to Railway..." -ForegroundColor Green
 
 # Step 3 — Deploy frontend to Vercel
 Write-Host "🎨 Configuring Vercel Frontend..." -ForegroundColor Yellow
-Set-Location frontend
+Set-Location streamguard-ai/frontend
 vercel --prod `
   --env VITE_API_URL=https://api.flowshieldai.com `
   --yes --force
-Set-Location ..
+Set-Location ../..
 Write-Host "🚀 Frontend deploying to Vercel..." -ForegroundColor Green
 
 # Step 4 — Create Stripe webhook

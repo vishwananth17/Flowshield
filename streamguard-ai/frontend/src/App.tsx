@@ -17,25 +17,38 @@ import Billing from '@/pages/Billing';
 import Profile from '@/pages/Profile';
 import Landing from '@/pages/Landing';
 import DevPortal from '@/pages/DevPortal';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
+import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
+import TermsOfService from '@/pages/legal/TermsOfService';
+import DataProcessingAgreement from '@/pages/legal/DataProcessingAgreement';
+import ServiceLevelAgreement from '@/pages/legal/ServiceLevelAgreement';
+import CookiePolicy from '@/pages/legal/CookiePolicy';
+import SecurityPolicy from '@/pages/legal/SecurityPolicy';
+import CookieConsent from '@/components/CookieConsent';
+import { useAutoLogout } from '@/hooks/useAutoLogout';
 
 function App() {
+  useAutoLogout();
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <Toaster position="top-right" richColors />
+        <CookieConsent />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/developers" element={<DevPortal />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/dpa" element={<DataProcessingAgreement />} />
+          <Route path="/sla" element={<ServiceLevelAgreement />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="/security" element={<SecurityPolicy />} />
           {/* Legacy Decommissioned Routes */}
           <Route path="/demo" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+
           
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>

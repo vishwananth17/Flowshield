@@ -350,9 +350,12 @@ export default function Landing() {
           <div>
             <h4 className="text-white text-xs font-black uppercase tracking-widest mb-6">Legal</h4>
             <ul className="space-y-4 text-xs font-medium text-slate-500">
-              <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Protocol</Link></li>
-              <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Engagement</Link></li>
-              <li><a href="mailto:security@flowshield.ai" className="hover:text-blue-400 transition-colors">Security Disclosure</a></li>
+              <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/dpa" className="hover:text-blue-400 transition-colors">Data Processing Agreement</Link></li>
+              <li><Link to="/sla" className="hover:text-blue-400 transition-colors">Service Level Agreement</Link></li>
+              <li><Link to="/cookies" className="hover:text-blue-400 transition-colors">Cookie Policy</Link></li>
+              <li><Link to="/security" className="hover:text-blue-400 transition-colors">Security Policy</Link></li>
             </ul>
           </div>
         </div>

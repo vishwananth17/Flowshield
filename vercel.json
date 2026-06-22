@@ -1,5 +1,38 @@
 {
   "buildCommand": "cd streamguard-ai/frontend && npm run build",
   "outputDirectory": "streamguard-ai/frontend/dist",
-  "framework": "vite"
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "https://api.flowshieldai.com/api/v1/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {"key": "X-Frame-Options", "value": "DENY"},
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "X-XSS-Protection", "value": "1; mode=block"},
+        {"key": "Referrer-Policy",
+         "value": "strict-origin-when-cross-origin"},
+        {"key": "Permissions-Policy",
+         "value": "geolocation=(), microphone=(), camera=()"},
+        {"key": "Strict-Transport-Security",
+         "value": "max-age=31536000; includeSubDomains; preload"}
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {"key": "Cache-Control",
+         "value": "public, max-age=31536000, immutable"}
+      ]
+    }
+  ]
 }

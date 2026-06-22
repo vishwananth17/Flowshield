@@ -6,6 +6,7 @@ from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.webhook import Webhook
 from app.models.waitlist import Waitlist
+from app.models.legal import LegalDocumentVersion, UserLegalAcceptance, PrivacyRequest
 
 __all__ = [
     "Alert",
@@ -15,4 +16,8 @@ __all__ = [
     "User",
     "Webhook",
     "Waitlist",
+    "LegalDocumentVersion",
+    "UserLegalAcceptance",
+    "PrivacyRequest",
 ]
+

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '@/services/api';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -14,15 +15,34 @@ export default function Register() {
   const [orgName, setOrgName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [acceptedToS, setAcceptedToS] = useState(false);
+  const [acceptedDPA, setAcceptedDPA] = useState(false);
+  
   const { register } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedToS || !acceptedDPA) {
+      setError('You must accept the terms and agreements to register.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
       await register({ email, password, full_name: fullName, organization_name: orgName });
+      
+      // Record legal acceptances in backend database
+      try {
+        await Promise.all([
+          api.post('/legal/accept', { document: 'terms_of_service', version: '1.0' }),
+          api.post('/legal/accept', { document: 'privacy_policy', version: '1.0' }),
+          api.post('/legal/accept', { document: 'dpa', version: '1.0' })
+        ]);
+      } catch (acceptErr) {
+        console.error("Failed to record legal acceptances:", acceptErr);
+      }
+
       const plan = new URLSearchParams(window.location.search).get('plan');
       if (plan && plan !== 'free') {
         navigate(`/billing?upgrade=${plan}`);
@@ -35,6 +55,7 @@ export default function Register() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-[#0A0E1A] p-4 overflow-hidden">
@@ -127,11 +148,38 @@ export default function Register() {
                   className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-emerald-500/50 h-11"
                 />
               </div>
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-medium tracking-wide transition-all duration-200"
-              >
+                {/* Legal checkboxes */}
+                <div className="space-y-3 mt-4">
+                  <div className="flex items-center">
+                    <input
+                      id="tos"
+                      type="checkbox"
+                      checked={acceptedToS}
+                      onChange={(e) => setAcceptedToS(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <label htmlFor="tos" className="ml-2 text-sm text-gray-300">
+                      I have read and agree to the <Link to="/terms" className="text-emerald-400 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</Link>.
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      id="dpa"
+                      type="checkbox"
+                      checked={acceptedDPA}
+                      onChange={(e) => setAcceptedDPA(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <label htmlFor="dpa" className="ml-2 text-sm text-gray-300">
+                      I accept the <Link to="/dpa" className="text-emerald-400 hover:underline">Data Processing Agreement</Link>.
+                    </label>
+                  </div>
+                </div>
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-medium tracking-wide transition-all duration-200"
+                >
                 {loading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>

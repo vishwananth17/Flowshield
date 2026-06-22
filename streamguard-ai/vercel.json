@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/v1/(.*)",
-      "destination": "https://flowshield-backend-ani8.onrender.com/api/v1/$1"
+      "destination": "https://api.flowshieldai.com/api/v1/$1"
     },
     {
       "source": "/(.*)",

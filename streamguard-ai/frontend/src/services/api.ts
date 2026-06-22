@@ -4,21 +4,30 @@ import axios from 'axios';
 // This ensures local dev always hits the live Render backend via .env
 export const API_BASE_URL: string =
   import.meta.env.VITE_API_URL ||
-  'https://flowshield-backend-ani8.onrender.com/api/v1';
+  'https://api.flowshieldai.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  xsrfCookieName: 'flowshield_csrf',
+  xsrfHeaderName: 'X-CSRF-Token',
   headers: {
     'Content-Type': 'application/json',
   }
 });
 
-// Automatically inject Bearer token from localStorage
+function getCsrfToken(): string {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith('flowshield_csrf='))
+    ?.split('=')[1] || '';
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('flowshield_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!['GET','HEAD','OPTIONS'].includes(
+    config.method?.toUpperCase() || ''
+  )) {
+    config.headers['X-CSRF-Token'] = getCsrfToken();
   }
   return config;
 });
