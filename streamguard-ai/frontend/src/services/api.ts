@@ -2,9 +2,8 @@ import axios from 'axios';
 
 // Priority: VITE_API_URL env var → Render cloud (production) → localhost (fallback)
 // This ensures local dev always hits the live Render backend via .env
-export const API_BASE_URL: string =
-  import.meta.env.VITE_API_URL ||
-  'https://api.flowshieldai.com/api/v1';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://api.flowshieldai.com/api/v1';
+export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
