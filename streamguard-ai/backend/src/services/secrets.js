@@ -9,7 +9,7 @@ const REQUIRED_ENV_VARS = {
   "DATABASE_URL": { minLength: 20 },
   "REDIS_URL": { minLength: 10 },
   "SUPABASE_URL": { minLength: 20 },
-  "SUPABASE_ANON_KEY": { minLength: 50 },
+  "SUPABASE_ANON_KEY": { minLength: 30 },
   "DB_ENCRYPTION_KEY": { minLength: 32 },
   "RAZORPAY_KEY_ID": { minLength: 14 },
   "RAZORPAY_KEY_SECRET": { minLength: 20 },
