@@ -10,7 +10,6 @@ const REQUIRED_ENV_VARS = {
   "REDIS_URL": { minLength: 10 },
   "SUPABASE_URL": { minLength: 20 },
   "SUPABASE_ANON_KEY": { minLength: 50 },
-  "SUPABASE_JWT_SECRET": { minLength: 64 },
   "DB_ENCRYPTION_KEY": { minLength: 32 },
   "RAZORPAY_KEY_ID": { minLength: 14 },
   "RAZORPAY_KEY_SECRET": { minLength: 20 },
@@ -24,10 +23,7 @@ export function validateAllSecrets() {
 
   // Generate safe development fallbacks
   if (env !== "production") {
-    if (!process.env.SUPABASE_JWT_SECRET || process.env.SUPABASE_JWT_SECRET.length < 64) {
-      process.env.SUPABASE_JWT_SECRET = crypto.randomBytes(32).toString('hex'); // 64 chars
-      logger.warn("Generated fallback SUPABASE_JWT_SECRET for development.");
-    }
+
     if (!process.env.DB_ENCRYPTION_KEY || process.env.DB_ENCRYPTION_KEY.length < 32) {
       process.env.DB_ENCRYPTION_KEY = crypto.randomBytes(16).toString('hex'); // 32 chars
       logger.warn("Generated fallback DB_ENCRYPTION_KEY for development.");

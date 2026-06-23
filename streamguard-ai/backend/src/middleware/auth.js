@@ -26,8 +26,7 @@ export async function authenticateUser(req, res, next) {
       return res.status(401).json({ detail: "Not authenticated. Missing token." });
     }
 
-    const jwtSecret = process.env.SUPABASE_JWT_SECRET || "default_supabase_jwt_secret_must_be_64_chars_long_minimum!";
-    
+
     // Verify Supabase JWT using the Supabase SDK (supports both HS256 and ECC P-256)
     const { data: { user: sbUser }, error: sbErr } = await supabase.auth.getUser(token);
     

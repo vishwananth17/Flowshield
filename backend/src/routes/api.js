@@ -278,13 +278,14 @@ router.get('/health', async (req, res) => {
   if (authHeader) {
     try {
       const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
-      const jwtSecret = process.env.SUPABASE_JWT_SECRET || "default_jwt_secret_64_chars";
-      const payload = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
+      const { data: { user: sbUser }, error: sbErr } = await supabase.auth.getUser(token);
 
-      // Query database to verify role
-      const userRes = await pool.query('SELECT role FROM users WHERE id = $1', [payload.sub]);
-      if (userRes.rows.length > 0 && ['owner', 'admin'].includes(userRes.rows[0].role)) {
-        healthData.security = await getSecurityHealthStatus();
+      if (!sbErr && sbUser) {
+        // Query database to verify role
+        const userRes = await pool.query('SELECT role FROM users WHERE id = $1', [sbUser.id]);
+        if (userRes.rows.length > 0 && ['owner', 'admin'].includes(userRes.rows[0].role)) {
+          healthData.security = await getSecurityHealthStatus();
+        }
       }
     } catch (e) {
       // Ignore auth errors and return basic health data
