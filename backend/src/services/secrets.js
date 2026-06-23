@@ -7,14 +7,17 @@ const logger = winston.createLogger({
 
 const REQUIRED_ENV_VARS = {
   "DATABASE_URL": { minLength: 20 },
-  "REDIS_URL": { minLength: 10 },
   "SUPABASE_URL": { minLength: 20 },
   "SUPABASE_ANON_KEY": { minLength: 30 },
   "DB_ENCRYPTION_KEY": { minLength: 32 },
+  "ENVIRONMENT": { allowed: ["production", "staging", "development"] },
+};
+
+const OPTIONAL_ENV_VARS = {
+  "REDIS_URL": { minLength: 10 },
   "RAZORPAY_KEY_ID": { minLength: 14 },
   "RAZORPAY_KEY_SECRET": { minLength: 20 },
   "RAZORPAY_WEBHOOK_SECRET": { minLength: 20 },
-  "ENVIRONMENT": { allowed: ["production", "staging", "development"] },
 };
 
 export function validateAllSecrets() {
@@ -58,12 +61,12 @@ export function validateAllSecrets() {
     }
   }
 
-  // Perform checks
+  // Perform checks for required variables
   for (const [varName, rules] of Object.entries(REQUIRED_ENV_VARS)) {
     const value = process.env[varName] || "";
 
     if (!value) {
-      errors.append ? errors.push(`Missing: ${varName}`) : errors.push(`Missing: ${varName}`);
+      errors.push(`Missing: ${varName}`);
       continue;
     }
 
@@ -73,6 +76,17 @@ export function validateAllSecrets() {
 
     if (rules.allowed && !rules.allowed.includes(value)) {
       errors.push(`${varName} has invalid value: ${value}`);
+    }
+  }
+
+  // Perform checks for optional variables if they are present
+  for (const [varName, rules] of Object.entries(OPTIONAL_ENV_VARS)) {
+    const value = process.env[varName] || "";
+
+    if (value) {
+      if (rules.minLength && value.length < rules.minLength) {
+        errors.push(`${varName} too short: ${value.length} < ${rules.minLength}`);
+      }
     }
   }
 
