@@ -4,13 +4,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const { Pool } = pg;
-
 let databaseUrl = process.env.DATABASE_URL;
 
 if (databaseUrl && databaseUrl.startsWith("postgresql")) {
-  if (!databaseUrl.includes("ssl=") && !databaseUrl.includes("sslmode=")) {
-    databaseUrl += databaseUrl.includes("?") ? "&ssl=require" : "?ssl=require";
-  }
+  // Strip out ssl/sslmode query params so pg doesn't parse them as strings and override our SSL object
+  const cleanUrl = databaseUrl.replace(/([?&])ssl(mode)?=[^&]*/gi, '');
+  databaseUrl = cleanUrl.replace(/[?&]$/, '').replace(/\?&/, '?');
 }
 
 const poolConfig = {
@@ -25,7 +24,6 @@ if (databaseUrl && (databaseUrl.includes("localhost") || databaseUrl.includes("1
 } else {
   poolConfig.ssl = { rejectUnauthorized: false };
 }
-
 export const pool = new Pool(poolConfig);
 
 /**
