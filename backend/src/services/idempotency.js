@@ -7,13 +7,13 @@ const logger = winston.createLogger({
 });
 
 // Configure Redis Client
-const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379/0";
+const REDIS_URL = process.env.REDIS_URL;
 let redisClient = null;
 
-if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
+if (REDIS_URL) {
   try {
     redisClient = createClient({ url: REDIS_URL });
-    redisClient.on('error', (err) => logger.error(`Redis Error: ${err.message}`));
+    redisClient.on('error', (err) => logger.error(`Redis Error: ${err ? err.message || err : 'unknown error'}`));
     await redisClient.connect().catch((e) => {
       logger.error(`Redis connection failed: ${e.message}. Using in-memory fallback.`);
       redisClient = null;
@@ -23,7 +23,6 @@ if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
     redisClient = null;
   }
 }
-
 // In-memory cache fallback for local/non-production if Redis isn't running
 const memoryCache = new Map();
 

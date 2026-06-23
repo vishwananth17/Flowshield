@@ -4,14 +4,13 @@ import winston from 'winston';
 const logger = winston.createLogger({
   transports: [new winston.transports.Console()]
 });
-
-const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379/0";
+const REDIS_URL = process.env.REDIS_URL;
 let redisClient = null;
 
-if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
+if (REDIS_URL) {
   try {
     redisClient = createClient({ url: REDIS_URL });
-    redisClient.on('error', (err) => logger.error(`Redis Error: ${err.message}`));
+    redisClient.on('error', (err) => logger.error(`Redis Error: ${err ? err.message || err : 'unknown error'}`));
     await redisClient.connect().catch((e) => {
       logger.error(`Redis connection failed for BotDetection: ${e.message}`);
       redisClient = null;
@@ -20,7 +19,6 @@ if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
     redisClient = null;
   }
 }
-
 // In-memory sets fallback if Redis is unavailable
 const memorySets = {
   blockedIps: new Set(),

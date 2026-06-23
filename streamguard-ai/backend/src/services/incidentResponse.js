@@ -7,10 +7,10 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()]
 });
 
-const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379/0";
+const REDIS_URL = process.env.REDIS_URL;
 let redisClient = null;
 
-if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
+if (REDIS_URL) {
   try {
     redisClient = createClient({ url: REDIS_URL });
     redisClient.on('error', () => {});
@@ -21,7 +21,6 @@ if (process.env.ENVIRONMENT === 'production' || process.env.REDIS_URL) {
     redisClient = null;
   }
 }
-
 // In-memory maintenance mode tracking
 let localMaintenanceMode = false;
 const localBlockedIps = new Set();
