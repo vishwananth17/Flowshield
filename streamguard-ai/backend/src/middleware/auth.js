@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { pool } from '../services/db.js';
+import supabase from '../services/supabase.js';
 import winston from 'winston';
 
 const logger = winston.createLogger({
@@ -27,28 +28,27 @@ export async function authenticateUser(req, res, next) {
 
     const jwtSecret = process.env.SUPABASE_JWT_SECRET || "default_supabase_jwt_secret_must_be_64_chars_long_minimum!";
     
-    // Verify Supabase HS256 JWT
-    let payload;
-    try {
-      payload = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
-    } catch (err) {
+    // Verify Supabase JWT using the Supabase SDK (supports both HS256 and ECC P-256)
+    const { data: { user: sbUser }, error: sbErr } = await supabase.auth.getUser(token);
+    
+    if (sbErr || !sbUser) {
       return res.status(401).json({ detail: "Invalid or expired session token." });
     }
 
     // Retrieve user from our database to check status, role, and org_id
     const userRes = await pool.query(
       'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1',
-      [payload.sub || payload.user_id]
+      [sbUser.id]
     );
 
     if (userRes.rows.length === 0) {
       // User is authenticated in Supabase but not yet synchronized in our DB
       // We can extract metadata and dynamically sync them
-      const email = payload.email || '';
-      const fullName = payload.user_metadata?.full_name || '';
+      const email = sbUser.email || '';
+      const fullName = sbUser.user_metadata?.full_name || '';
       
       req.tempUser = {
-        id: payload.sub,
+        id: sbUser.id,
         email: email,
         fullName: fullName
       };
