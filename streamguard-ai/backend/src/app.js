@@ -108,7 +108,11 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ detail: "Internal Server Error" });
 });
 
-// Run server
-app.listen(PORT, () => {
-  logger.info(`🚀 Flowshield AI Express Backend listening on port ${PORT}`);
-});
+// Run server if not on Vercel serverless
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    logger.info(`🚀 Flowshield AI Express Backend listening on port ${PORT}`);
+  });
+}
+
+export default app;
