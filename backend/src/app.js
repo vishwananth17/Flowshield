@@ -3,6 +3,11 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import winston from 'winston';
+import dns from 'dns';
+
+// Force IPv4 resolution first to prevent ENETUNREACH errors on IPv6-disabled hosts
+dns.setDefaultResultOrder('ipv4first');
+
 
 import { validateAllSecrets } from './services/secrets.js';
 import { initDatabase } from './services/dbInit.js';
