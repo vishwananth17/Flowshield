@@ -38,7 +38,7 @@ try {
 }
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 10000;
 
 // 2. Initialize PostgreSQL tables on Supabase (Layer 12)
 initDatabase().then(() => {
