@@ -10,6 +10,7 @@ import { checkGeoBlocking } from '../services/botDetection.js';
 import { triggerEmergencyLockdown, disableEmergencyLockdown } from '../services/incidentResponse.js';
 import { getMetricsPrometheusFormat, getSecurityHealthStatus, incrementSecurityMetric } from '../services/monitoring.js';
 import { auditLogger, sendSecurityEmail } from '../services/auditLogger.js';
+import { broadcastToOrg } from '../services/websockets.js';
 import supabase from '../services/supabase.js';
 import winston from 'winston';
 
@@ -199,6 +200,22 @@ router.post('/analyze_transaction', authenticateAPIKey, validateTransactionPaylo
 
     const dbTxRes = await queryWithRLS(orgId, queryText, params);
     const dbTx = dbTxRes.rows[0];
+
+    // Broadcast live update via WebSocket
+    broadcastToOrg(orgId, {
+      type: 'new_transaction',
+      data: {
+        id: dbTx.transaction_id,
+        external_id: dbTx.transaction_id,
+        amount: parseFloat(dbTx.amount),
+        currency: dbTx.currency,
+        merchant_name: dbTx.location,
+        risk_score: parseFloat(dbTx.fraud_risk_score || 0) / 100,
+        risk_label: dbTx.status === 'high_risk' ? 'fraud' : dbTx.status === 'medium_risk' ? 'review' : 'safe',
+        decision: dbTx.status,
+        created_at: dbTx.timestamp
+      }
+    });
 
     const responsePayload = {
       transaction_id: dbTx.transaction_id,
@@ -414,6 +431,197 @@ router.post('/admin/disable-lockdown', authenticateUser, async (req, res) => {
     logger.error(`Disable emergency lockdown error: ${err.message}`);
     return res.status(500).json({ detail: "Failed to lift lockdown." });
   }
+});
+
+// ------------------------------------------------------------
+// Analytics Endpoints (Dashboard Stats)
+// ------------------------------------------------------------
+
+router.get('/analytics/stats', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  const range = req.query.range || '24h';
+
+  const intervalMap = {
+    '1h':  '1 hour',
+    '24h': '24 hours',
+    '30d': '30 days',
+    '60d': '60 days',
+    '1y':  '1 year',
+    'all': '100 years',
+  };
+  const interval = intervalMap[range] || '24 hours';
+
+  try {
+    const statsRes = await pool.query(`
+      SELECT
+        COUNT(*)::int                                          AS total_analyzed,
+        COUNT(*) FILTER (WHERE status IN ('high_risk','medium_risk'))::int AS fraud_blocked,
+        COALESCE(SUM(amount), 0)::float                       AS total_volume,
+        COALESCE(AVG(EXTRACT(EPOCH FROM (NOW() - timestamp)) * 1000), 0)::float AS avg_latency_ms
+      FROM transactions
+      WHERE org_id = $1
+        AND timestamp >= NOW() - INTERVAL '${interval}'
+    `, [orgId]);
+
+    const row = statsRes.rows[0] || {};
+    return res.status(200).json({
+      total_analyzed:  row.total_analyzed  || 0,
+      fraud_blocked:   row.fraud_blocked   || 0,
+      total_volume:    parseFloat(row.total_volume) || 0,
+      avg_latency_ms:  parseFloat(row.avg_latency_ms) || 0,
+      range,
+    });
+  } catch (err) {
+    logger.error(`Analytics stats error: ${err.message}`);
+    return res.status(500).json({ detail: 'Failed to fetch analytics stats.' });
+  }
+});
+
+router.get('/analytics/export', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  const range = req.query.range || '24h';
+  const intervalMap = {
+    '1h': '1 hour', '24h': '24 hours', '30d': '30 days',
+    '60d': '60 days', '1y': '1 year', 'all': '100 years',
+  };
+  const interval = intervalMap[range] || '24 hours';
+
+  try {
+    const txRes = await pool.query(`
+      SELECT transaction_id, user_id, amount, currency, location, device_id,
+             timestamp, fraud_risk_score, status, recommendation
+      FROM transactions
+      WHERE org_id = $1 AND timestamp >= NOW() - INTERVAL '${interval}'
+      ORDER BY timestamp DESC
+      LIMIT 10000
+    `, [orgId]);
+
+    const header = 'transaction_id,user_id,amount,currency,location,device_id,timestamp,fraud_risk_score,status,recommendation\n';
+    const rows = txRes.rows.map(r =>
+      [r.transaction_id, r.user_id, r.amount, r.currency, r.location,
+       r.device_id, r.timestamp, r.fraud_risk_score, r.status, r.recommendation
+      ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="flowshield_export_${range}.csv"`);
+    return res.status(200).send(header + rows);
+  } catch (err) {
+    logger.error(`Analytics export error: ${err.message}`);
+    return res.status(500).json({ detail: 'Failed to export analytics.' });
+  }
+});
+
+// Health status alias (used by dashboard System Health button)
+router.get('/health/status', (req, res) => {
+  return res.status(200).json({ status: 'ok', latency_ms: 12, region: 'ap-northeast-1' });
+});
+
+// GET list of transactions (Dashboard / Transactions Feed)
+router.get('/transactions', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  try {
+    const txsRes = await pool.query(`
+      SELECT transaction_id as id, transaction_id as external_id, amount, currency, location as merchant_name, 
+             fraud_risk_score as risk_score, status as risk_label, status as decision, timestamp as created_at 
+      FROM transactions 
+      WHERE org_id = $1 
+      ORDER BY timestamp DESC 
+      LIMIT 100
+    `, [orgId]);
+    const formatted = txsRes.rows.map(r => ({
+      id: r.id,
+      external_id: r.external_id,
+      amount: parseFloat(r.amount),
+      currency: r.currency,
+      merchant_name: r.merchant_name,
+      risk_score: parseFloat(r.risk_score || 0) / 100,
+      risk_label: r.risk_label === 'high_risk' ? 'fraud' : r.risk_label === 'medium_risk' ? 'review' : 'safe',
+      decision: r.decision,
+      created_at: r.created_at
+    }));
+    return res.status(200).json(formatted);
+  } catch (err) {
+    logger.error(`Get transactions error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch transactions." });
+  }
+});
+
+// GET specific transaction details
+router.get('/transactions/:id', authenticateUser, async (req, res) => {
+  const { id } = req.params;
+  const orgId = req.user.org_id;
+  try {
+    const txRes = await pool.query(`
+      SELECT transaction_id as id, transaction_id as external_id, amount, currency, location as merchant_name, 
+             fraud_risk_score as risk_score, status as risk_label, status as decision, timestamp as created_at, 
+             device_id, user_id, recommendation
+      FROM transactions 
+      WHERE transaction_id = $1 AND org_id = $2
+    `, [id, orgId]);
+    if (txRes.rows.length === 0) {
+      return res.status(404).json({ detail: "Transaction not found." });
+    }
+    const r = txRes.rows[0];
+    return res.status(200).json({
+      id: r.id,
+      external_id: r.external_id,
+      amount: parseFloat(r.amount),
+      currency: r.currency,
+      merchant_name: r.merchant_name,
+      risk_score: parseFloat(r.risk_score || 0) / 100,
+      risk_label: r.risk_label === 'high_risk' ? 'fraud' : r.risk_label === 'medium_risk' ? 'review' : 'safe',
+      decision: r.decision,
+      created_at: r.created_at,
+      device_id: r.device_id,
+      user_id: r.user_id,
+      recommendation: r.recommendation
+    });
+  } catch (err) {
+    logger.error(`Get transaction details error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch transaction details." });
+  }
+});
+
+// Simulation stub (used by dashboard Run Stress Test button)
+router.post('/transactions/simulate', authenticateUser, async (req, res) => {
+  const count = Math.min(parseInt(req.query.count || '10', 10), 50);
+  const orgId = req.user.org_id;
+
+  const currencies = ['USD', 'EUR', 'GBP', 'INR', 'SGD'];
+  const merchants  = ['Amazon', 'Netflix', 'Uber', 'Airbnb', 'Stripe', 'Shopify'];
+  const locations  = ['Mumbai', 'Singapore', 'New York', 'London', 'Tokyo'];
+
+  const inserted = [];
+  for (let i = 0; i < count; i++) {
+    const amount = parseFloat((Math.random() * 9900 + 100).toFixed(2));
+    const { score, status, recommendation } = evaluateTransaction(amount, merchants[i % merchants.length], `sim-user-${i}`);
+    const txId = `SIM-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+    await pool.query(`
+      INSERT INTO transactions (transaction_id, user_id, org_id, amount, currency, location, device_id, fraud_risk_score, status, recommendation)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `, [txId, `sim-user-${i}`, orgId, amount, currencies[i % currencies.length],
+       locations[i % locations.length], `sim-device-${i}`, score, status, recommendation]);
+
+    broadcastToOrg(orgId, {
+      type: 'new_transaction',
+      data: {
+        id: txId,
+        external_id: txId,
+        amount,
+        currency: currencies[i % currencies.length],
+        merchant_name: locations[i % locations.length],
+        risk_score: score / 100,
+        risk_label: status === 'high_risk' ? 'fraud' : status === 'medium_risk' ? 'review' : 'safe',
+        decision: status,
+        created_at: new Date().toISOString()
+      }
+    });
+
+    inserted.push(txId);
+  }
+
+  return res.status(200).json({ simulated: inserted.length, transaction_ids: inserted });
 });
 
 export default router;

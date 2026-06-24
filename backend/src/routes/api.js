@@ -10,6 +10,7 @@ import { checkGeoBlocking } from '../services/botDetection.js';
 import { triggerEmergencyLockdown, disableEmergencyLockdown } from '../services/incidentResponse.js';
 import { getMetricsPrometheusFormat, getSecurityHealthStatus, incrementSecurityMetric } from '../services/monitoring.js';
 import { auditLogger, sendSecurityEmail } from '../services/auditLogger.js';
+import { broadcastToOrg } from '../services/websockets.js';
 import supabase from '../services/supabase.js';
 import winston from 'winston';
 
@@ -199,6 +200,22 @@ router.post('/analyze_transaction', authenticateAPIKey, validateTransactionPaylo
 
     const dbTxRes = await queryWithRLS(orgId, queryText, params);
     const dbTx = dbTxRes.rows[0];
+
+    // Broadcast live update via WebSocket
+    broadcastToOrg(orgId, {
+      type: 'new_transaction',
+      data: {
+        id: dbTx.transaction_id,
+        external_id: dbTx.transaction_id,
+        amount: parseFloat(dbTx.amount),
+        currency: dbTx.currency,
+        merchant_name: dbTx.location,
+        risk_score: parseFloat(dbTx.fraud_risk_score || 0),
+        risk_label: dbTx.status === 'high_risk' ? 'fraud' : dbTx.status === 'medium_risk' ? 'review' : 'safe',
+        decision: dbTx.status,
+        created_at: dbTx.timestamp
+      }
+    });
 
     const responsePayload = {
       transaction_id: dbTx.transaction_id,
@@ -502,6 +519,74 @@ router.get('/health/status', (req, res) => {
   return res.status(200).json({ status: 'ok', latency_ms: 12, region: 'ap-northeast-1' });
 });
 
+// GET list of transactions (Dashboard / Transactions Feed)
+router.get('/transactions', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  try {
+    const txsRes = await pool.query(
+      `SELECT transaction_id as id, transaction_id as external_id, amount, currency, location as merchant_name, 
+              fraud_risk_score as risk_score, status as risk_label, status as decision, timestamp as created_at 
+       FROM transactions 
+       WHERE org_id = $1 
+       ORDER BY timestamp DESC 
+       LIMIT 100`,
+      [orgId]
+    );
+    const formatted = txsRes.rows.map(r => ({
+      id: r.id,
+      external_id: r.external_id,
+      amount: parseFloat(r.amount),
+      currency: r.currency,
+      merchant_name: r.merchant_name,
+      risk_score: parseFloat(r.risk_score || 0) / 100, // Map 0-100 score to 0.0-1.0 expected by frontend
+      risk_label: r.risk_label === 'high_risk' ? 'fraud' : r.risk_label === 'medium_risk' ? 'review' : 'safe',
+      decision: r.decision,
+      created_at: r.created_at
+    }));
+    return res.status(200).json(formatted);
+  } catch (err) {
+    logger.error(`Get transactions error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch transactions." });
+  }
+});
+
+// GET specific transaction details
+router.get('/transactions/:id', authenticateUser, async (req, res) => {
+  const { id } = req.params;
+  const orgId = req.user.org_id;
+  try {
+    const txRes = await pool.query(
+      `SELECT transaction_id as id, transaction_id as external_id, amount, currency, location as merchant_name, 
+              fraud_risk_score as risk_score, status as risk_label, status as decision, timestamp as created_at, 
+              device_id, user_id, recommendation
+       FROM transactions 
+       WHERE transaction_id = $1 AND org_id = $2`,
+      [id, orgId]
+    );
+    if (txRes.rows.length === 0) {
+      return res.status(404).json({ detail: "Transaction not found." });
+    }
+    const r = txRes.rows[0];
+    return res.status(200).json({
+      id: r.id,
+      external_id: r.external_id,
+      amount: parseFloat(r.amount),
+      currency: r.currency,
+      merchant_name: r.merchant_name,
+      risk_score: parseFloat(r.risk_score || 0) / 100, // Map 0-100 score to 0.0-1.0 expected by frontend
+      risk_label: r.risk_label === 'high_risk' ? 'fraud' : r.risk_label === 'medium_risk' ? 'review' : 'safe',
+      decision: r.decision,
+      created_at: r.created_at,
+      device_id: r.device_id,
+      user_id: r.user_id,
+      recommendation: r.recommendation
+    });
+  } catch (err) {
+    logger.error(`Get transaction details error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch transaction details." });
+  }
+});
+
 // Simulation stub (used by dashboard Run Stress Test button)
 router.post('/transactions/simulate', authenticateUser, async (req, res) => {
   const count = Math.min(parseInt(req.query.count || '10', 10), 50);
@@ -522,6 +607,23 @@ router.post('/transactions/simulate', authenticateUser, async (req, res) => {
       [txId, `sim-user-${i}`, orgId, amount, currencies[i % currencies.length],
        locations[i % locations.length], `sim-device-${i}`, score, status, recommendation]
     );
+
+    // Broadcast simulated transaction live via WebSocket
+    broadcastToOrg(orgId, {
+      type: 'new_transaction',
+      data: {
+        id: txId,
+        external_id: txId,
+        amount,
+        currency: currencies[i % currencies.length],
+        merchant_name: locations[i % locations.length],
+        risk_score: score / 100, // Map 0-100 to 0.0-1.0 expected by frontend
+        risk_label: status === 'high_risk' ? 'fraud' : status === 'medium_risk' ? 'review' : 'safe',
+        decision: status,
+        created_at: new Date().toISOString()
+      }
+    });
+
     inserted.push(txId);
   }
 

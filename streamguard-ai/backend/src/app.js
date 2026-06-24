@@ -19,6 +19,8 @@ import { maintenanceModeMiddleware } from './services/incidentResponse.js';
 
 import authRouter from './routes/auth.js';
 import apiRouter from './routes/api.js';
+import http from 'http';
+import { initWebSocketServer } from './services/websockets.js';
 
 dotenv.config();
 
@@ -114,7 +116,9 @@ app.use((err, req, res, next) => {
 
 // Run server if not on Vercel serverless
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
+  const server = http.createServer(app);
+  initWebSocketServer(server);
+  server.listen(PORT, () => {
     logger.info(`🚀 Flowshield AI Express Backend listening on port ${PORT}`);
   });
 }
