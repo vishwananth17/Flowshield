@@ -53,7 +53,7 @@ initDatabase().then(() => {
 // CORS Security Configuration (Layer 6)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const ALLOWED_ORIGINS_PRODUCTION = [
+const ALLOWED_CUSTOM_DOMAINS = [
   "https://flowshieldai.com",
   "https://www.flowshieldai.com",
   "https://app.flowshieldai.com",
@@ -66,14 +66,24 @@ const ALLOWED_ORIGINS_DEV = [
 ];
 
 const env = process.env.ENVIRONMENT || "development";
-const allowedOrigins = env === "production"
-  ? ALLOWED_ORIGINS_PRODUCTION
-  : [...ALLOWED_ORIGINS_PRODUCTION, ...ALLOWED_ORIGINS_DEV];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // Allow curl, mobile apps, same-origin requests
+  // Allow any Vercel preview/production deployment for this project
+  if (/^https:\/\/[a-z0-9-]+-?[a-z0-9]*\.vercel\.app$/.test(origin)) return true;
+  // Allow custom domains
+  if (ALLOWED_CUSTOM_DOMAINS.includes(origin)) return true;
+  // Allow localhost in dev
+  if (env !== "production" && ALLOWED_ORIGINS_DEV.includes(origin)) return true;
+  // Allow any origin explicitly listed in CORS_ORIGINS env var
+  const extraOrigins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (extraOrigins.includes(origin) || extraOrigins.includes("*")) return true;
+  return false;
+}
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow empty origin (like mobile apps, curl, or same-origin requests)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Blocked by CORS policy'));
