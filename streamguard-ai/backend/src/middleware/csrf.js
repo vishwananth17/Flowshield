@@ -9,8 +9,8 @@ export default function csrfMiddleware(req, res, next) {
     return next();
   }
 
-  // 2. Exclude API key requests (Layer 8.2)
-  if (req.headers['x-api-key']) {
+  // 2. Exclude API key or Bearer token authenticated requests (Layer 8.2)
+  if (req.headers['x-api-key'] || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))) {
     return next();
   }
 
