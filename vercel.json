@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd streamguard-ai/frontend && npm run build",
+  "buildCommand": "cd streamguard-ai/frontend && npm install && npm run build",
   "outputDirectory": "streamguard-ai/frontend/dist",
   "framework": "vite",
   "rewrites": [
