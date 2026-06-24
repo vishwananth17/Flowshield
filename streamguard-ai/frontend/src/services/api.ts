@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Priority: VITE_API_URL env var → Render cloud (production) → localhost (fallback)
-// VITE_API_URL should be set in Vercel to the Render service URL (e.g. https://flowshield-backend-ani8.onrender.com)
-const rawApiUrl = import.meta.env.VITE_API_URL || 'https://flowshield-backend-ani8.onrender.com';
+// VITE_API_URL should be set in Vercel to the Render service URL
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://flowshield-stdr.onrender.com';
 export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 const api = axios.create({
