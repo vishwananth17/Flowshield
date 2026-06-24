@@ -108,7 +108,7 @@ router.post('/register', async (req, res) => {
     res.cookie('refresh_token', sessionData.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -116,7 +116,7 @@ router.post('/register', async (req, res) => {
     res.cookie('session_id', crypto.randomBytes(16).toString('hex'), {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -204,7 +204,7 @@ router.post('/login', async (req, res) => {
     res.cookie('refresh_token', data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -213,7 +213,7 @@ router.post('/login', async (req, res) => {
     res.cookie('session_id', sessionId, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -273,7 +273,7 @@ router.post('/refresh', async (req, res) => {
     res.cookie('refresh_token', data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000
     });
