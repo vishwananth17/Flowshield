@@ -102,7 +102,7 @@ export default function DashboardLayout() {
         <div className="p-4 border-t border-[#1F2937] space-y-2">
           <div className="px-3 pb-2 text-[10px] uppercase tracking-widest text-[#374151] font-bold">
             Powered by Flowshield AI
-            <br/><span className="text-blue-500/50">Founder: Vishwananth B</span>
+            <br/><span className="text-blue-500/50">Founder: Vishwananth BS</span>
           </div>
           <Link
             to="/docs"

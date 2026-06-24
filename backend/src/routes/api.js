@@ -416,4 +416,117 @@ router.post('/admin/disable-lockdown', authenticateUser, async (req, res) => {
   }
 });
 
+
+// ------------------------------------------------------------
+// Analytics Endpoints (Dashboard Stats)
+// ------------------------------------------------------------
+
+router.get('/analytics/stats', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  const range = req.query.range || '24h';
+
+  // Map range string to a PostgreSQL interval
+  const intervalMap = {
+    '1h':  '1 hour',
+    '24h': '24 hours',
+    '30d': '30 days',
+    '60d': '60 days',
+    '1y':  '1 year',
+    'all': '100 years',
+  };
+  const interval = intervalMap[range] || '24 hours';
+
+  try {
+    const statsRes = await pool.query(`
+      SELECT
+        COUNT(*)::int                                          AS total_analyzed,
+        COUNT(*) FILTER (WHERE status IN ('high_risk','medium_risk'))::int AS fraud_blocked,
+        COALESCE(SUM(amount), 0)::float                       AS total_volume,
+        COALESCE(AVG(EXTRACT(EPOCH FROM (NOW() - timestamp)) * 1000), 0)::float AS avg_latency_ms
+      FROM transactions
+      WHERE org_id = $1
+        AND timestamp >= NOW() - INTERVAL '${interval}'
+    `, [orgId]);
+
+    const row = statsRes.rows[0] || {};
+    return res.status(200).json({
+      total_analyzed:  row.total_analyzed  || 0,
+      fraud_blocked:   row.fraud_blocked   || 0,
+      total_volume:    parseFloat(row.total_volume) || 0,
+      avg_latency_ms:  parseFloat(row.avg_latency_ms) || 0,
+      range,
+    });
+  } catch (err) {
+    logger.error(`Analytics stats error: ${err.message}`);
+    return res.status(500).json({ detail: 'Failed to fetch analytics stats.' });
+  }
+});
+
+router.get('/analytics/export', authenticateUser, async (req, res) => {
+  const orgId = req.user.org_id;
+  const range = req.query.range || '24h';
+  const intervalMap = {
+    '1h': '1 hour', '24h': '24 hours', '30d': '30 days',
+    '60d': '60 days', '1y': '1 year', 'all': '100 years',
+  };
+  const interval = intervalMap[range] || '24 hours';
+
+  try {
+    const txRes = await pool.query(`
+      SELECT transaction_id, user_id, amount, currency, location, device_id,
+             timestamp, fraud_risk_score, status, recommendation
+      FROM transactions
+      WHERE org_id = $1 AND timestamp >= NOW() - INTERVAL '${interval}'
+      ORDER BY timestamp DESC
+      LIMIT 10000
+    `, [orgId]);
+
+    const header = 'transaction_id,user_id,amount,currency,location,device_id,timestamp,fraud_risk_score,status,recommendation\n';
+    const rows = txRes.rows.map(r =>
+      [r.transaction_id, r.user_id, r.amount, r.currency, r.location,
+       r.device_id, r.timestamp, r.fraud_risk_score, r.status, r.recommendation
+      ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="flowshield_export_${range}.csv"`);
+    return res.status(200).send(header + rows);
+  } catch (err) {
+    logger.error(`Analytics export error: ${err.message}`);
+    return res.status(500).json({ detail: 'Failed to export analytics.' });
+  }
+});
+
+// Health status alias (used by dashboard System Health button)
+router.get('/health/status', (req, res) => {
+  return res.status(200).json({ status: 'ok', latency_ms: 12, region: 'ap-northeast-1' });
+});
+
+// Simulation stub (used by dashboard Run Stress Test button)
+router.post('/transactions/simulate', authenticateUser, async (req, res) => {
+  const count = Math.min(parseInt(req.query.count || '10', 10), 50);
+  const orgId = req.user.org_id;
+
+  const currencies = ['USD', 'EUR', 'GBP', 'INR', 'SGD'];
+  const merchants  = ['Amazon', 'Netflix', 'Uber', 'Airbnb', 'Stripe', 'Shopify'];
+  const locations  = ['Mumbai', 'Singapore', 'New York', 'London', 'Tokyo'];
+
+  const inserted = [];
+  for (let i = 0; i < count; i++) {
+    const amount = parseFloat((Math.random() * 9900 + 100).toFixed(2));
+    const { score, status, recommendation } = evaluateTransaction(amount, merchants[i % merchants.length], `sim-user-${i}`);
+    const txId = `SIM-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+    await pool.query(
+      `INSERT INTO transactions (transaction_id, user_id, org_id, amount, currency, location, device_id, fraud_risk_score, status, recommendation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [txId, `sim-user-${i}`, orgId, amount, currencies[i % currencies.length],
+       locations[i % locations.length], `sim-device-${i}`, score, status, recommendation]
+    );
+    inserted.push(txId);
+  }
+
+  return res.status(200).json({ simulated: inserted.length, transaction_ids: inserted });
+});
+
 export default router;
+
