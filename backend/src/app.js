@@ -20,6 +20,7 @@ import { maintenanceModeMiddleware } from './services/incidentResponse.js';
 
 import authRouter from './routes/auth.js';
 import apiRouter from './routes/api.js';
+import billingRouter from './routes/billing.js';
 
 dotenv.config();
 
@@ -111,6 +112,7 @@ app.use(maintenanceModeMiddleware); // Emergency Lockdown Maintenance mode (Laye
 
 // 4. Mount Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/billing', billingRouter);
 app.use('/api/v1', apiRouter);
 app.use('/', apiRouter); // Mount at root too for /analyze_transaction, /health, /metrics
 

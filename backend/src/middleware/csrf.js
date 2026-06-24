@@ -12,6 +12,9 @@ const CSRF_EXEMPT_PATHS = [
   '/auth/refresh',
   '/auth/waitlist',
   '/waitlist',
+  // Razorpay sends raw webhook POSTs with no CSRF token
+  '/api/v1/billing/webhook',
+  '/billing/webhook',
 ];
 
 /**

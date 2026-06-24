@@ -16,9 +16,26 @@ export async function initDatabase() {
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         plan VARCHAR(50) DEFAULT 'free' NOT NULL,
+        subscription_id VARCHAR(255),
+        subscription_status VARCHAR(50) DEFAULT 'active',
+        next_billing_date TIMESTAMP WITH TIME ZONE,
+        amount_inr INTEGER DEFAULT 0,
+        billing_interval VARCHAR(20) DEFAULT 'monthly',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
+
+    // Add billing columns to existing orgs (safe if already present)
+    const billingCols = [
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS subscription_id VARCHAR(255)`,
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(50) DEFAULT 'active'`,
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS next_billing_date TIMESTAMP WITH TIME ZONE`,
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS amount_inr INTEGER DEFAULT 0`,
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS billing_interval VARCHAR(20) DEFAULT 'monthly'`,
+    ];
+    for (const col of billingCols) {
+      try { await client.query(col); } catch (e) { /* already exists */ }
+    }
 
     // 2. Users
     await client.query(`
@@ -134,6 +151,20 @@ export async function initDatabase() {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         company VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+      );
+    `);
+
+    // 10. Billing Invoices
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS billing_invoices (
+        id SERIAL PRIMARY KEY,
+        org_id VARCHAR(255) REFERENCES organizations(id) ON DELETE CASCADE,
+        payment_id VARCHAR(255) UNIQUE NOT NULL,
+        subscription_id VARCHAR(255),
+        amount_inr INTEGER NOT NULL DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'captured',
+        payment_method VARCHAR(100) DEFAULT 'razorpay',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
