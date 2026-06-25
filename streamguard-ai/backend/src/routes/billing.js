@@ -41,6 +41,24 @@ const PLAN_CONFIG = {
 const REQUEST_LIMITS = { free: 1000, basic: 25000, standard: 100000, premium: -1 };
 
 // ─────────────────────────────────────────────
+// GET /billing/config-status  (owner-only debug)
+// ─────────────────────────────────────────────
+router.get('/config-status', authenticateUser, async (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ detail: 'Forbidden.' });
+  }
+  return res.json({
+    RAZORPAY_KEY_ID:          process.env.RAZORPAY_KEY_ID   ? `${process.env.RAZORPAY_KEY_ID.slice(0, 10)}...` : null,
+    RAZORPAY_KEY_SECRET:      process.env.RAZORPAY_KEY_SECRET ? '***set***' : null,
+    RAZORPAY_WEBHOOK_SECRET:  process.env.RAZORPAY_WEBHOOK_SECRET ? '***set***' : null,
+    RAZORPAY_PLAN_BASIC_MONTHLY:   process.env.RAZORPAY_PLAN_BASIC_MONTHLY   || null,
+    RAZORPAY_PLAN_GROWTH_MONTHLY:  process.env.RAZORPAY_PLAN_GROWTH_MONTHLY  || null,
+    RAZORPAY_PLAN_PREMIUM_MONTHLY: process.env.RAZORPAY_PLAN_PREMIUM_MONTHLY || null,
+    ENVIRONMENT: process.env.ENVIRONMENT,
+  });
+});
+
+// ─────────────────────────────────────────────
 // GET /billing/subscription
 // ─────────────────────────────────────────────
 router.get('/subscription', authenticateUser, async (req, res) => {
