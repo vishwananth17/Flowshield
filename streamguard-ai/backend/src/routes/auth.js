@@ -108,7 +108,7 @@ router.post('/register', async (req, res) => {
     res.cookie('refresh_token', sessionData.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -116,7 +116,7 @@ router.post('/register', async (req, res) => {
     res.cookie('session_id', crypto.randomBytes(16).toString('hex'), {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -204,7 +204,7 @@ router.post('/login', async (req, res) => {
     res.cookie('refresh_token', data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -213,7 +213,7 @@ router.post('/login', async (req, res) => {
     res.cookie('session_id', sessionId, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000 // 7 days
     });
@@ -273,7 +273,7 @@ router.post('/refresh', async (req, res) => {
     res.cookie('refresh_token', data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.ENVIRONMENT === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.ENVIRONMENT === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600 * 1000
     });
@@ -554,6 +554,23 @@ router.post('/waitlist', async (req, res) => {
   } catch (err) {
     logger.error(`Join waitlist error: ${err.message}`);
     return res.status(500).json({ detail: "Failed to join waitlist." });
+  }
+});
+
+router.get('/waitlist/debug-list', authenticateUser, async (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ detail: "Forbidden: Only organization owners can access waitlist debug details." });
+  }
+
+  try {
+    const entriesRes = await pool.query('SELECT email, company, created_at FROM waitlist ORDER BY created_at DESC');
+    return res.status(200).json({
+      count: entriesRes.rows.length,
+      entries: entriesRes.rows
+    });
+  } catch (err) {
+    logger.error(`Get waitlist debug error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch waitlist debug log." });
   }
 });
 

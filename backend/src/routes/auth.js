@@ -557,4 +557,21 @@ router.post('/waitlist', async (req, res) => {
   }
 });
 
+router.get('/waitlist/debug-list', authenticateUser, async (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ detail: "Forbidden: Only organization owners can access waitlist debug details." });
+  }
+
+  try {
+    const entriesRes = await pool.query('SELECT email, company, created_at FROM waitlist ORDER BY created_at DESC');
+    return res.status(200).json({
+      count: entriesRes.rows.length,
+      entries: entriesRes.rows
+    });
+  } catch (err) {
+    logger.error(`Get waitlist debug error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch waitlist debug log." });
+  }
+});
+
 export default router;
