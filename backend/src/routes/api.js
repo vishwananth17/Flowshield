@@ -139,7 +139,7 @@ router.post('/api-keys/:key_id/rotate', authenticateUser, async (req, res) => {
 // Core Inference & Transactions
 // ------------------------------------------------------------
 
-router.post('/analyze_transaction', authenticateAPIKey, validateTransactionPayload, planUsageLimiter, concurrencyLimiter, async (req, res) => {
+router.post(['/analyze_transaction', '/transactions/analyze'], authenticateAPIKey, validateTransactionPayload, planUsageLimiter, concurrencyLimiter, async (req, res) => {
   const tx = req.body;
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
   const idempotencyKey = req.headers['x-idempotency-key'];
