@@ -129,7 +129,7 @@ router.post('/api-keys/:key_id/rotate', authenticateUser, async (req, res) => {
   try {
     // 1. Fetch old key and verify ownership
     const oldKeyRes = await pool.query(
-      'SELECT * FROM api_keys WHERE id = $1 AND org_id = $2',
+      'SELECT * FROM api_keys WHERE id = $1 AND org_id = $2 AND is_active = true',
       [key_id, orgId]
     );
 
