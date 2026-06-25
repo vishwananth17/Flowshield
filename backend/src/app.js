@@ -105,7 +105,12 @@ app.use(cors({
 }));
 
 // 3. Mount Global Middlewares
-app.use(express.json({ limit: '1mb' })); // Max payload size check (Layer 5.4)
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+})); // Max payload size check (Layer 5.4)
 app.use(cookieParser());
 app.use(securityHeadersMiddleware); // Innermost headers (Layer 1)
 app.use(globalRateLimiter); // IP rate limits (Layer 4)

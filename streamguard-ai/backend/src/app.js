@@ -19,6 +19,7 @@ import { maintenanceModeMiddleware } from './services/incidentResponse.js';
 
 import authRouter from './routes/auth.js';
 import apiRouter from './routes/api.js';
+import billingRouter from './routes/billing.js';
 import http from 'http';
 import { initWebSocketServer } from './services/websockets.js';
 
@@ -93,7 +94,12 @@ app.use(cors({
 }));
 
 // 3. Mount Global Middlewares
-app.use(express.json({ limit: '1mb' })); // Max payload size check (Layer 5.4)
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+})); // Max payload size check (Layer 5.4)
 app.use(cookieParser());
 app.use(securityHeadersMiddleware); // Innermost headers (Layer 1)
 app.use(globalRateLimiter); // IP rate limits (Layer 4)
@@ -102,6 +108,7 @@ app.use(maintenanceModeMiddleware); // Emergency Lockdown Maintenance mode (Laye
 
 // 4. Mount Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/billing', billingRouter);
 app.use('/api/v1', apiRouter);
 app.use('/', apiRouter); // Mount at root too for /analyze_transaction, /health, /metrics
 
