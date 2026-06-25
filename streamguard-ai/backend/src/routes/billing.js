@@ -29,12 +29,12 @@ const PLAN_CONFIG = {
     annual:  { plan_id: process.env.RAZORPAY_PLAN_BASIC_ANNUAL   || 'plan_basic_annual',   amount_inr: 9588 },
   },
   standard: {
-    monthly: { plan_id: process.env.RAZORPAY_PLAN_STD_MONTHLY    || 'plan_std_monthly',    amount_inr: 2999  },
-    annual:  { plan_id: process.env.RAZORPAY_PLAN_STD_ANNUAL     || 'plan_std_annual',     amount_inr: 28788 },
+    monthly: { plan_id: process.env.RAZORPAY_PLAN_GROWTH_MONTHLY || process.env.RAZORPAY_PLAN_STD_MONTHLY || 'plan_std_monthly',    amount_inr: 2999  },
+    annual:  { plan_id: process.env.RAZORPAY_PLAN_GROWTH_ANNUAL  || process.env.RAZORPAY_PLAN_STD_ANNUAL  || 'plan_std_annual',     amount_inr: 28788 },
   },
   premium: {
-    monthly: { plan_id: process.env.RAZORPAY_PLAN_PREM_MONTHLY   || 'plan_prem_monthly',   amount_inr: 7999  },
-    annual:  { plan_id: process.env.RAZORPAY_PLAN_PREM_ANNUAL    || 'plan_prem_annual',    amount_inr: 76788 },
+    monthly: { plan_id: process.env.RAZORPAY_PLAN_PREMIUM_MONTHLY || process.env.RAZORPAY_PLAN_PREM_MONTHLY || 'plan_prem_monthly',   amount_inr: 7999  },
+    annual:  { plan_id: process.env.RAZORPAY_PLAN_PREMIUM_ANNUAL  || process.env.RAZORPAY_PLAN_PREM_ANNUAL  || 'plan_prem_annual',    amount_inr: 76788 },
   },
 };
 
