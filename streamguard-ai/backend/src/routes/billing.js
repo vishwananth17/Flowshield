@@ -147,7 +147,9 @@ router.post('/create-subscription', authenticateUser, async (req, res) => {
 
     const subscription = await rzp.subscriptions.create({
       plan_id:       planCfg.plan_id,
-      total_count:   interval === 'annual' ? 1 : 12,
+      // total_count = number of billing cycles before subscription auto-expires
+      // annual → 5 annual renewals (5 years); monthly → 36 monthly renewals (3 years)
+      total_count:   interval === 'annual' ? 5 : 36,
       quantity:      1,
       customer_notify: 1,
       notes: { org_id: orgId, plan, interval },

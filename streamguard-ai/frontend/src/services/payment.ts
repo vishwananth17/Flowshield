@@ -32,17 +32,25 @@ export async function subscribeToPlan(
     const { data } = await api.post('/billing/create-subscription', { plan, interval });
 
     // 3. Open Razorpay checkout
+    const user = useAuthStore.getState().user;
     const options = {
       key: data.razorpay_key_id,
       subscription_id: data.subscription_id,
       name: 'Flowshield AI',
       description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan — ${interval}`,
-      image: 'https://app.flowshieldai.com/favicon.svg',
+      image: 'https://flowshield-ai.vercel.app/favicon.svg',
       currency: 'INR',
-      theme: { color: '#3B82F6' },
+      theme: { color: '#6366F1' },
+      // contact is REQUIRED by Razorpay for UPI Autopay & EMandate to initialise
       prefill: {
-        name: useAuthStore.getState().user?.full_name || '',
-        email: useAuthStore.getState().user?.email || '',
+        name:    user?.full_name  || 'Flowshield User',
+        email:   user?.email      || '',
+        contact: (user as any)?.phone || '9999999999',
+      },
+      notes: {
+        plan,
+        interval,
+        org_id: user?.org_id || '',
       },
       handler: async (response: {
         razorpay_payment_id: string;
@@ -67,8 +75,11 @@ export async function subscribeToPlan(
       },
       modal: {
         ondismiss: () => {
-          toast.error('Payment cancelled');
-        }
+          toast.error('Payment cancelled.');
+        },
+        // Allow closing modal to retry
+        escape: true,
+        animation: true,
       }
     };
 
