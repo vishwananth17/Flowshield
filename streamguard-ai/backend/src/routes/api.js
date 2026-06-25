@@ -192,34 +192,34 @@ router.post('/api-keys/:key_id/rotate', authenticateUser, async (req, res) => {
 // ------------------------------------------------------------
 
 router.post(['/analyze_transaction', '/transactions/analyze'], authenticateAPIKey, validateTransactionPayload, planUsageLimiter, concurrencyLimiter, async (req, res) => {
-  const tx = req.body;
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  const idempotencyKey = req.headers['x-idempotency-key'];
-  const orgId = req.apiKey.org_id;
-
-  // 1. Idempotency Check (Layer 10.1)
-  if (idempotencyKey) {
-    const cachedResponse = await checkIdempotency(idempotencyKey, orgId);
-    if (cachedResponse) {
-      res.setHeader('X-Cache', 'HIT');
-      return res.status(200).json(cachedResponse);
-    }
-  }
-
-  // 2. Geo-blocking Check (Layer 11.4)
-  const blockedCountriesRes = await pool.query(
-    'SELECT metadata->\'blocked_countries\' as blocked FROM organizations WHERE id = $1',
-    [orgId]
-  );
-  const blockedCountries = blockedCountriesRes.rows[0]?.blocked || [];
-  
-  const isGeoBlocked = await checkGeoBlocking(ip, blockedCountries);
-  if (isGeoBlocked) {
-    await incrementSecurityMetric("flowshield_geo_blocked_requests_total", { org_id: orgId });
-    return res.status(403).json({ detail: "Access denied from this geographic location." });
-  }
-
   try {
+    const tx = req.body;
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const idempotencyKey = req.headers['x-idempotency-key'];
+    const orgId = req.apiKey.org_id;
+
+    // 1. Idempotency Check (Layer 10.1)
+    if (idempotencyKey) {
+      const cachedResponse = await checkIdempotency(idempotencyKey, orgId);
+      if (cachedResponse) {
+        res.setHeader('X-Cache', 'HIT');
+        return res.status(200).json(cachedResponse);
+      }
+    }
+
+    // 2. Geo-blocking Check (Layer 11.4)
+    const blockedCountriesRes = await pool.query(
+      'SELECT metadata->\'blocked_countries\' as blocked FROM organizations WHERE id = $1',
+      [orgId]
+    );
+    const blockedCountries = blockedCountriesRes.rows[0]?.blocked || [];
+    
+    const isGeoBlocked = await checkGeoBlocking(ip, blockedCountries);
+    if (isGeoBlocked) {
+      await incrementSecurityMetric("flowshield_geo_blocked_requests_total", { org_id: orgId });
+      return res.status(403).json({ detail: "Access denied from this geographic location." });
+    }
+
     // 3. Evaluate risk using real-time ML rules (Layer 5/Layer 12)
     const { score, status, recommendation } = evaluateTransaction(
       tx.amount,

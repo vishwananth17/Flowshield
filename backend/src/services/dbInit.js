@@ -21,6 +21,7 @@ export async function initDatabase() {
         next_billing_date TIMESTAMP WITH TIME ZONE,
         amount_inr INTEGER DEFAULT 0,
         billing_interval VARCHAR(20) DEFAULT 'monthly',
+        metadata JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
@@ -32,6 +33,7 @@ export async function initDatabase() {
       `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS next_billing_date TIMESTAMP WITH TIME ZONE`,
       `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS amount_inr INTEGER DEFAULT 0`,
       `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS billing_interval VARCHAR(20) DEFAULT 'monthly'`,
+      `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb`,
     ];
     for (const col of billingCols) {
       try { await client.query(col); } catch (e) { /* already exists */ }
