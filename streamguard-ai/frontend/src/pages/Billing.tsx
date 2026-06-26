@@ -207,7 +207,7 @@ export default function Billing() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 p-4 md:p-8 text-white relative">
+    <div className="max-w-7xl mx-auto space-y-12 p-4 md:p-6 text-white relative overflow-x-hidden pb-20">
       {isSubscribing && (
         <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#0A0E1A] border border-white/10 p-8 rounded-[2rem] flex flex-col items-center space-y-4 shadow-2xl">
@@ -351,7 +351,7 @@ export default function Billing() {
               <h2 className="text-3xl font-black tracking-tighter">Infrastructure Tiers</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
             {plans.map((p, idx) => {
                const isCurrent = p.id === currentPlan;
                const isEnterprise = p.id === 'premium';
@@ -359,10 +359,9 @@ export default function Billing() {
                return (
                 <motion.div 
                     key={p.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }} 
-                    viewport={{ once: true }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
                     className="h-full"
                 >
                     <Card className={`group relative flex flex-col h-full bg-white/5 border-white/10 backdrop-blur-xl overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:bg-white/[0.08] hover:-translate-y-2 ${p.popular ? 'border-blue-500/40 shadow-2xl shadow-blue-500/10' : ''}`}>
@@ -483,9 +482,9 @@ export default function Billing() {
         )}
       </AnimatePresence>
 
-      <div className="pt-20 border-t border-white/5 text-center">
-          <p className="text-slate-600 text-[11px] font-black uppercase tracking-[0.3em]">
-            Scale beyond limits? <span className="text-blue-500 cursor-pointer hover:text-blue-400 hover:underline transition-colors ml-2" onClick={() => setIsEnterpriseModalOpen(true)}>Initialize Enterprise Protocol</span>
+      <div className="pt-12 border-t border-white/10 text-center">
+          <p className="text-slate-500 text-[11px] font-black uppercase tracking-[0.3em]">
+            Scale beyond limits? <span className="text-blue-400 cursor-pointer hover:text-blue-300 hover:underline transition-colors ml-2" onClick={() => setIsEnterpriseModalOpen(true)}>Initialize Enterprise Protocol</span>
           </p>
           {currentPlan !== 'free' && (
               <button 
