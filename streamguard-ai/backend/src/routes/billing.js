@@ -168,6 +168,8 @@ router.post('/create-subscription', authenticateUser, async (req, res) => {
       amount_inr:       planCfg.amount_inr,
       plan,
       interval,
+      // Razorpay hosted checkout — works even when UPI Autopay is not enabled
+      short_url:        subscription.short_url || null,
     });
   } catch (err) {
     logger.error(`Create subscription error: ${err.message}`);
