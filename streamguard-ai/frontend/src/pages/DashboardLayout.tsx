@@ -34,8 +34,24 @@ const AlertBadge = () => {
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, logout } = useAuthStore();
+  const { user, organization, logout } = useAuthStore();
   const location = useLocation();
+  
+  // Derive display label and style from org plan
+  const orgPlan = organization?.plan || 'free';
+  const planLabel = {
+    free:     'FREE',
+    basic:    'BASIC',
+    standard: 'GROWTH',
+    growth:   'GROWTH',
+    premium:  'PRO',
+    enterprise: 'ENT',
+  }[orgPlan] ?? orgPlan.toUpperCase();
+  const planStyle = orgPlan === 'free'
+    ? 'bg-gray-700 text-gray-400'
+    : orgPlan === 'premium' || orgPlan === 'enterprise'
+      ? 'bg-purple-600 text-white shadow-[0_0_8px_rgba(147,51,234,0.5)]'
+      : 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)]';
   
   // Activate global websocket
   useWebSocket();
@@ -85,12 +101,8 @@ export default function DashboardLayout() {
                     <AlertBadge />
                   )}
                   {item.name === 'Plans & Billing' && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      ['growth', 'standard', 'premium'].includes(user?.organization?.plan || '')
-                        ? 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)]' 
-                        : 'bg-gray-700 text-gray-400'
-                    }`}>
-                      {['growth', 'standard', 'premium'].includes(user?.organization?.plan || '') ? 'PREMIUM' : 'FREE'}
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${planStyle}`}>
+                      {planLabel}
                     </span>
                   )}
                 </Link>
