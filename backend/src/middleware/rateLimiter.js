@@ -38,7 +38,7 @@ setInterval(() => {
 /**
  * Increment and check rate limit window (sliding window proxy)
  */
-async function checkLimit(key, limit, windowSizeMs = 60000) {
+export async function checkLimit(key, limit, windowSizeMs = 60000) {
   if (redisClient) {
     try {
       const p = redisClient.multi();

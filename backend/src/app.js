@@ -21,8 +21,14 @@ import { maintenanceModeMiddleware } from './services/incidentResponse.js';
 import authRouter from './routes/auth.js';
 import apiRouter from './routes/api.js';
 import billingRouter from './routes/billing.js';
+import integrationsRouter from './routes/integrations.js';
 import http from 'http';
 import { initWebSocketServer } from './services/websockets.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -120,8 +126,14 @@ app.use(maintenanceModeMiddleware); // Emergency Lockdown Maintenance mode (Laye
 // 4. Mount Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/billing', billingRouter);
+app.use('/api/v1/integrations', integrationsRouter);
 app.use('/api/v1', apiRouter);
 app.use('/', apiRouter); // Mount at root too for /analyze_transaction, /health, /metrics
+
+app.get(['/cdn/flowshield.js', '/v1/flowshield.js'], (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.resolve(__dirname, '../../cdn/flowshield.js'));
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

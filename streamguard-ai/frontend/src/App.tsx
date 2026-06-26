@@ -17,6 +17,7 @@ import Billing from '@/pages/Billing';
 import Profile from '@/pages/Profile';
 import Landing from '@/pages/Landing';
 import DevPortal from '@/pages/DevPortal';
+import Integrations from '@/pages/Integrations';
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
 import TermsOfService from '@/pages/legal/TermsOfService';
 import DataProcessingAgreement from '@/pages/legal/DataProcessingAgreement';
@@ -58,6 +59,7 @@ function App() {
               <Route path="transactions" element={<Transactions />} />
               <Route path="alerts" element={<Alerts />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="integrations" element={<Integrations />} />
               <Route path="team" element={<Team />} />
               <Route path="billing" element={<Billing />} />
               <Route path="settings" element={<Settings />} />

@@ -15,6 +15,12 @@ const CSRF_EXEMPT_PATHS = [
   // Razorpay sends raw webhook POSTs with no CSRF token
   '/api/v1/billing/webhook',
   '/billing/webhook',
+  // Shopify webhook exempt
+  '/api/v1/integrations/shopify/webhook',
+  '/integrations/shopify/webhook',
+  // Analyze-light client script endpoint exempt
+  '/api/v1/transactions/analyze-light',
+  '/transactions/analyze-light',
 ];
 
 /**

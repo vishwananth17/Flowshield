@@ -16,7 +16,8 @@ import {
   Shield,
   CreditCard,
   Menu,
-  X
+  X,
+  Plug2
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -62,6 +63,7 @@ export default function DashboardLayout() {
     { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle },
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
     { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
+    { name: 'Integrations', path: '/dashboard/integrations', icon: Plug2 },
     { name: 'Team', path: '/dashboard/team', icon: Users },
     { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
   ];

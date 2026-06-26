@@ -1042,5 +1042,91 @@ router.post('/transactions/simulate', authenticateUser, async (req, res) => {
   return res.status(200).json({ simulated: inserted.length, transaction_ids: inserted });
 });
 
+// POST /transactions/analyze-light (Client-side lightweight monitoring endpoint)
+router.post('/transactions/analyze-light', async (req, res) => {
+  const { org_id, amount, currency, device_id, fingerprint } = req.body;
+  if (!org_id) {
+    return res.status(400).json({ detail: "org_id is required" });
+  }
+
+  // Basic risk check using IP reputation
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  let ipRep = 'allow';
+  try {
+    ipRep = await checkGeoBlocking(ip);
+  } catch (err) {
+    // Fail-safe to allow
+  }
+  
+  let riskScore = 15;
+  let status = 'low_risk';
+  let recommendation = 'allow';
+
+  if (ipRep === 'bot') {
+    riskScore = 75;
+    status = 'medium_risk';
+    recommendation = 'review';
+  } else if (ipRep === 'tor') {
+    riskScore = 90;
+    status = 'high_risk';
+    recommendation = 'deny';
+  }
+
+  // Insert transaction into database as monitoring_only
+  try {
+    const txId = `tx_light_${crypto.randomBytes(8).toString('hex')}`;
+    await pool.query(
+      `INSERT INTO transactions (transaction_id, user_id, org_id, amount, currency, location, device_id, fraud_risk_score, status, recommendation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        txId,
+        'client_script',
+        org_id,
+        parseFloat(amount || '0'),
+        currency || 'INR',
+        'IN (Light Web)',
+        device_id || fingerprint || 'unknown',
+        riskScore,
+        status,
+        recommendation
+      ]
+    );
+
+    // Update integration last_event_at for script connection method
+    await pool.query(
+      `UPDATE integrations 
+       SET last_event_at = NOW() 
+       WHERE org_id = $1 AND connection_method = 'script'`,
+      [org_id]
+    );
+
+    // Broadcast live transaction update via WebSocket
+    broadcastToOrg(org_id, {
+      type: 'new_transaction',
+      data: {
+        id: txId,
+        external_id: txId,
+        amount: parseFloat(amount || '0'),
+        currency: currency || 'INR',
+        merchant_name: 'IN (Light Web)',
+        risk_score: riskScore / 100,
+        risk_label: status === 'high_risk' ? 'fraud' : status === 'medium_risk' ? 'review' : 'safe',
+        decision: status,
+        created_at: new Date().toISOString()
+      }
+    });
+
+  } catch (err) {
+    logger.error(`Failed to log light transaction: ${err.message}`);
+  }
+
+  return res.status(200).json({
+    risk: riskScore >= 75 ? 'high' : (riskScore >= 40 ? 'medium' : 'low'),
+    risk_score: riskScore,
+    recommendation,
+    monitoring_only: true
+  });
+});
+
 export default router;
 

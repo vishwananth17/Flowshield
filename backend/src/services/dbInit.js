@@ -207,14 +207,34 @@ export async function initDatabase() {
       );
     `);
 
-    // 13. Database Performance Indexes
+    // 13. Integrations Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS integrations (
+        id SERIAL PRIMARY KEY,
+        org_id VARCHAR(255) REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+        platform VARCHAR(50) DEFAULT 'unknown' NOT NULL,
+        connection_method VARCHAR(20) DEFAULT 'script' NOT NULL,
+        store_name VARCHAR(255),
+        store_url TEXT,
+        access_token TEXT,
+        webhook_id VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'active' NOT NULL,
+        detected_url TEXT,
+        detection_confidence VARCHAR(10),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+        last_event_at TIMESTAMP WITH TIME ZONE
+      );
+    `);
+
+    // 14. Database Performance Indexes
     await client.query(`CREATE INDEX IF NOT EXISTS idx_transactions_org_id ON transactions(org_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_alerts_org_id_status ON alerts(org_id, status);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_alert_activities_alert_id ON alert_activities(alert_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_integrations_org_id ON integrations(org_id);`);
 
-    // 14. Configure Row Level Security (RLS) if not already set (Layer 12.1)
-    const tablesToEnableRLS = ['transactions', 'api_keys', 'alerts', 'alert_activities'];
+    // 15. Configure Row Level Security (RLS) if not already set (Layer 12.1)
+    const tablesToEnableRLS = ['transactions', 'api_keys', 'alerts', 'alert_activities', 'integrations'];
     for (const tableName of tablesToEnableRLS) {
       try {
         await client.query(`ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;`);
