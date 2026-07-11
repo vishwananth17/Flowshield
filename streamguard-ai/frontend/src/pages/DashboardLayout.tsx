@@ -16,7 +16,8 @@ import {
   CreditCard,
   Menu,
   X,
-  Plug2
+  Plug2,
+  Shield
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useAlertStore } from '@/stores/alertStore';
