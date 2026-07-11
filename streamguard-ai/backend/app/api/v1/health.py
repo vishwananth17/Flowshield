@@ -81,7 +81,8 @@ async def ml_health_check() -> dict[str, Any]:
     """
     import os
     import joblib
-    from app.services.fraud_detection_service import _fraud
+    from app.services.fraud_detection_service import FraudDetectionService
+    _fraud = FraudDetectionService()
     
     # ── Ensemble Statistics ───────────────────────────────────────────────────
     stats = {

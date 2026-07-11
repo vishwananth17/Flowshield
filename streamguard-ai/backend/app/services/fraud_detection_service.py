@@ -5,12 +5,15 @@ import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+import numpy as np
 
 # Ensure ML package is reachable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ml'))
 
 from app.schemas.transaction import TransactionAnalyzeRequest
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -24,168 +27,154 @@ class FraudResult:
     model_scores: dict[str, float]
     model_version: str
     detection_latency_ms: int
-
-def _extract_features(tx: TransactionAnalyzeRequest) -> dict:
-    """
-    Convert raw transaction object to ML feature dict.
-    """
-    now = datetime.now(UTC)
-    hour = now.hour
-    dow  = now.weekday()
-
-    # ── India-specific MCC Risk Tier Mapping ──────────────────────────────────
-    # Tier 2 = High risk (crypto, quasi-cash, gambling, dark patterns)
-    HIGH_RISK_MCC = {
-        '6051',  # Non-Financial Institutions: Foreign Currency, Quasi-Cash
-        '6211',  # Security Brokers/Dealers
-        '7995',  # Betting/Casino Gambling
-        '4829',  # Wire Transfer — Money Orders
-        '6012',  # Merchandise & Services — Customer Financial Institutions
-        '5933',  # Pawn Shops
-        '6010',  # Manual Cash Disbursements
-        '6011',  # Automated Cash Disbursements
-        '5912',  # Drug Stores and Pharmacies (misused for fraud)
-        '7372',  # Prepackaged software — crypto wallets
-        '6540',  # Non-Financial Institutions — stored value card loading (wallets)
-        '6530',  # Quasi-Cash (UPI off-ramp fraud)
-    }
-    # Tier 1 = Medium risk
-    MED_RISK_MCC = {
-        '5999',  # Miscellaneous Retail
-        '7011',  # Hotels / Lodging
-        '4814',  # Telecom including VOIP (SIM swap fraud)
-        '4899',  # Cable/Other Pay Television Services
-        '5734',  # Computer/Software Stores
-        '5045',  # Computers, Peripherals and Software
-        '6099',  # Financial Institutions — Other
-        '5411',  # Grocery Stores (misused in skimming)
-        '7372',  # Prepackaged Software
-        '5047',  # Medical and Laboratory Equipment
-        '5122',  # Drugs, Drug Proprietaries
-    }
-
-    mcc = str(tx.merchant.category)
-    if mcc in HIGH_RISK_MCC:
-        mcc_tier = 2
-    elif mcc in MED_RISK_MCC:
-        mcc_tier = 1
-    else:
-        mcc_tier = 0
-
-    # ── UPI / India channel detection ────────────────────────────────────────
-    channel = tx.channel.lower() if tx.channel else "api"
-    is_upi  = channel in {"upi", "bhim", "phonepe", "gpay", "paytm", "upi_collect"}
-    is_imps = channel in {"imps", "neft", "rtgs"}
-    # UPI collect requests are higher risk (recipient initiates)
-    is_upi_collect = channel == "upi_collect"
-
-    # ── Currency Normalization Logic ──────────────────────────────────────────
-    currency = tx.currency.upper() if tx.currency else "INR"
-    amount = float(tx.amount)
-    
-    # Simple conversion factor based on current indices (2026/04 approx)
-    # We scale all global amounts to the INR "Inference Scale"
-    CONVERSION_FACTORS = {
-        'USD': 83.5,
-        'EUR': 90.2,
-        'GBP': 105.4,
-        'SGD': 61.8,
-        'AED': 22.7,
-        'INR': 1.0
-    }
-    
-    factor = CONVERSION_FACTORS.get(currency, 1.0)
-    amount_inr = amount * factor
-
-    return {
-        'amount_inr':           amount_inr,
-        'hour_of_day':          hour,
-        'day_of_week':          dow,
-        'is_weekend':           1 if dow >= 5 else 0,
-        'is_night':             1 if hour < 6 or hour >= 22 else 0,
-        
-        # Velocity features (mocked or from request if extended)
-        'tx_count_last_1h':     getattr(tx, 'tx_count_1h', 1),
-        'tx_count_last_24h':    getattr(tx, 'tx_count_24h', 3),
-        'amount_sum_last_1h':   float(tx.amount), 
-        'amount_vs_avg_ratio':  1.0,
-        'unique_merchants_24h': 1,
-
-        # Geographic features
-        'ip_country_match':     1 if tx.customer.country == tx.card.issuing_country else 0,
-        'card_country_match':   1, 
-        'customer_country':     tx.customer.country.upper(),
-
-        # Device features
-        'is_new_device':        1 if not tx.customer.device_fingerprint else 0,
-        'device_age_days':      365,
-        'is_first_transaction': 0,
-
-        # Merchant features
-        'merchant_risk_score':  0.1,
-        'mcc_risk_tier':        mcc_tier,
-    }
+    features: dict = None
 
 class FraudDetectionService:
-    """Production Ensemble Scorer: MVI + XGBoost + Deterministic Rules."""
+    """Production Ensemble Scorer: AST Rules + MVI Anomaly + XGBoost Classifier."""
 
-    def analyze(self, tx: TransactionAnalyzeRequest, plan: str = "free") -> FraudResult:
+    async def analyze(
+        self, 
+        tx: TransactionAnalyzeRequest, 
+        plan: str = "free", 
+        db: AsyncSession = None, 
+        org_id: uuid.UUID = None
+    ) -> FraudResult:
         from app.ml.ensemble import get_ensemble
         from app.core.billing_config import get_plan_limits
+        from app.ml.features.feature_engineer import UnifiedFeatureEngineer
+        from app.services.rule_evaluator import SafeRuleEvaluator
+        import redis.asyncio as async_redis
+        from app.core.config import get_settings
         
         start = time.time()
         limits = get_plan_limits(plan)
         
+        # 1. Fetch organization custom thresholds if db and org_id are available
+        threshold_review = 0.15
+        threshold_block = 0.39
+        if db and org_id:
+            from app.models.organization import Organization
+            try:
+                stmt = select(Organization).where(Organization.id == org_id)
+                res = await db.execute(stmt)
+                org = res.scalar_one_or_none()
+                if org:
+                    threshold_review = float(org.threshold_review)
+                    threshold_block = float(org.threshold_block)
+            except Exception as e:
+                logger.error(f"Error fetching organization thresholds: {e}")
+
         try:
-            features = _extract_features(tx)
-            ensemble = get_ensemble()
-
-            # ── Tier-Based Inference Strategy ────────────────────────────────
-            if "XGBoost" in limits.ensemble_layers and "MVIForest" in limits.ensemble_layers:
-                # FULL ENSEMBLE (Growth/Enterprise/Builder)
-                result_dict = ensemble.predict(features)
-                
-                # If plan doesn't have SHAP and it's a suspicious case, hide reasons
-                if not limits.has_shap and result_dict["decision"] != "allow":
-                    result_dict["reasons"] = ["Upgrade to view forensic reasons"]
+            # 2. Extract features using UnifiedFeatureEngineer
+            settings = get_settings()
+            redis_client = async_redis.from_url(settings.redis_url, decode_responses=True)
+            feat_eng = UnifiedFeatureEngineer(redis_client)
             
-            elif "MVIForest" in limits.ensemble_layers:
-                # INTERMEDIATE (Builder variant)
+            # Since compute_inference_vector is async, await it
+            features = await feat_eng.compute_inference_vector(tx, db)
+            
+            # 3. Evaluate Hard Rules (Pre-computation precedence layer)
+            rule_decision = None
+            rule_score_override = 0.0
+            rule_reasons = []
+            
+            if db:
+                try:
+                    from app.models.risk_rule import RiskRule
+                    rules_stmt = select(RiskRule).where(RiskRule.is_active == True).order_by(RiskRule.priority.desc())
+                    rules_res = await db.execute(rules_stmt)
+                    active_rules = rules_res.scalars().all()
+                    
+                    evaluator = SafeRuleEvaluator()
+                    for rule in active_rules:
+                        if evaluator.evaluate(rule.condition_json, features):
+                            rule_reasons.append(f"Rule: {rule.name}")
+                            if rule.action == 'block':
+                                rule_decision = 'block'
+                                rule_score_override = float(rule.risk_score_override) if rule.risk_score_override is not None else 1.0
+                                break
+                            elif rule.action == 'review':
+                                rule_decision = 'review'
+                                rule_score_override = max(rule_score_override, float(rule.risk_score_override) if rule.risk_score_override is not None else 0.50)
+                except Exception as e:
+                    logger.error(f"Error executing custom risk rules: {e}")
+            
+            # If a rule triggered a hard block, short circuit immediately
+            if rule_decision == 'block':
+                latency_ms = int((time.time() - start) * 1000)
+                return FraudResult(
+                    risk_score=rule_score_override,
+                    risk_label="fraud",
+                    decision="block",
+                    confidence=1.0,
+                    reasons=rule_reasons[:3],
+                    model_scores={"rules": rule_score_override},
+                    model_version="rules_override_v1.0",
+                    detection_latency_ms=latency_ms,
+                    features=features
+                )
+
+            # 4. Compute ML Model Scores (XGBoost + MVIForest)
+            ensemble = get_ensemble()
+            mvi_score = 0.5
+            xgb_score = 0.5
+            xgb_reasons = []
+            
+            if "XGBoost" in limits.ensemble_layers and "MVIForest" in limits.ensemble_layers:
                 mvi_score = ensemble._get_mvi_score(features)
-                rule_score, rule_reasons = ensemble._apply_hard_rules(features)
-                final_score = max(mvi_score, rule_score)
+                xgb_score, xgb_reasons = ensemble._get_xgb_score(features)
+                ml_score = 0.15 * mvi_score + 0.85 * xgb_score
+                model_ver = "ensemble_v2.0_mvi+xgb+rules"
                 
-                if final_score >= 0.80: label, decision = "fraud", "block"
-                elif final_score >= 0.40: label, decision = "suspicious", "review"
-                else: label, decision = "safe", "allow"
-
-                result_dict = {
-                    "risk_score": round(final_score, 4),
-                    "risk_label": label,
-                    "decision": decision,
-                    "confidence": 0.70,
-                    "reasons": rule_reasons if limits.has_shap else ["AI anomaly detection active"],
-                    "model_scores": {"mvi": mvi_score, "rules": rule_score},
-                    "model_version": "mvi_rules_v1.0",
-                }
+            elif "MVIForest" in limits.ensemble_layers:
+                mvi_score = ensemble._get_mvi_score(features)
+                ml_score = mvi_score
+                model_ver = "ensemble_v2.0_mvi+rules"
+                
             else:
-                # MINIMAL (Free)
-                rule_score, rule_reasons = ensemble._apply_hard_rules(features)
-                final_score = rule_score if rule_score > 0 else 0.05
-
-                if final_score >= 0.80: label, decision = "fraud", "block"
-                elif final_score >= 0.40: label, decision = "suspicious", "review"
-                else: label, decision = "safe", "allow"
-
-                result_dict = {
-                    "risk_score": round(final_score, 4),
-                    "risk_label": label,
-                    "decision": decision,
-                    "confidence": 0.65,
-                    "reasons": rule_reasons if limits.has_shap else ["Standard rule-set pass"],
-                    "model_scores": {"rules": round(final_score, 4)},
-                    "model_version": "rules_only_v1.0",
-                }
+                ml_score = 0.05
+                model_ver = "rules_only_v2.0"
+                
+            # Combine score with rule overrides
+            final_score = max(ml_score, rule_score_override)
+            final_score = float(np.clip(final_score, 0.0, 1.0))
+            
+            # 5. Apply Organization-specific decision thresholds
+            if final_score >= threshold_block:
+                label, decision = "fraud", "block"
+            elif final_score >= threshold_review:
+                label, decision = "suspicious", "review"
+            else:
+                label, decision = "safe", "allow"
+                
+            # Reasons compilation
+            reasons = []
+            reasons.extend(rule_reasons)
+            reasons.extend(xgb_reasons)
+            
+            if not reasons:
+                if decision == "block":
+                    reasons = ["ML ensemble detected high risk anomaly pattern"]
+                elif decision == "review":
+                    reasons = ["Mildly unusual transaction — review recommended"]
+                else:
+                    reasons = ["Transaction within normal parameters"]
+                    
+            confidence = float(np.clip(1.0 - abs(final_score - 0.5) * 2, 0.5, 1.0))
+            
+            result_dict = {
+                "risk_score": round(final_score, 4),
+                "risk_label": label,
+                "decision": decision,
+                "confidence": round(confidence, 4),
+                "reasons": reasons[:3],
+                "model_scores": {
+                    "mviforest": round(float(mvi_score), 4),
+                    "xgboost": round(float(xgb_score), 4),
+                    "rules": round(float(rule_score_override), 4)
+                },
+                "model_version": model_ver
+            }
 
         except Exception as e:
             logger.error(f"Fraud analysis ensemble error: {e}", exc_info=True)
@@ -196,24 +185,25 @@ class FraudDetectionService:
                 "confidence": 0.5,
                 "reasons": ["AI Core offline — manual review recommended"],
                 "model_scores": {},
-                "model_version": "fallback_v1.0",
+                "model_version": "fallback_v2.0"
             }
+            
+        latency_ms = int((time.time() - start) * 1000)
         
-        # QUALITY AUDIT LOG
+        # Clean reasons Unicode character ₹ -> INR
         clean_reasons = [r.replace('\u20b9', 'INR') for r in result_dict['reasons']]
         print(f"==> [AUDIT] Score: {result_dict['risk_score']} | Decision: {result_dict['decision']} | Reasons: {clean_reasons[:1]}")
-
-        latency_ms = int((time.time() - start) * 1000)
         
         return FraudResult(
             risk_score=result_dict["risk_score"],
             risk_label=result_dict["risk_label"],
             decision=result_dict["decision"],
             confidence=result_dict["confidence"],
-            reasons=result_dict["reasons"],
-            model_scores=result_dict.get("model_scores", {}),
+            reasons=clean_reasons,
+            model_scores=result_dict["model_scores"],
             model_version=result_dict["model_version"],
-            detection_latency_ms=latency_ms
+            detection_latency_ms=latency_ms,
+            features=features
         )
 
     async def process_auto_alert(self, org_id: uuid.UUID, tx: TransactionAnalyzeRequest, result: FraudResult, internal_id: uuid.UUID):

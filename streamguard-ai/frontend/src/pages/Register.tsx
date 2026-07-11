@@ -4,8 +4,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Logo from '@/components/Logo';
 import api from '@/services/api';
 
 export default function Register() {
@@ -79,9 +79,7 @@ export default function Register() {
             >
               <div className="flex justify-center mb-8">
                 <div className="flex items-center space-x-3">
-                  <div className="h-10 w-10 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-                    <Shield className="h-6 w-6 text-blue-400" />
-                  </div>
+                  <Logo size={40} iconSize={24} theme="dark" />
                   <span className="text-3xl font-display font-bold text-white tracking-tight">Flowshield AI</span>
                 </div>
               </div>

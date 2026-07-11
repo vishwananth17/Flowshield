@@ -6,7 +6,9 @@ import time
 API_URL = "https://flowshield-backend-ani8.onrender.com/api/v1"
 API_KEY = "fs_live_test_key" # Replace with your real key locally if needed
 
-def run_stress_test():
+import asyncio
+
+async def run_stress_test():
     print("STARTING: Flowshield Dual-Mode Validation Test...")
     
     # 1. TEST CASE: THE LEGITIMATE SCENARIO (Rules: Safe, ML: Safe)
@@ -32,22 +34,19 @@ def run_stress_test():
     }
 
     print("\n--- TEST 1: Legitimate User ---")
-    analyze_local(legit_tx)
+    await analyze_local(legit_tx)
 
     print("\n--- TEST 2: Suspicious Activity ---")
-    analyze_local(fraud_tx)
+    await analyze_local(fraud_tx)
 
-def analyze_local(tx):
-    # This simulates the logic inside the backend to verify the ensemble.
-    # In a real test, we would hit the API, but this verifies the logic logic.
+async def analyze_local(tx):
     from app.services.fraud_detection_service import FraudDetectionService
     from app.schemas.transaction import TransactionAnalyzeRequest
     
     svc = FraudDetectionService()
-    # Mocking a 'Growth' plan to enable ML
     try:
         req = TransactionAnalyzeRequest(**tx)
-        result = svc.analyze(req, plan="growth")
+        result = await svc.analyze(req, plan="growth")
         
         print(f"Decision: {result.decision.upper()}")
         print(f"Score: {result.risk_score}")
@@ -57,8 +56,8 @@ def analyze_local(tx):
             print(f" - {r}")
         
         # Check if BOTH layers flagged
-        ml_flag = any("pattern recognition" in r.lower() for r in result.reasons)
-        rule_flag = any(not "pattern recognition" in r.lower() and not "tiers" in r.lower() for r in result.reasons)
+        ml_flag = any("pattern recognition" in r.lower() or "ensemble" in r.lower() for r in result.reasons)
+        rule_flag = any(not "pattern recognition" in r.lower() and not "ensemble" in r.lower() and not "tiers" in r.lower() for r in result.reasons)
         
         if ml_flag and rule_flag:
             print("OK [DUAL-MODE]: Both ML and Rules detected risk.")
@@ -71,4 +70,4 @@ def analyze_local(tx):
         print(f"ERROR: Test Failed: {str(e)}")
 
 if __name__ == "__main__":
-    run_stress_test()
+    asyncio.run(run_stress_test())

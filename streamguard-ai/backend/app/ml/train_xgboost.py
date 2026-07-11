@@ -8,257 +8,332 @@ import shap
 import joblib
 import json
 import time
-from sklearn.model_selection import (
-    train_test_split, StratifiedKFold, cross_val_score
-)
-from sklearn.metrics import (
-    roc_auc_score, recall_score, precision_score,
-    f1_score, confusion_matrix, average_precision_score
-)
+import optuna
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, average_precision_score, roc_auc_score
+from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
-from features.feature_engineer import FraudFeatureEngineer
+from imblearn.combine import SMOTEENN
+from features.feature_engineer import UnifiedFeatureEngineer
+
+print("""
+========================================================================
+PART 0 — THE METRICS THAT ACTUALLY MATTER FOR FLOWSHIELD AI
+========================================================================
+- Accuracy is meaningless for fraud detection at a 1.38% base rate. A 
+  dummy model predicting 'safe' 100% of the time achieves 98.62% accuracy
+  but catches 0% of fraud.
+- Precision represents: 'Of all alerts we block, how many are actually fraud?'
+- Recall represents: 'Of all real fraud cases, how many did we catch?'
+- Per-Tier Targets:
+  * Block decisions require HIGH PRECISION (>95%) to prevent blocking
+    genuine customers, which is extremely costly in business trust.
+  * Review decisions can tolerate lower precision because they lead to
+    a secondary inspection, reducing false blockages.
+========================================================================
+""")
+
+def compute_fraud_metrics(y_true, y_prob, threshold):
+    y_pred = (y_prob >= threshold).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    
+    precision = precision_score(y_true, y_pred, zero_division=0)
+    recall = recall_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+    pr_auc = average_precision_score(y_true, y_prob)
+    roc_auc = roc_auc_score(y_true, y_prob)
+    
+    # False Block Rate: FP / Total Genuine (TN + FP)
+    genuine_count = tn + fp
+    false_block_rate = (fp / genuine_count) if genuine_count > 0 else 0.0
+    
+    return {
+        "precision": float(precision),
+        "recall": float(recall),
+        "f1": float(f1),
+        "pr_auc": float(pr_auc),
+        "roc_auc": float(roc_auc),
+        "false_block_rate": float(false_block_rate),
+        "true_block_count": int(tp),
+        "false_block_count": int(fp),
+        "true_allow_count": int(tn),
+        "false_allow_count": int(fn)
+    }
 
 def load_dataset():
-    # 1. Load Indian Synthetic Data
     if not os.path.exists('data/fraud_dataset.csv'):
         print("Dataset missing! Run generate_fraud_dataset.py first.")
         sys.exit(1)
         
-    df_in = pd.read_csv('data/fraud_dataset.csv')
-    df_in['currency'] = 'INR'
+    df = pd.read_csv('data/fraud_dataset.csv')
+    if 'currency' not in df.columns:
+        df['currency'] = 'INR'
+    else:
+        df['currency'] = df['currency'].fillna('INR')
     
-    # 2. Load and Map European Kaggle Data (for Global Coverage)
-    try:
-        from validate_realworld import load_kaggle_dataset, map_kaggle_to_flowshield
-        df_kg_raw = load_kaggle_dataset()
-        if df_kg_raw is not None:
-            df_kg = map_kaggle_to_flowshield(df_kg_raw)
-            df_kg['is_fraud'] = df_kg_raw['Class']
-            df_kg['currency'] = 'EUR'
-            # Balanced merge: keep Indian focus but add Global coverage
-            df = pd.concat([df_in, df_kg.sample(n=len(df_in), random_state=42)], ignore_index=True)
-            print(f"Global Fusion: Merged {len(df_in)} Indian + {len(df_in)} European samples")
-        else:
-            df = df_in
-    except Exception as e:
-        print(f"Global fusion failed (skipping Kaggle): {e}")
-        df = df_in
-
-    engineer = FraudFeatureEngineer()
-    X = engineer.engineer(df)
-    y = df['is_fraud'].values
-    print(f"Total Dataset: {len(X)} samples, {X.shape[1]} features")
-    print(f"Overall Fraud rate: {y.mean()*100:.2f}%")
-    return X, y, engineer
-
-def handle_imbalance(X_train, y_train):
-    print(f"Before SMOTE: fraud={y_train.sum()}, "
-          f"normal={(y_train==0).sum()}")
-    # Oversample fraud to ~15% of the dataset
-    smote = SMOTE(sampling_strategy=0.15,
-                  random_state=42, k_neighbors=5)
-    X_res, y_res = smote.fit_resample(X_train, y_train)
-    print(f"After SMOTE:  fraud={y_res.sum()}, "
-          f"normal={(y_res==0).sum()}")
-    return X_res, y_res
-
-def train_model(X_train, y_train, X_val, y_val):
-    n_neg = (y_train == 0).sum()
-    n_pos = (y_train == 1).sum()
-    scale_pw = n_neg / max(n_pos, 1)
-    print(f"scale_pos_weight: {scale_pw:.1f}")
-
-    model = xgb.XGBClassifier(
-        n_estimators=500,
-        max_depth=6,
-        learning_rate=0.05,
-        scale_pos_weight=scale_pw,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        min_child_weight=5,
-        gamma=0.1,
-        reg_alpha=0.1,
-        reg_lambda=1.0,
-        n_jobs=1,
-        tree_method='hist',
-        eval_metric='aucpr',
-        early_stopping_rounds=30,
-        random_state=42,
-        verbosity=0
-    )
-    eval_set = [(X_val, y_val)]
-    model.fit(X_train, y_train,
-              eval_set=eval_set, verbose=50)
-    print(f"Best iteration: {model.best_iteration}")
-    return model
-
-def evaluate(model, X_test, y_test, name="XGBoost"):
-    y_prob = model.predict_proba(X_test)[:, 1]
-
-    # Find best threshold for F1
-    thresholds = np.arange(0.1, 0.9, 0.01)
-    best_f1, best_thresh = 0, 0.5
-    for t in thresholds:
-        f1 = f1_score(y_test, (y_prob >= t).astype(int),
-                      zero_division=0)
-        if f1 > best_f1:
-            best_f1, best_thresh = f1, t
-
-    y_pred = (y_prob >= best_thresh).astype(int)
-    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-
-    roc_auc = roc_auc_score(y_test, y_prob)
-    pr_auc  = average_precision_score(y_test, y_prob)
-    recall  = recall_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred, zero_division=0)
-    specificity = tn / (tn + fp)
-    far = fp / (fp + tn)
-
-    print(f"\n{'='*55}")
-    print(f"  {name} Results")
-    print(f"{'='*55}")
-    print(f"  ROC AUC:     {roc_auc:.4f}")
-    print(f"  PR AUC:      {pr_auc:.4f}")
-    print(f"  Recall:      {recall:.4f}  ({tp}/{tp+fn} fraud caught)")
-    print(f"  Precision:   {precision:.4f}")
-    print(f"  Specificity: {specificity:.4f}")
-    print(f"  FAR:         {far:.4f}")
-    print(f"  F1 Score:    {best_f1:.4f}")
-    print(f"  Threshold:   {best_thresh:.2f}")
-    print(f"  TP:{tp} FP:{fp} TN:{tn} FN:{fn}")
-
-    return {
-        "roc_auc": round(float(roc_auc), 4),
-        "pr_auc": round(float(pr_auc), 4),
-        "recall": round(float(recall), 4),
-        "precision": round(float(precision), 4),
-        "specificity": round(float(specificity), 4),
-        "far": round(float(far), 4),
-        "f1_score": round(float(best_f1), 4),
-        "best_threshold": round(float(best_thresh), 2),
-        "tp": int(tp), "fp": int(fp),
-        "tn": int(tn), "fn": int(fn),
-    }
-
-def get_shap(model, X_train, X_test, feature_names):
-    print("\nGenerating SHAP explanations...")
-    explainer = shap.TreeExplainer(model)
-    n = min(200, len(X_test))
-    sv = explainer.shap_values(X_test[:n])
-
-    importance = dict(zip(
-        feature_names,
-        np.abs(sv).mean(axis=0).tolist()
-    ))
-    sorted_imp = dict(sorted(
-        importance.items(), key=lambda x: x[1], reverse=True
-    ))
-
-    print("\nTop 10 Features (SHAP):")
-    for i, (f, v) in enumerate(list(sorted_imp.items())[:10]):
-        bar = '#' * int(v * 50)
-        print(f"  {i+1:2d}. {f:35s} {v:.4f} {bar}")
-
-    return explainer, sorted_imp
+    print(f"Loaded raw synthetic dataset: {len(df)} samples")
+    return df
 
 def main():
-    print("="*55)
-    print("  Flowshield AI — XGBoost Training")
-    print("="*55)
-
-    X, y, engineer = load_dataset()
-
-    X_temp, X_test, y_temp, y_test = train_test_split(
-        X, y, test_size=0.15, random_state=42, stratify=y)
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_temp, y_temp, test_size=0.18,
-        random_state=42, stratify=y_temp)
-
-    print(f"\nSplit — train:{len(X_train)} "
-          f"val:{len(X_val)} test:{len(X_test)}")
-
-    # Handle imbalance on train only
-    X_tr_bal, y_tr_bal = handle_imbalance(
-        X_train.values, y_train)
-
-    # Cross validation
-    print("\nRunning 5-fold cross-validation...")
-    cv_model = xgb.XGBClassifier(
-        n_estimators=300, max_depth=6,
-        learning_rate=0.05, subsample=0.8,
-        colsample_bytree=0.8, min_child_weight=5,
-        n_jobs=1, tree_method='hist',
-        random_state=42, verbosity=0
+    df = load_dataset()
+    
+    # Create compound stratification key: is_fraud + pattern_category
+    df['strat_key'] = df['is_fraud'].astype(str) + "_" + df['pattern_category'].astype(str)
+    
+    # 3.1 Stratified Split: 70% Train, 15% Val, 15% Test
+    # Test set must never be touched during parameter/threshold tuning!
+    X_temp, X_test_raw, y_temp, y_test_labels = train_test_split(
+        df, df['is_fraud'], test_size=0.15, random_state=42, stratify=df['strat_key']
     )
-    cv = StratifiedKFold(n_splits=5, shuffle=True,
-                         random_state=42)
-    cv_scores = cross_val_score(
-        cv_model,
-        pd.DataFrame(X_tr_bal, columns=X_train.columns),
-        y_tr_bal, cv=cv, scoring='roc_auc', n_jobs=1
+    
+    # Recompute strat keys for validation split
+    X_train_raw, X_val_raw, y_train_labels, y_val_labels = train_test_split(
+        X_temp, y_temp, test_size=0.1765, random_state=42, stratify=X_temp['strat_key']
     )
-    print(f"CV ROC AUC: {cv_scores.mean():.4f} "
-          f"± {cv_scores.std():.4f}")
+    
+    print(f"Splits generated successfully:")
+    print(f"  Train: {len(X_train_raw)} samples (Fraud: {y_train_labels.sum()})")
+    print(f"  Val:   {len(X_val_raw)} samples (Fraud: {y_val_labels.sum()})")
+    print(f"  Test:  {len(X_test_raw)} samples (Fraud: {y_test_labels.sum()})")
+    
+    # Extract features using UnifiedFeatureEngineer
+    print("\nExtracting features using UnifiedFeatureEngineer...")
+    engineer = UnifiedFeatureEngineer(None)
+    X_train = engineer.build_training_matrix(X_train_raw.to_dict(orient='records'))
+    X_val = engineer.build_training_matrix(X_val_raw.to_dict(orient='records'))
+    X_test = engineer.build_training_matrix(X_test_raw.to_dict(orient='records'))
+    
+    # 3.2 Class Imbalance: SMOTE vs SMOTE-ENN comparison
+    print("\nComparing SMOTE vs SMOTE-ENN balancing strategies...")
+    smote = SMOTE(sampling_strategy=0.15, random_state=42, k_neighbors=5)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train_labels)
+    
+    smote_enn = SMOTEENN(sampling_strategy=0.15, random_state=42)
+    X_train_senn, y_train_senn = smote_enn.fit_resample(X_train, y_train_labels)
+    
+    # Baseline comparison evaluation using default XGBoost
+    base_xgb = xgb.XGBClassifier(tree_method='hist', random_state=42, verbosity=0)
+    
+    base_xgb.fit(X_train_smote, y_train_smote)
+    prob_smote = base_xgb.predict_proba(X_val)[:, 1]
+    metrics_smote = compute_fraud_metrics(y_val_labels, prob_smote, 0.5)
+    
+    base_xgb.fit(X_train_senn, y_train_senn)
+    prob_senn = base_xgb.predict_proba(X_val)[:, 1]
+    metrics_senn = compute_fraud_metrics(y_val_labels, prob_senn, 0.5)
+    
+    print("Balancing Metrics comparison (Validation set at 0.5 threshold):")
+    print(f"  SMOTE:     PR-AUC={metrics_smote['pr_auc']:.4f}, False Block Rate={metrics_smote['false_block_rate']*100:.3f}%, Recall={metrics_smote['recall']*100:.1f}%")
+    print(f"  SMOTE-ENN: PR-AUC={metrics_senn['pr_auc']:.4f}, False Block Rate={metrics_senn['false_block_rate']*100:.3f}%, Recall={metrics_senn['recall']*100:.1f}%")
+    
+    # Select best balancing strategy based on minimizing False Block Rate
+    if metrics_senn['false_block_rate'] < metrics_smote['false_block_rate']:
+        print("  -> Selecting SMOTE-ENN (lower False Block Rate)")
+        X_train_bal, y_train_bal = X_train_senn, y_train_senn
+        balancing_used = "SMOTE-ENN"
+    else:
+        print("  -> Selecting SMOTE (better/comparable False Block Rate)")
+        X_train_bal, y_train_bal = X_train_smote, y_train_smote
+        balancing_used = "SMOTE"
 
-    # Train final model
+    # 3.3 Optuna Hyperparameter Search
+    print("\nRunning Optuna Hyperparameter Search (50 trials)...")
+    def objective(trial):
+        params = {
+            'n_estimators': trial.suggest_int('n_estimators', 100, 400),
+            'max_depth': trial.suggest_int('max_depth', 4, 8),
+            'learning_rate': trial.suggest_float('learning_rate', 0.02, 0.15, log=True),
+            'min_child_weight': trial.suggest_int('min_child_weight', 2, 8),
+            'subsample': trial.suggest_float('subsample', 0.7, 0.95),
+            'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 0.95),
+            'scale_pos_weight': trial.suggest_float('scale_pos_weight', 1.0, 5.0),
+            'tree_method': 'hist',
+            'eval_metric': 'aucpr',
+            'random_state': 42,
+            'verbosity': 0
+        }
+        
+        clf = xgb.XGBClassifier(**params)
+        clf.fit(X_train_bal, y_train_bal)
+        probs = clf.predict_proba(X_val)[:, 1]
+        return average_precision_score(y_val_labels, probs)
+
+    optuna.logging.set_verbosity(optuna.logging.WARNING)
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=50)
+    best_params = study.best_params
+    print(f"Best trial parameters: {best_params}")
+
+    # 3.6 Cross Validation on balanced training set
+    print("\nRunning 5-fold Stratified Cross-Validation on training set...")
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    cv_clf = xgb.XGBClassifier(**best_params, tree_method='hist', random_state=42, verbosity=0)
+    cv_scores = cross_val_score(cv_clf, X_train_bal, y_train_bal, cv=cv, scoring='average_precision')
+    print(f"  PR-AUC across folds: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+
+    # Train final model on entire training set
     print("\nTraining final XGBoost model...")
-    t0 = time.time()
-    model = train_model(
-        X_tr_bal, y_tr_bal,
-        X_val.values, y_val
-    )
-    train_time = time.time() - t0
-    print(f"Training time: {train_time:.1f}s")
+    final_model = xgb.XGBClassifier(**best_params, tree_method='hist', random_state=42, verbosity=0)
+    final_model.fit(X_train_bal, y_train_bal)
 
-    # Evaluate
-    results = evaluate(model, X_test.values, y_test)
-    results["training_time_s"] = round(train_time, 1)
-    results["cv_roc_auc_mean"] = round(float(cv_scores.mean()), 4)
-    results["cv_roc_auc_std"]  = round(float(cv_scores.std()), 4)
+    # 3.4 Threshold Sweeping (0.05 to 0.95) on validation set
+    print("\nSweeping prediction thresholds on validation set...")
+    val_probs = final_model.predict_proba(X_val)[:, 1]
+    
+    thresholds = np.arange(0.05, 0.96, 0.01)
+    sweep_data = []
+    
+    block_threshold = 0.50
+    review_threshold = 0.20
+    
+    # Target values search
+    found_block = False
+    for t in thresholds:
+        metrics = compute_fraud_metrics(y_val_labels, val_probs, t)
+        sweep_data.append({
+            "threshold": round(float(t), 2),
+            "false_block_rate": metrics["false_block_rate"],
+            "recall": metrics["recall"],
+            "precision": metrics["precision"]
+        })
+        
+        # Block target: False Block Rate < 0.005 (0.5%) and block precision > 0.95
+        if not found_block and metrics["false_block_rate"] < 0.005 and metrics["precision"] >= 0.95:
+            block_threshold = round(float(t), 2)
+            found_block = True
+            
+    # Review target: maximize recall (aim for block+review recall > 85%) while keeping false block low
+    for t in thresholds:
+        metrics = compute_fraud_metrics(y_val_labels, val_probs, t)
+        if metrics["recall"] >= 0.85:
+            review_threshold = round(float(t), 2)
+            
+    print(f"Recommended Decision thresholds:")
+    print(f"  Block Threshold:  {block_threshold:.2f} (False Block Rate < 0.5%)")
+    print(f"  Review Threshold: {review_threshold:.2f} (Fraud Recall > 85%)")
 
-    # SHAP
-    explainer, feat_imp = get_shap(
-        model, X_tr_bal,
-        X_test.values, X_train.columns.tolist()
-    )
-
-    # Inference speed
-    t0 = time.time()
-    _ = model.predict_proba(X_test.values)
-    inf_ms = (time.time() - t0) * 1000
-    print(f"\nInference: {inf_ms:.1f}ms for {len(X_test)} samples")
-    print(f"Per sample: {inf_ms/len(X_test)*1000:.2f}µs")
-
-    # Save
-    print("\nSaving models...")
-    os.makedirs('models', exist_ok=True)
-    joblib.dump(model,    'models/xgboost_fraud_v1.joblib')
-    joblib.dump(explainer,'models/shap_explainer_v1.joblib')
-    joblib.dump(engineer, 'models/feature_engineer_v1.joblib')
-
-    with open('models/xgboost_results.json','w') as f:
-        json.dump({
-            "results": results,
-            "feature_importance": feat_imp,
-            "features": X_train.columns.tolist(),
-            "model_version": "xgboost_v1.0",
-            "cv_scores": cv_scores.tolist(),
-        }, f, indent=2)
-
+    # Evaluate final model on UNTOUCHED TEST SET
+    print("\nPerforming Final Evaluation on Test Set...")
+    test_probs = final_model.predict_proba(X_test)[:, 1]
+    
+    # Evaluate at the recommended Block Threshold
+    final_metrics = compute_fraud_metrics(y_test_labels, test_probs, block_threshold)
+    
+    # Sweeps on test set to output the final results breakdown
     print("\n" + "="*55)
-    print("  TRAINING COMPLETE")
+    print("  XGBoost Champion Final Test Set Metrics")
     print("="*55)
-    print(f"  ROC AUC:   {results['roc_auc']:.4f}  (target >0.95)")
-    print(f"  PR AUC:    {results['pr_auc']:.4f}")
-    print(f"  Recall:    {results['recall']:.4f}  (target >0.85)")
-    print(f"  Precision: {results['precision']:.4f}")
-    print(f"  FAR:       {results['far']:.4f}  (target <0.03)")
+    print(f"  PR-AUC:             {final_metrics['pr_auc']:.4f}")
+    print(f"  ROC-AUC:            {final_metrics['roc_auc']:.4f}")
+    print(f"  Precision (Block):  {final_metrics['precision']*100:.2f}%  (target > 95%)")
+    print(f"  Recall (Block):     {final_metrics['recall']*100:.2f}%")
+    print(f"  False Block Rate:   {final_metrics['false_block_rate']*100:.3f}%  (target < 0.5%)")
+    print(f"  True Block Count:   {final_metrics['true_block_count']}")
+    print(f"  False Block Count:  {final_metrics['false_block_count']}")
+    print(f"  True Allow Count:   {final_metrics['true_allow_count']}")
+    print(f"  False Allow Count:  {final_metrics['false_allow_count']}")
+    print("="*55)
 
-    passed = (results['roc_auc'] > 0.92 and
-              results['recall'] > 0.75 and
-              results['far'] < 0.05)
-    print(f"\n  Status: {'✅ PASSED — ready for ensemble' if passed else '⚠️  NEEDS TUNING'}")
-    print("="*55)
+    # 3.5 Per-Pattern-Category Evaluation
+    print("\nEvaluating breakdown by Fraud Pattern Category on Test Set...")
+    test_df_eval = X_test_raw.copy()
+    test_df_eval['prob'] = test_probs
+    test_df_eval['pred_block'] = (test_probs >= block_threshold).astype(int)
+    test_df_eval['pred_review'] = (test_probs >= review_threshold).astype(int)
+    
+    patterns = test_df_eval['pattern_category'].unique()
+    per_pattern_perf = {}
+    
+    for pattern in patterns:
+        sub = test_df_eval[test_df_eval['pattern_category'] == pattern]
+        total_pattern = len(sub)
+        
+        if sub['is_fraud'].iloc[0] == 1:
+            # Fraud patterns: check recall
+            blocked = sub['pred_block'].sum()
+            reviewed = sub['pred_review'].sum()
+            
+            recall_block = blocked / total_pattern
+            recall_combined = reviewed / total_pattern
+            
+            per_pattern_perf[pattern] = {
+                "type": "fraud",
+                "total_count": int(total_pattern),
+                "recall_block": round(float(recall_block), 4),
+                "recall_review_combined": round(float(recall_combined), 4)
+            }
+        else:
+            # Safe pattern: check false block rate / allowed rate
+            blocked = sub['pred_block'].sum()
+            allowed = total_pattern - blocked
+            allowed_rate = allowed / total_pattern
+            blocked_rate = blocked / total_pattern
+            
+            per_pattern_perf[pattern] = {
+                "type": "safe",
+                "total_count": int(total_pattern),
+                "allowed_rate": round(float(allowed_rate), 4),
+                "blocked_rate": round(float(blocked_rate), 4)
+            }
+            
+    print("\nDetailed Pattern breakdown:")
+    for pat, metrics in per_pattern_perf.items():
+        if metrics["type"] == "fraud":
+            print(f"  Fraud Pattern '{pat}': Catch Rate (Block) = {metrics['recall_block']*100:.1f}%, Combined (Block/Review) = {metrics['recall_review_combined']*100:.1f}%")
+        else:
+            print(f"  Safe Edge Case '{pat}': Correctly Allowed Rate = {metrics['allowed_rate']*100:.1f}%, False Block Rate = {metrics['blocked_rate']*100:.1f}%")
+
+    # Generate SHAP
+    print("\nGenerating SHAP explanations...")
+    explainer = shap.TreeExplainer(final_model)
+    shap_vals = explainer.shap_values(X_test.values[:200])
+
+    importance = dict(zip(X_train.columns.tolist(), np.abs(shap_vals).mean(axis=0).tolist()))
+    sorted_imp = dict(sorted(importance.items(), key=lambda x: x[1], reverse=True))
+
+    # Save outputs
+    print("\nSaving final XGBoost artifacts...")
+    os.makedirs('models', exist_ok=True)
+    joblib.dump(final_model, 'models/xgboost_fraud_v1.joblib')
+    joblib.dump(explainer,   'models/shap_explainer_v1.joblib')
+    joblib.dump(engineer,    'models/feature_engineer_v1.joblib')
+    
+    # Formulate validation report JSON
+    status = "READY_FOR_PRODUCTION"
+    reasons = []
+    
+    if final_metrics["false_block_rate"] >= 0.005:
+        status = "NEEDS_MORE_DATA"
+        reasons.append("Overall False Block Rate is above 0.5% target.")
+        
+    for pat, metrics in per_pattern_perf.items():
+        if metrics["type"] == "safe" and metrics["allowed_rate"] < 0.95:
+            status = "NEEDS_MORE_DATA"
+            reasons.append(f"Safe Edge Case '{pat}' correctly allowed rate ({metrics['allowed_rate']*100:.1f}%) is below 95% target.")
+            
+    report = {
+        "dataset_size": int(len(df)),
+        "fraud_rate": float(df['is_fraud'].mean()),
+        "overall_metrics": final_metrics,
+        "per_pattern_performance": per_pattern_perf,
+        "recommended_thresholds": {
+            "block_threshold": float(block_threshold),
+            "review_threshold": float(review_threshold)
+        },
+        "balancing_used": balancing_used,
+        "status": status,
+        "specific_gaps": reasons
+    }
+    
+    with open('models/xgboost_results.json', 'w') as f:
+        json.dump(report, f, indent=2)
+        
+    print("\nReport summary saved to models/xgboost_results.json")
+    print(f"Final Model Status: {status}")
+    if reasons:
+        print("Gaps identified:")
+        for r in reasons:
+            print(f"  - {r}")
 
 if __name__ == "__main__":
     main()

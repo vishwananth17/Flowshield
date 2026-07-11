@@ -135,7 +135,7 @@ def evaluate_on_kaggle(model, scaler, X_test, y_test, model_name):
     print(f"  TP:{tp} FP:{fp} TN:{tn} FN:{fn}")
     print(f"  Latency:     {latency:.1f}ms total | {latency/len(y_test)*1000:.1f}us/sample")
 
-    passed = roc_auc > 0.85 and recall > 0.60
+    passed = bool(roc_auc > 0.85 and recall > 0.60)
     print(f"  Status:      {'GENERALISES TO REAL DATA' if passed else 'NEEDS TUNING'}")
 
     return {

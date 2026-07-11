@@ -136,9 +136,9 @@ class FlowshieldEnsemble:
             return 0.5
 
         try:
-            from features.feature_engineer import FraudFeatureEngineer
+            from features.feature_engineer import UnifiedFeatureEngineer
             feat_array = np.array([[
-                float(features.get(f, 0)) for f in FraudFeatureEngineer.BASE_FEATURES
+                float(features.get(f, 0)) for f in UnifiedFeatureEngineer.BASE_FEATURES
             ]])
             feat_scaled = self.scaler.transform(feat_array)
             score = float(self.mviforest.anomaly_score(feat_scaled)[0])
@@ -153,7 +153,7 @@ class FlowshieldEnsemble:
             return 0.5, []
 
         try:
-            from features.feature_engineer import FraudFeatureEngineer
+            from features.feature_engineer import UnifiedFeatureEngineer
             feat_df = pd.DataFrame([features])
 
             # Ensure all base features present
@@ -161,14 +161,14 @@ class FlowshieldEnsemble:
                 if col not in feat_df.columns:
                     feat_df[col] = 0
 
-            feat_eng = self.feature_eng.engineer(feat_df[self.feature_eng.BASE_FEATURES])
+            feat_eng = self.feature_eng.build_training_matrix(feat_df.to_dict(orient='records'))
             xgb_score = float(self.xgboost.predict_proba(feat_eng.values)[0, 1])
 
             reasons = []
             if self.shap_explainer:
                 shap_vals = self.shap_explainer.shap_values(feat_eng.values)[0]
-                reasons = FraudFeatureEngineer.generate_human_readable_reason(
-                    shap_vals, self.feature_eng.ALL_FEATURES, features, top_n=3
+                reasons = UnifiedFeatureEngineer.generate_human_readable_reason(
+                    shap_vals, self.feature_eng.BASE_FEATURES, features, top_n=3
                 )
 
             return np.clip(xgb_score, 0.0, 1.0), reasons
@@ -188,19 +188,17 @@ class FlowshieldEnsemble:
         # Layer 2: XGBoost
         xgb_score, xgb_reasons = self._get_xgb_score(features)
 
-        # Weighted combination
+        # Combined ML score
         if self._xgb_available:
-            w = self.WEIGHTS
-            final = (w["mvi"] * mvi_score + w["xgb"] * xgb_score + w["rules"] * rule_score)
+            # XGBoost is highly accurate and generalizable (85% weight)
+            # MVIForest acts as a secondary anomaly indicator (15% weight)
+            ml_score = 0.15 * mvi_score + 0.85 * xgb_score
         else:
-            w = self.FALLBACK
-            final = (w["mvi"] * mvi_score + w["rules"] * rule_score)
+            ml_score = mvi_score
 
+        # Final score is the maximum of the ML prediction and the deterministic hard rules
+        final = max(ml_score, rule_score)
         final = float(np.clip(final, 0.0, 1.0))
-
-        # Hard rule override — never let high-confidence rules get diluted by ML
-        if rule_score >= 0.50:
-            final = max(final, rule_score)
 
         # Build reasons list
         all_reasons = []
@@ -214,8 +212,8 @@ class FlowshieldEnsemble:
             else: all_reasons = ["Transaction within normal parameters"]
 
         # Risk label and decision
-        if final >= 0.80: label, decision = "fraud", "block"
-        elif final >= 0.40: label, decision = "suspicious", "review"
+        if final >= 0.39: label, decision = "fraud", "block"
+        elif final >= 0.15: label, decision = "suspicious", "review"
         else: label, decision = "safe", "allow"
 
         confidence = float(np.clip(1.0 - abs(final - 0.5) * 2, 0.5, 1.0))

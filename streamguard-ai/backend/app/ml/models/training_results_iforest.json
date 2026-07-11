@@ -2,52 +2,138 @@
   "results": [
     {
       "model": "IForest (sklearn)",
-      "roc_auc": 0.9971,
-      "recall": 0.79,
-      "specificity": 0.9978,
-      "far": 0.0022,
-      "f1_score": 0.7861,
-      "latency_ms": 43.52
+      "roc_auc": 0.7917,
+      "pr_auc": 0.057,
+      "recall": 0.1085,
+      "precision": 0.1068,
+      "false_block_rate": 0.0127,
+      "latency_ms": 139.24
     },
     {
-      "model": "MVIForest (paper)",
-      "roc_auc": 0.9969,
-      "recall": 0.81,
-      "specificity": 0.998,
-      "far": 0.002,
-      "f1_score": 0.806,
-      "latency_ms": 1513.89
+      "model": "MVIForest (paper baseline)",
+      "roc_auc": 0.7993,
+      "pr_auc": 0.0846,
+      "recall": 0.1693,
+      "precision": 0.1667,
+      "false_block_rate": 0.0119,
+      "latency_ms": 2901.98
     },
     {
       "model": "MVIForest (tuned)",
-      "roc_auc": 0.9945,
-      "recall": 0.78,
-      "specificity": 0.9977,
-      "far": 0.0023,
-      "f1_score": 0.7761,
-      "latency_ms": 1735.78
+      "roc_auc": 0.8033,
+      "pr_auc": 0.0752,
+      "recall": 0.1614,
+      "precision": 0.1589,
+      "false_block_rate": 0.012,
+      "latency_ms": 3292.79
     }
   ],
-  "feature_columns": [
-    "amount_inr",
-    "hour_of_day",
-    "day_of_week",
-    "is_weekend",
-    "tx_count_last_1h",
-    "tx_count_last_24h",
-    "amount_sum_last_1h",
-    "amount_vs_avg_ratio",
-    "ip_country_match",
-    "card_country_match",
-    "is_new_device",
-    "merchant_risk_score",
-    "mcc_risk_tier",
-    "is_night",
-    "device_age_days",
-    "unique_merchants_24h",
-    "is_first_transaction"
-  ],
-  "training_samples": 40400,
-  "test_samples": 10100,
-  "fraud_rate": 0.009900990099009901
+  "best_params": {
+    "sample_size": 256,
+    "threshold": 0.5
+  },
+  "per_pattern_performance": {
+    "normal": {
+      "type": "safe",
+      "total_count": 25500,
+      "flagged_rate": 0.0002
+    },
+    "legitimate_large_first_time": {
+      "type": "safe",
+      "total_count": 300,
+      "flagged_rate": 0.1
+    },
+    "legitimate_gift_purchase": {
+      "type": "safe",
+      "total_count": 300,
+      "flagged_rate": 0.03
+    },
+    "promo_coupon_abuse": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    },
+    "genuine_b2b_wholesale": {
+      "type": "safe",
+      "total_count": 300,
+      "flagged_rate": 0.91
+    },
+    "chargeback_prone_bin_ranges": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    },
+    "account_takeover_post_purchase": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.1852
+    },
+    "refund_return_abuse": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.1852
+    },
+    "genuine_traveler": {
+      "type": "safe",
+      "total_count": 300,
+      "flagged_rate": 0.0033
+    },
+    "friendly_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.037
+    },
+    "subscription_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    },
+    "legitimate_thin_credit": {
+      "type": "safe",
+      "total_count": 300,
+      "flagged_rate": 0.0133
+    },
+    "gift_card_cashout_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.037
+    },
+    "card_testing": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.6296
+    },
+    "api_abuse_credential_stuffing": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    },
+    "triangulation_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.1481
+    },
+    "cross_border_digital_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.1111
+    },
+    "trial_abuse_rings": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.9259
+    },
+    "marketplace_seller_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    },
+    "stolen_card_subscription_stacking": {
+      "type": "fraud",
+      "total_count": 27,
+      "flagged_rate": 0.0
+    }
+  },
+  "training_samples": 127759,
+  "test_samples": 27378
 }

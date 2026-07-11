@@ -144,47 +144,47 @@ export default function Billing() {
       name: 'Free',
       id: 'free',
       price: 0,
-      requests: '1,000',
+      requests: '3 Disputes',
       description: 'Starter',
       icon: Activity,
-      features: ['Basic fraud scoring', '7-day history', '1 API key', 'Dashboard access'],
-      missing: ['ML Ensemble', 'Webhooks', 'Analytics', 'Alerts'],
+      features: ['3 dispute templates / mo', 'Manual evidence uploads', 'Core tracking'],
+      missing: ['Automated Razorpay gathering', 'Shopify order matching', 'ML fraud risk matching'],
       cta: 'Current Plan',
       color: 'blue'
     },
     {
-      name: 'Builder',
+      name: 'Starter',
       id: 'basic',
-      price: isAnnual ? 799 : 999,
-      requests: '25,000',
+      price: 499,
+      requests: '10 Disputes',
       description: 'Basic',
       icon: Zap,
-      features: ['Everything in Free', 'ML Ensemble (IF+XGB)', 'SHAP Explainability', '1 Webhook', 'Alerts page'],
-      missing: ['Advanced Analytics', 'Cross-network signals'],
+      features: ['10 disputes / mo', 'Automated Razorpay gathering', 'Template builders'],
+      missing: ['Shopify order matching', 'ML fraud risk matching'],
       cta: 'Upgrade Plan',
       color: 'indigo'
     },
     {
       name: 'Growth',
       id: 'standard',
-      price: isAnnual ? 2399 : 2999,
-      requests: '1,00,000',
+      price: 1499,
+      requests: '50 Disputes',
       description: 'Standard',
       popular: true,
       icon: Layers,
-      features: ['Everything in Basic', 'Neural Net Ensemble', 'Full Analytics', '10 Keys / 5 Webhooks', 'Fraud Reports'],
-      missing: ['Dedicated Model'],
+      features: ['50 disputes / mo', 'Shopify order matching', 'Courier tracking validation'],
+      missing: ['ML fraud risk matching'],
       cta: 'Get Growth',
       color: 'sky'
     },
     {
       name: 'Enterprise',
       id: 'premium',
-      price: isAnnual ? 6399 : 7999,
+      price: 4999,
       requests: 'Unlimited',
       description: 'Premium',
       icon: Crown,
-      features: ['Unlimited everything', 'Dedicated ML model', '99.9% uptime SLA', 'Dedicated Slack', 'Custom Integrations'],
+      features: ['Unlimited disputes', 'ML fraud risk matching', 'Priority bank representation'],
       missing: [],
       cta: 'Contact Sales',
       color: 'purple'
@@ -229,7 +229,7 @@ export default function Billing() {
       >
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight font-display mb-2">Plans <span className="text-blue-500">&</span> Billing</h1>
-          <p className="text-slate-400 font-medium max-w-xl">Scale your fraud protection with our specialized Indian SaaS tiers. Unified control for your commerce growth.</p>
+          <p className="text-slate-400 font-medium max-w-xl">Scale your fraud and account security with unified controls across your global payment and ledger layers.</p>
         </div>
         <div className="flex items-center p-1.5 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
             <button 
@@ -300,7 +300,7 @@ export default function Billing() {
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-12 pt-10 border-t border-white/5">
                         <UsageStat label="Billing Cycle Ends" value={data?.next_billing_date ? new Date(data.next_billing_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : '∞'} icon={Calendar} />
-                        <UsageStat label="Current Rate" value={`₹${data?.amount_inr.toLocaleString()}`} icon={ArrowUpCircle} />
+                        <UsageStat label="Current Rate" value={data?.amount_inr ? `₹${data.amount_inr.toLocaleString('en-IN')}` : '₹0'} icon={ArrowUpCircle} />
                         <UsageStat label="Network Status" value={data?.status === 'active' ? 'Protected' : 'Pending'} icon={ShieldCheck} status={data?.status === 'active'} />
                         <div className="flex items-center justify-end">
                             <Button className="rounded-xl px-6 bg-white text-black hover:bg-slate-200 font-black text-[10px] uppercase tracking-widest h-10" onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>
@@ -458,7 +458,7 @@ export default function Billing() {
                                         className="transition-colors"
                                     >
                                         <td className="py-6 px-10 font-medium text-slate-300">{inv.date}</td>
-                                        <td className="py-6 px-10 font-black text-lg">₹{inv.amount.toLocaleString()}</td>
+                                        <td className="py-6 px-10 font-black text-lg">₹{inv.amount.toLocaleString('en-IN')}</td>
                                         <td className="py-6 px-10 text-slate-500 font-black text-[10px] uppercase tracking-widest">{inv.method || 'payment_node'}</td>
                                         <td className="py-6 px-10">
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${

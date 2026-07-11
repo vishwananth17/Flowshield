@@ -1,87 +1,145 @@
 {
-  "results": {
-    "roc_auc": 0.9999,
-    "pr_auc": 0.9828,
-    "recall": 0.9659,
-    "precision": 0.9551,
-    "specificity": 0.9997,
-    "far": 0.0003,
-    "f1_score": 0.9605,
-    "best_threshold": 0.84,
-    "tp": 85,
-    "fp": 4,
-    "tn": 15058,
-    "fn": 3,
-    "training_time_s": 1.4,
-    "cv_roc_auc_mean": 1.0,
-    "cv_roc_auc_std": 0.0
+  "dataset_size": 182520,
+  "fraud_rate": 0.013806706114398421,
+  "overall_metrics": {
+    "precision": 0.9488636363636364,
+    "recall": 0.8835978835978836,
+    "f1": 0.915068493150685,
+    "pr_auc": 0.9459151606140285,
+    "roc_auc": 0.9981373701744073,
+    "false_block_rate": 0.0006666666666666666,
+    "true_block_count": 334,
+    "false_block_count": 18,
+    "true_allow_count": 26982,
+    "false_allow_count": 44
   },
-  "feature_importance": {
-    "total_risk_score": 0.8076660633087158,
-    "is_new_device": 0.36108216643333435,
-    "merchant_risk_score": 0.25192755460739136,
-    "amount_vs_avg_ratio": 0.2430732697248459,
-    "amount_x_risk": 0.2327975034713745,
-    "ip_country_match": 0.16735976934432983,
-    "new_device_x_amount": 0.15371392667293549,
-    "tx_count_last_1h": 0.13212837278842926,
-    "device_age_days": 0.12286951392889023,
-    "tx_count_last_24h": 0.09213432669639587,
-    "behavioral_anomaly": 0.08725365996360779,
-    "unique_merchants_24h": 0.08025076985359192,
-    "amount_sum_last_1h": 0.05475655570626259,
-    "is_night": 0.04694732651114464,
-    "geo_x_amount": 0.044174984097480774,
-    "amount_inr": 0.039317935705184937,
-    "velocity_x_amount": 0.037767793983221054,
-    "amount_to_1h_sum_ratio": 0.028607726097106934,
-    "is_first_transaction": 0.025382859632372856,
-    "hour_of_day": 0.011729069985449314,
-    "mcc_risk_tier": 0.007300585508346558,
-    "tx_velocity_ratio": 0.005495251622051001,
-    "day_of_week": 0.0017943803686648607,
-    "card_country_match": 0.0017685535131022334,
-    "geo_risk_combined": 0.0016451574629172683,
-    "high_risk_mcc_x_amount": 0.0008623977191746235,
-    "is_weekend": 0.0,
-    "night_x_foreign": 0.0
+  "per_pattern_performance": {
+    "normal": {
+      "type": "safe",
+      "total_count": 25500,
+      "allowed_rate": 0.9995,
+      "blocked_rate": 0.0005
+    },
+    "legitimate_large_first_time": {
+      "type": "safe",
+      "total_count": 300,
+      "allowed_rate": 1.0,
+      "blocked_rate": 0.0
+    },
+    "legitimate_gift_purchase": {
+      "type": "safe",
+      "total_count": 300,
+      "allowed_rate": 0.9967,
+      "blocked_rate": 0.0033
+    },
+    "promo_coupon_abuse": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "genuine_b2b_wholesale": {
+      "type": "safe",
+      "total_count": 300,
+      "allowed_rate": 1.0,
+      "blocked_rate": 0.0
+    },
+    "chargeback_prone_bin_ranges": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "account_takeover_post_purchase": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "refund_return_abuse": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 0.963
+    },
+    "genuine_traveler": {
+      "type": "safe",
+      "total_count": 300,
+      "allowed_rate": 0.99,
+      "blocked_rate": 0.01
+    },
+    "friendly_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "subscription_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 0.2222,
+      "recall_review_combined": 0.1111
+    },
+    "legitimate_thin_credit": {
+      "type": "safe",
+      "total_count": 300,
+      "allowed_rate": 1.0,
+      "blocked_rate": 0.0
+    },
+    "gift_card_cashout_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 0.1852,
+      "recall_review_combined": 0.0
+    },
+    "card_testing": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "api_abuse_credential_stuffing": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "triangulation_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "cross_border_digital_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 0.963,
+      "recall_review_combined": 0.7778
+    },
+    "trial_abuse_rings": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 1.0
+    },
+    "marketplace_seller_fraud": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 0.963
+    },
+    "stolen_card_subscription_stacking": {
+      "type": "fraud",
+      "total_count": 27,
+      "recall_block": 1.0,
+      "recall_review_combined": 0.963
+    }
   },
-  "features": [
-    "amount_inr",
-    "hour_of_day",
-    "day_of_week",
-    "is_weekend",
-    "tx_count_last_1h",
-    "tx_count_last_24h",
-    "amount_sum_last_1h",
-    "amount_vs_avg_ratio",
-    "ip_country_match",
-    "card_country_match",
-    "is_new_device",
-    "merchant_risk_score",
-    "mcc_risk_tier",
-    "is_night",
-    "device_age_days",
-    "unique_merchants_24h",
-    "is_first_transaction",
-    "amount_x_risk",
-    "velocity_x_amount",
-    "geo_x_amount",
-    "night_x_foreign",
-    "new_device_x_amount",
-    "high_risk_mcc_x_amount",
-    "amount_to_1h_sum_ratio",
-    "tx_velocity_ratio",
-    "total_risk_score",
-    "geo_risk_combined",
-    "behavioral_anomaly"
-  ],
-  "model_version": "xgboost_v1.0",
-  "cv_scores": [
-    0.9999589056940107,
-    0.9999969043196647,
-    0.9999985712244607,
-    0.9999747803078926,
-    0.9999945544524464
-  ]
+  "recommended_thresholds": {
+    "block_threshold": 0.39,
+    "review_threshold": 0.91
+  },
+  "balancing_used": "SMOTE",
+  "status": "READY_FOR_PRODUCTION",
+  "specific_gaps": []
 }

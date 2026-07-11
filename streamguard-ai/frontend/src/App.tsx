@@ -18,6 +18,8 @@ import Profile from '@/pages/Profile';
 import Landing from '@/pages/Landing';
 import DevPortal from '@/pages/DevPortal';
 import Integrations from '@/pages/Integrations';
+import Disputes from '@/pages/Disputes';
+import DisputeDetail from '@/pages/DisputeDetail';
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
 import TermsOfService from '@/pages/legal/TermsOfService';
 import DataProcessingAgreement from '@/pages/legal/DataProcessingAgreement';
@@ -57,6 +59,8 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="api-keys" element={<ApiKeys />} />
               <Route path="transactions" element={<Transactions />} />
+              <Route path="disputes" element={<Disputes />} />
+              <Route path="disputes/:disputeId" element={<DisputeDetail />} />
               <Route path="alerts" element={<Alerts />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="integrations" element={<Integrations />} />

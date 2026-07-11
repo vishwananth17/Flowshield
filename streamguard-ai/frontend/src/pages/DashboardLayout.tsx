@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { 
@@ -13,12 +13,12 @@ import {
   Bell,
   Search,
   LogOut,
-  Shield,
   CreditCard,
   Menu,
   X,
   Plug2
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Button } from '@/components/ui/button';
@@ -57,8 +57,28 @@ export default function DashboardLayout() {
   // Activate global websocket
   useWebSocket();
 
+  // Dynamic disputes count for badge
+  const [disputesCount, setDisputesCount] = useState(0);
+
+  useEffect(() => {
+    const checkDisputes = async () => {
+      try {
+        const api = (await import('@/services/api')).default;
+        const res = await api.get('/disputes');
+        const openCount = res.data.filter((d: any) => d.status === 'open' || d.status === 'evidence_gathering').length;
+        setDisputesCount(openCount);
+      } catch (e) {
+        // silent
+      }
+    };
+    checkDisputes();
+    const interval = setInterval(checkDisputes, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Disputes', path: '/dashboard/disputes', icon: Shield },
     { name: 'Transactions', path: '/dashboard/transactions', icon: Activity },
     { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle },
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
@@ -75,17 +95,15 @@ export default function DashboardLayout() {
         fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-[#1F2937] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-6 flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-600/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-            <Shield className="h-5 w-5 text-blue-400" />
-          </div>
+        <div className="p-6 flex items-center space-x-3">
+          <Logo size={32} iconSize={18} theme="dark" />
           <span className="text-xl font-display font-bold">Flowshield AI</span>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="space-y-1 px-4">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || (item.name === 'Disputes' && location.pathname.startsWith('/dashboard/disputes'));
               const Icon = item.icon;
               return (
                 <Link
@@ -101,6 +119,11 @@ export default function DashboardLayout() {
                   <span className="font-medium text-sm flex-1">{item.name}</span>
                   {item.name === 'Alerts' && (
                     <AlertBadge />
+                  )}
+                  {item.name === 'Disputes' && disputesCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                      {disputesCount}
+                    </span>
                   )}
                   {item.name === 'Plans & Billing' && (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${planStyle}`}>

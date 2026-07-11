@@ -4,8 +4,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Shield, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Logo from '@/components/Logo';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -53,8 +54,8 @@ export default function Login() {
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               className="flex justify-center"
             >
-              <div className="relative rounded-full bg-blue-500/10 p-4 ring-1 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                <Shield className="h-8 w-8 text-blue-400" />
+              <div className="relative">
+                <Logo size={64} iconSize={32} theme="dark" />
                 <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-purple-400 animate-pulse" />
               </div>
             </motion.div>

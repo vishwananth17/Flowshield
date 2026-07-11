@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, func
+from decimal import Decimal
+from sqlalchemy import DateTime, Integer, String, Numeric, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,6 +28,10 @@ class Organization(Base):
     subscription_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Risk Engine thresholds
+    threshold_review: Mapped[Decimal] = mapped_column(Numeric(5, 4), default=Decimal("0.4000"), nullable=False)
+    threshold_block: Mapped[Decimal] = mapped_column(Numeric(5, 4), default=Decimal("0.8000"), nullable=False)
+
     # Usage Limits
     monthly_request_limit: Mapped[int] = mapped_column(Integer, default=1000)
     monthly_request_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -44,6 +49,24 @@ class Organization(Base):
 
     users: Mapped[list["User"]] = relationship("User", back_populates="organization")
     api_keys: Mapped[list["ApiKey"]] = relationship("ApiKey", back_populates="organization")
+
+    from sqlalchemy.orm import validates
+    @validates("threshold_review", "threshold_block")
+    def validate_thresholds(self, key, value):
+        if value is None:
+            return value
+        val = Decimal(str(value))
+        if val < Decimal("0.0") or val > Decimal("1.0"):
+            raise ValueError(f"{key} must be between 0.0 and 1.0")
+        
+        if key == "threshold_review":
+            if self.threshold_block is not None and val > Decimal(str(self.threshold_block)):
+                raise ValueError("threshold_review cannot be greater than threshold_block")
+        elif key == "threshold_block":
+            if self.threshold_review is not None and val < Decimal(str(self.threshold_review)):
+                raise ValueError("threshold_block cannot be less than threshold_review")
+                
+        return val
 
 
 from typing import TYPE_CHECKING  # noqa: E402

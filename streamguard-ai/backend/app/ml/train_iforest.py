@@ -1,160 +1,185 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import pandas as pd
 import numpy as np
+import joblib
+import json
+import time
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import (roc_auc_score, recall_score, 
-    f1_score, confusion_matrix, classification_report)
+from sklearn.metrics import roc_auc_score, confusion_matrix, recall_score, precision_score, average_precision_score
 from sklearn.ensemble import IsolationForest as SklearnIF
-import joblib, json, time, os
 
 from algorithms.mviforest import MVIForest
-
-FEATURE_COLUMNS = [
-    'amount_inr', 'hour_of_day', 'day_of_week', 'is_weekend',
-    'tx_count_last_1h', 'tx_count_last_24h', 'amount_sum_last_1h',
-    'amount_vs_avg_ratio', 'ip_country_match', 'card_country_match',
-    'is_new_device', 'merchant_risk_score', 'mcc_risk_tier', 
-    'is_night', 'device_age_days', 'unique_merchants_24h',
-    'is_first_transaction'
-]
+from features.feature_engineer import UnifiedFeatureEngineer
 
 def load_and_preprocess():
-    df = pd.read_csv('data/fraud_dataset.csv')
-    
-    X = df[FEATURE_COLUMNS].values
-    y = df['is_fraud'].values
-    
-    # Log-transform amount features (reduces skew)
-    amount_indices = [0, 6]  # amount_inr, amount_sum_last_1h
-    for idx in amount_indices:
-        X[:, idx] = np.log1p(X[:, idx])
+    if not os.path.exists('data/fraud_dataset.csv'):
+        print("Dataset missing! Run generate_fraud_dataset.py first.")
+        sys.exit(1)
         
-    # Scale features to [0, 1] range
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    df = pd.read_csv('data/fraud_dataset.csv')
+    if 'currency' not in df.columns:
+        df['currency'] = 'INR'
+    else:
+        df['currency'] = df['currency'].fillna('INR')
     
-    return X_scaled, y, scaler
+    # Create compound stratification key
+    df['strat_key'] = df['is_fraud'].astype(str) + "_" + df['pattern_category'].astype(str)
+    
+    # 70/15/15 split
+    X_temp, X_test_raw, y_temp, y_test = train_test_split(
+        df, df['is_fraud'], test_size=0.15, random_state=42, stratify=df['strat_key']
+    )
+    X_train_raw, X_val_raw, y_train, y_val = train_test_split(
+        X_temp, y_temp, test_size=0.1765, random_state=42, stratify=X_temp['strat_key']
+    )
+    
+    # Build features
+    engineer = UnifiedFeatureEngineer(None)
+    X_train_df = engineer.build_training_matrix(X_train_raw.to_dict(orient='records'))
+    X_val_df = engineer.build_training_matrix(X_val_raw.to_dict(orient='records'))
+    X_test_df = engineer.build_training_matrix(X_test_raw.to_dict(orient='records'))
+    
+    # Scale features
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train_df.values)
+    X_val = scaler.transform(X_val_df.values)
+    X_test = scaler.transform(X_test_df.values)
+    
+    return X_train, X_val, X_test, y_train.values, y_val.values, y_test.values, X_test_raw, scaler
 
-def evaluate_model(model, X_test, y_test, model_name):
-    """
-    Evaluate using paper metrics: ROC AUC, Recall,
-    Specificity, FAR, F1 Score
-    """
+def evaluate_anomaly_detector(model, X_test, y_test, model_name):
+    """Evaluate using fraud-specific metrics at top 1% threshold"""
     start = time.time()
-    # sklearn IsolationForest.score_samples returns negative scores
-    # our MVIForest also returns negative scores for compatibility
-    scores = -model.score_samples(X_test)  # higher = more anomalous
+    scores = -model.score_samples(X_test)
     latency = (time.time() - start) * 1000
     
-    # Convert scores to binary predictions using threshold
-    threshold = np.percentile(scores, 99)  # top 1% = fraud
-    y_pred = (scores > threshold).astype(int)
+    # Top 1% as anomalies
+    threshold = np.percentile(scores, 98.6) # matches fraud rate ~1.4%
+    y_pred = (scores >= threshold).astype(int)
     
-    # Paper metrics
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
-    far = fp / (fp + tn) if (fp + tn) > 0 else 0
+    recall = recall_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, zero_division=0)
     roc_auc = roc_auc_score(y_test, scores)
-    f1 = f1_score(y_test, y_pred)
+    pr_auc = average_precision_score(y_test, scores)
+    
+    genuine_count = tn + fp
+    false_block_rate = (fp / genuine_count) if genuine_count > 0 else 0.0
     
     print(f"\n{'='*50}")
     print(f"Model: {model_name}")
     print(f"{'='*50}")
-    print(f"ROC AUC:     {roc_auc:.4f}")
-    print(f"Recall:      {recall:.4f}  (fraud detection rate)")
-    print(f"Specificity: {specificity:.4f} (normal correct rate)")
-    print(f"FAR:         {far:.4f}   (false alarm rate)")
-    print(f"F1 Score:    {f1:.4f}")
-    print(f"Latency:     {latency:.1f}ms for {len(X_test)} samples")
-    print(f"Per-sample:  {latency/len(X_test)*1000:.2f}µs")
+    print(f"ROC AUC:           {roc_auc:.4f}")
+    print(f"PR AUC:            {pr_auc:.4f}")
+    print(f"Recall (Fraud):    {recall*100:.2f}%  ({tp}/{tp+fn} caught)")
+    print(f"Precision (Block): {precision*100:.2f}%")
+    print(f"False Block Rate:  {false_block_rate*100:.3f}%  (target < 0.5%)")
+    print(f"Latency:           {latency:.1f}ms for {len(X_test)} samples")
     
     return {
         "model": model_name,
         "roc_auc": round(float(roc_auc), 4),
+        "pr_auc": round(float(pr_auc), 4),
         "recall": round(float(recall), 4),
-        "specificity": round(float(specificity), 4),
-        "far": round(float(far), 4),
-        "f1_score": round(float(f1), 4),
+        "precision": round(float(precision), 4),
+        "false_block_rate": round(float(false_block_rate), 4),
         "latency_ms": round(float(latency), 2),
     }
 
-def train():
-    print("Loading dataset...")
-    X, y, scaler = load_and_preprocess()
+def main():
+    print("Loading and preprocessing dataset...")
+    X_train, X_val, X_test, y_train, y_val, y_test, X_test_raw, scaler = load_and_preprocess()
     
-    # Paper approach: train on ALL data (including anomalies)
-    # Split: 80% train, 20% test — labels only used for evaluation
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, 
-        stratify=y  # maintain fraud ratio in both splits
-    )
-    print(f"Train: {len(X_train)}, Test: {len(X_test)}")
-    print(f"Fraud in test: {y_test.sum()} ({y_test.mean()*100:.1f}%)")
+    print(f"Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
     
-    results = []
-    os.makedirs('models', exist_ok=True)
+    # 4. Re-tune sample_size and threshold parameters
+    print("\nSweeping hyperparameter candidates for MVIForest on validation split...")
+    best_val_auc = 0
+    best_params = {"sample_size": 256, "threshold": 0.60}
     
-    # Model 1: sklearn IsolationForest (baseline)
-    print("\nTraining sklearn IsolationForest (baseline)...")
-    start = time.time()
-    sklearn_if = SklearnIF(
-        n_estimators=100,
-        max_samples=256,
-        contamination=0.01,
-        random_state=42
-    )
+    for ss in [256, 512]:
+        for th in [0.50, 0.55, 0.60]:
+            mvi_temp = MVIForest(n_estimators=100, sample_size=ss, threshold=th, random_state=42)
+            mvi_temp.fit(X_train)
+            scores = -mvi_temp.score_samples(X_val)
+            auc = roc_auc_score(y_val, scores)
+            print(f"  sample_size={ss:3d}, threshold={th:.2f} -> Val ROC AUC: {auc:.4f}")
+            if auc > best_val_auc:
+                best_val_auc = auc
+                best_params = {"sample_size": ss, "threshold": th}
+                
+    print(f"Best Tuning Configuration: {best_params} (Val ROC-AUC: {best_val_auc:.4f})")
+    
+    # Fit final models
+    print("\nFitting final models...")
+    sklearn_if = SklearnIF(n_estimators=100, max_samples=best_params["sample_size"], contamination=0.014, random_state=42)
     sklearn_if.fit(X_train)
-    print(f"  Training time: {time.time()-start:.2f}s")
-    results.append(evaluate_model(sklearn_if, X_test, y_test, "IForest (sklearn)"))
     
-    # Model 2: MVIForest (paper implementation)
-    print("\nTraining MVIForest (paper implementation)...")
-    start = time.time()
-    mvi = MVIForest(
-        n_estimators=100,
-        sample_size=256,
-        threshold=0.6,
-        random_state=42
-    )
+    mvi = MVIForest(n_estimators=100, sample_size=256, threshold=0.60, random_state=42)
     mvi.fit(X_train)
-    print(f"  Training time: {time.time()-start:.2f}s")
-    results.append(evaluate_model(mvi, X_test, y_test, "MVIForest (paper)"))
     
-    # Model 3: MVIForest tuned for fraud detection
-    print("\nTraining MVIForest (tuned for fraud)...")
-    start = time.time()
-    mvi_tuned = MVIForest(
-        n_estimators=100,
-        sample_size=512,  # larger sample
-        threshold=0.55,   # slightly lower threshold
-        random_state=42
-    )
+    mvi_tuned = MVIForest(n_estimators=100, sample_size=best_params["sample_size"], threshold=best_params["threshold"], random_state=42)
     mvi_tuned.fit(X_train)
-    print(f"  Training time: {time.time()-start:.2f}s")
-    results.append(evaluate_model(mvi_tuned, X_test, y_test, "MVIForest (tuned)"))
     
-    # Save the best performing model
-    print("\nSaving models...")
+    # Evaluate
+    results = []
+    results.append(evaluate_anomaly_detector(sklearn_if, X_test, y_test, "IForest (sklearn)"))
+    results.append(evaluate_anomaly_detector(mvi, X_test, y_test, "MVIForest (paper baseline)"))
+    results.append(evaluate_anomaly_detector(mvi_tuned, X_test, y_test, "MVIForest (tuned)"))
+    
+    # Per-pattern evaluation on untouched test set for MVIForest (Tuned)
+    print("\nEvaluating MVIForest anomaly detection rate per pattern...")
+    test_scores = -mvi_tuned.score_samples(X_test)
+    test_thresh = np.percentile(test_scores, 98.6)
+    
+    test_df_eval = X_test_raw.copy()
+    test_df_eval['pred_anomaly'] = (test_scores >= test_thresh).astype(int)
+    
+    patterns = test_df_eval['pattern_category'].unique()
+    per_pattern_perf = {}
+    
+    print("\nMVIForest Per-Pattern Detection Breakdown:")
+    for pattern in patterns:
+        sub = test_df_eval[test_df_eval['pattern_category'] == pattern]
+        total_count = len(sub)
+        flagged = sub['pred_anomaly'].sum()
+        flagged_rate = flagged / total_count
+        
+        is_fraud_pat = sub['is_fraud'].iloc[0] == 1
+        pat_type = "fraud" if is_fraud_pat else "safe"
+        
+        per_pattern_perf[pattern] = {
+            "type": pat_type,
+            "total_count": int(total_count),
+            "flagged_rate": round(float(flagged_rate), 4)
+        }
+        
+        if pat_type == "fraud":
+            print(f"  Fraud Pattern '{pattern}': Unsupervised Anomaly Flag Rate = {flagged_rate*100:.1f}%")
+        else:
+            print(f"  Safe Edge Case '{pattern}': False Flagged Rate = {flagged_rate*100:.1f}% (target: lower is better)")
+            
+    # Save artifacts
+    print("\nSaving MVIForest artifacts...")
+    os.makedirs('models', exist_ok=True)
     joblib.dump(sklearn_if, 'models/iforest_baseline.joblib')
     joblib.dump(mvi,        'models/mviforest_v1.joblib')
     joblib.dump(mvi_tuned,  'models/mviforest_tuned_v1.joblib')
     joblib.dump(scaler,     'models/feature_scaler.joblib')
     
-    # Save training results
     with open('models/training_results_iforest.json', 'w') as f:
         json.dump({
             "results": results,
-            "feature_columns": FEATURE_COLUMNS,
+            "best_params": best_params,
+            "per_pattern_performance": per_pattern_perf,
             "training_samples": len(X_train),
             "test_samples": len(X_test),
-            "fraud_rate": float(y.mean()),
         }, f, indent=2)
         
     print("\nAll models saved to models/")
-    print("\nComparison Summary:")
-    for r in results:
-        print(f"  {r['model']:30s} ROC AUC: {r['roc_auc']:.4f}  Recall: {r['recall']:.4f}  FAR: {r['far']:.4f}")
 
 if __name__ == "__main__":
-    train()
+    main()

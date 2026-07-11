@@ -104,7 +104,7 @@ export default function Analytics() {
             
             {/* Interactive Dots for Countries with Data */}
             <div className="absolute inset-0">
-                {stats && Object.entries(stats.risk_by_country).map(([code, count], index) => {
+                {stats && Object.entries(stats.risk_by_country || {}).map(([code, count], index) => {
                     const coord = COUNTRY_COORDS[code] || { x: Math.random() * 800 + 100, y: Math.random() * 300 + 100, name: code };
                     const size = Math.min(60, 10 + count * 5);
                     return (

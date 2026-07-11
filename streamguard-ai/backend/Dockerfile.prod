@@ -9,17 +9,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Install python dependencies using cache mounts
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r ./requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install -r ./requirements.txt
 
 # Stage 2: Final
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Create a non-root user for security
-RUN useradd -m -u 1000 appuser
+# Create a non-root system user for security
+RUN groupadd -g 1000 appgroup && \
+    useradd -r -u 1000 -g appgroup -s /bin/false appuser
 
 # Copy installed dependencies from builder
 COPY --from=builder /install /usr/local
@@ -31,7 +33,7 @@ COPY ./backend/alembic.ini /app/alembic.ini
 COPY ./backend/train_model.py /app/train_model.py
 
 # Run model calibration (Train and Serialize)
-RUN mkdir -p /app/app/ml_models && python /app/train_model.py && chown -R appuser:appuser /app/app/ml_models
+RUN mkdir -p /app/app/ml_models && python /app/train_model.py && chown -R appuser:appgroup /app/app/ml_models
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

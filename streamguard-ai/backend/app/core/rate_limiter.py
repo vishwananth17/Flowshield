@@ -120,7 +120,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             new_count = ((org.monthly_request_count if org else 0) or 0) + 1
 
         # 4. Async update DB every 100 increments
-        if new_count % 100 == 0:
+        if not is_sandbox and new_count % 100 == 0:
             async def update_db():
                 async with AsyncSessionLocal() as db:
                     stmt = select(Organization).where(Organization.id == org_id)

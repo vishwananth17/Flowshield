@@ -19,25 +19,28 @@ from app.core.plan_limits import PLAN_LIMITS, get_limit
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
 # Razorpay Configuration
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")  # Set this in Razorpay dashboard
+from app.core.config import get_settings
+settings = get_settings()
 
-# Plan IDs from environment
+RAZORPAY_KEY_ID = settings.razorpay_key_id
+RAZORPAY_KEY_SECRET = settings.razorpay_key_secret
+WEBHOOK_SECRET = settings.razorpay_webhook_secret
+
+# Plan IDs from settings
 PLANS = {
     "basic": {
-        "monthly": os.getenv("RAZORPAY_PLAN_BASIC_MONTHLY"),
-        "annual": os.getenv("RAZORPAY_PLAN_BASIC_ANNUAL"),
+        "monthly": settings.razorpay_plan_basic_monthly,
+        "annual": settings.razorpay_plan_basic_annual,
         "price": 999
     },
     "standard": {
-        "monthly": os.getenv("RAZORPAY_PLAN_GROWTH_MONTHLY"),
-        "annual": os.getenv("RAZORPAY_PLAN_GROWTH_ANNUAL"),
+        "monthly": settings.razorpay_plan_growth_monthly,
+        "annual": settings.razorpay_plan_growth_annual,
         "price": 2999
     },
     "premium": {
-        "monthly": os.getenv("RAZORPAY_PLAN_PREMIUM_MONTHLY"),
-        "annual": os.getenv("RAZORPAY_PLAN_PREMIUM_ANNUAL"),
+        "monthly": settings.razorpay_plan_premium_monthly,
+        "annual": settings.razorpay_plan_premium_annual,
         "price": 7999
     }
 }

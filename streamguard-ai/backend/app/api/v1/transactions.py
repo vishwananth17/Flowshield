@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,12 +44,6 @@ class TransactionListItem(BaseModel):
     summary="Transaction Risk Analysis",
     description="Perform high-fidelity heuristic and ML-driven risk assessment on a single transaction. Includes SHAP explainability and immediate event broadcasting."
 )
-@router.post(
-    "/analyze",
-    response_model=TransactionAnalyzeResponse,
-    summary="Transaction Risk Analysis",
-    description="Perform high-fidelity heuristic and ML-driven risk assessment on a single transaction. Includes SHAP explainability and immediate event broadcasting."
-)
 async def analyze_transaction(
     body: TransactionAnalyzeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -64,7 +58,7 @@ async def analyze_transaction(
         if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3."):
             current_plan = "enterprise"
             
-        result = _fraud.analyze(body, plan=current_plan)
+        result = await _fraud.analyze(body, plan=current_plan, db=db, org_id=auth.org_id)
         
         # 3. Calculate latency
         latency_ms = int((time.perf_counter() - start_time) * 1000)
@@ -80,10 +74,22 @@ async def analyze_transaction(
         db.add(new_tx)
         await db.commit()
         
-        # 5. Background Tasks (Alerting)
+        # 5. Background Tasks (Alerting & Shadow Evaluation)
         task = asyncio.create_task(_fraud.process_auto_alert(auth.org_id, body, result, internal_id))
         _background_tasks.add(task)
         task.add_done_callback(_background_tasks.discard)
+
+        if result.features:
+            from app.services.shadow_evaluator import ShadowEvaluator
+            shadow_task = asyncio.create_task(ShadowEvaluator.evaluate_shadow(
+                tx_id=internal_id,
+                production_version=result.model_version,
+                production_score=result.risk_score,
+                features=result.features,
+                db=db
+            ))
+            _background_tasks.add(shadow_task)
+            shadow_task.add_done_callback(_background_tasks.discard)
 
         # 6. WebSocket Broadcast (Dashboard Live Feed)
         try:

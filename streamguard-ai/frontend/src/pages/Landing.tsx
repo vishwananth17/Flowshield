@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Shield, 
   Zap, 
   BarChart3, 
   ChevronRight, 
@@ -22,6 +21,7 @@ import api from '@/services/api';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import EnterpriseModal from '@/components/EnterpriseModal';
+import Logo from '@/components/Logo';
 
 export default function Landing() {
   const [email, setEmail] = useState('');
@@ -54,46 +54,46 @@ export default function Landing() {
       name: 'Free',
       id: 'free',
       price: 0,
-      requests: '1,000',
+      requests: '3 Disputes',
       description: 'Starter',
-      features: ['Basic fraud scoring', '7-day history', '1 API key', 'Dashboard access'],
-      missing: ['ML Ensemble', 'Webhooks', 'Analytics', 'Alerts'],
+      features: ['3 dispute templates / mo', 'Manual evidence uploads', 'Core tracking'],
+      missing: ['Automated Razorpay gathering', 'Shopify order matching', 'ML fraud risk matching'],
       cta: 'Start Free — No Card Required',
       badge: null,
       color: 'gray'
     },
     {
-      name: 'Builder',
+      name: 'Starter',
       id: 'basic',
-      price: isAnnual ? 799 : 999,
-      requests: '25,000',
+      price: 499,
+      requests: '10 Disputes',
       description: 'Basic',
-      features: ['Everything in Free', 'ML Ensemble (IF+XGB)', 'SHAP Explainability', '1 Webhook', 'Alerts page', '30-day history', 'Email Support'],
-      missing: ['Advanced Analytics', 'Cross-network signals'],
-      cta: 'Start Builder',
+      features: ['10 disputes / mo', 'Automated Razorpay gathering', 'Template builders'],
+      missing: ['Shopify order matching', 'ML fraud risk matching'],
+      cta: 'Start Starter',
       badge: null,
       color: 'blue'
     },
     {
       name: 'Growth',
       id: 'standard',
-      price: isAnnual ? 2399 : 2999,
-      requests: '1,00,000',
+      price: 1499,
+      requests: '50 Disputes',
       description: 'Standard',
       badge: 'MOST POPULAR',
-      features: ['Everything in Basic', 'Full ML Ensemble', 'Cross-network signals', 'Full Analytics', '10 Keys / 5 Webhooks', 'Merchant Intelligence', 'Monthly Fraud Reports'],
-      missing: ['Dedicated Model'],
+      features: ['50 disputes / mo', 'Shopify order matching', 'Courier tracking validation'],
+      missing: ['ML fraud risk matching'],
       cta: 'Start Growth — Most Popular',
       color: 'emerald'
     },
     {
       name: 'Enterprise',
       id: 'premium',
-      price: isAnnual ? 6399 : 7999,
+      price: 4999,
       requests: 'Unlimited',
       description: 'Premium',
       badge: 'ENTERPRISE',
-      features: ['Unlimited everything', 'Dedicated ML model', '99.9% uptime SLA', 'Dedicated Slack', 'Custom Integrations', 'Onboarding with Founder'],
+      features: ['Unlimited disputes', 'ML fraud risk matching', 'Priority bank representation'],
       missing: [],
       cta: 'Contact Sales',
       color: 'purple'
@@ -104,10 +104,8 @@ export default function Landing() {
     <div className="min-h-screen bg-[#020617] text-slate-50 selection:bg-blue-500/30 overflow-x-hidden">
       {/* Nav */}
       <nav className="relative z-50 flex items-center justify-between px-4 md:px-6 py-6 max-w-7xl mx-auto backdrop-blur-md sticky top-0 border-b border-white/5 bg-black/50">
-        <div className="flex items-center space-x-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg">
-            <Shield className="h-5 w-5 md:h-6 md:w-6 text-white" />
-          </div>
+        <div className="flex items-center space-x-3">
+          <Logo size={36} iconSize={20} theme="dark" />
           <span className="text-lg md:text-xl font-bold tracking-tight">Flowshield AI</span>
         </div>
         <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-400">
@@ -127,14 +125,14 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative pt-12 md:pt-20 pb-20 md:pb-32 px-4 md:px-6 max-w-7xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">Secure your pipeline today</span>
+          <span className="text-blue-500 font-black tracking-widest text-[10px] uppercase mb-4 block">Recover lost revenue today</span>
           <h1 className="text-4xl md:text-8xl font-black tracking-tighter mb-6 md:mb-8 leading-[1.0] md:leading-[0.9]">
-            Secure your payments with <br />
-            <span className="text-blue-500">Autonomous AI</span>
+            Automated Dispute & <br />
+            <span className="text-blue-500">Chargeback Defense</span>
           </h1>
           <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-400 mb-8 md:mb-12">
-            Flowshield AI monitors every transaction in real-time, detecting complex fraud behavior 
-            before it hits your balance. Built for high-volume marketplaces and fintech.
+            Flowshield AI connects to Razorpay, Cashfree, and Shopify to compile proof of delivery,
+            generate PDF response packages, and auto-submit disputes to win chargebacks.
           </p>
           {!isJoined ? (
             <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
@@ -272,9 +270,9 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard title="Real-time ML" icon={<Zap className="text-blue-500" />} desc="Latency-optimized XGBoost models process checks in under 100ms." />
-            <FeatureCard title="SHAP Insights" icon={<BarChart3 className="text-emerald-500" />} desc="Every decision comes with human-readable explanations of top fraud markers." />
-            <FeatureCard title="Razorpay Ready" icon={<CreditCard className="text-indigo-500" />} desc="Native integration with Razorpay webhooks for instant INR subscriptions." />
+            <FeatureCard title="Automated Evidence Compilation" icon={<Zap className="text-blue-500" />} desc="Connect Shopify, Razorpay, or custom APIs to pull order confirmations, Delhivery courier receipts, and delivery confirmations in real-time." />
+            <FeatureCard title="Urgency Countdown Reminders" icon={<BarChart3 className="text-emerald-500" />} desc="Never miss a gateway deadline. Automatically receive email alerts 7, 3, and 1 day before the dispute review cycle expires." />
+            <FeatureCard title="ReportLab PDF Defense Packages" icon={<CreditCard className="text-indigo-500" />} desc="Download professional, branded, court-grade PDF defense portfolios compiled according to card association guidelines." />
         </div>
       </section>
 
@@ -318,10 +316,8 @@ export default function Landing() {
       <footer className="border-t border-white/5 pt-20 pb-12 px-6 bg-[#01040a]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="bg-blue-600 p-1.5 rounded-lg">
-                <Shield className="h-4 w-4 text-white" />
-              </div>
+            <div className="flex items-center space-x-3 mb-6">
+              <Logo size={32} iconSize={18} theme="dark" />
               <span className="font-bold tracking-tight">Flowshield AI</span>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
@@ -413,7 +409,7 @@ function PricingCard({ name, id, price, requests, features, missing, cta, badge,
             <div className="text-[10px] text-emerald-400 font-bold mb-4">Billed annually at ₹{(price * 12).toLocaleString()}</div>
         )}
         <div className="text-[11px] font-black bg-white/5 px-3 py-1.5 rounded-lg w-fit text-slate-400 border border-white/5">
-            {requests} API REQUESTS
+            {requests}
         </div>
       </div>
 
