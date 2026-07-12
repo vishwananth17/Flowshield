@@ -32,6 +32,14 @@ export default function Disputes() {
   const [gatewayFilter, setGatewayFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, gatewayFilter]);
+
   // Create Manual Dispute Modal state
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -193,6 +201,12 @@ export default function Disputes() {
     );
   });
 
+  const totalItems = filteredDisputes.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedDisputes = filteredDisputes.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="space-y-8 relative">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
@@ -352,7 +366,7 @@ export default function Disputes() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1F2937]/40">
-                {filteredDisputes.map((dispute) => (
+                {paginatedDisputes.map((dispute) => (
                   <tr key={dispute.id} className="hover:bg-[#1F2937]/15 transition-colors group">
                     <td className="py-4 pr-4 align-middle">
                       <div className="font-bold text-white text-sm">{dispute.dispute_reference}</div>
@@ -386,6 +400,42 @@ export default function Disputes() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#1F2937]/80 gap-4 mt-4">
+              <div className="text-xs text-gray-400 font-medium">
+                Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

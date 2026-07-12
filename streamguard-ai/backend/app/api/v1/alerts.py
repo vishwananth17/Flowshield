@@ -128,19 +128,18 @@ async def list_alerts(
     # Flatten alerts with transaction data for the list view
     flat_alerts = []
     for alert in data["alerts"]:
-        # Fetch transaction details
+        # Fetch transaction details from eager-loaded relationship
         tx_amount = 0.0
         tx_currency = "USD"
         tx_merchant = "Unknown"
         tx_score = 0.0
         
-        if alert.transaction_id:
-            tx = await db.get(Transaction, alert.transaction_id)
-            if tx:
-                tx_amount = float(tx.amount)
-                tx_currency = tx.currency
-                tx_merchant = tx.merchant_name or "Unknown"
-                tx_score = float(tx.risk_score or 0.0)
+        tx = alert.transaction
+        if tx:
+            tx_amount = float(tx.amount)
+            tx_currency = tx.currency
+            tx_merchant = tx.merchant_name or "Unknown"
+            tx_score = float(tx.risk_score or 0.0)
 
         flat_alerts.append(
             AlertListItem(

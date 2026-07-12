@@ -1,5 +1,6 @@
 import logging
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,11 +8,22 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.core.middleware import RequestLoggingMiddleware
+from app.core.middleware import RequestLoggingMiddleware, get_cors_origins
 from app.core.rate_limiter import RateLimitMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize singleton Redis client
+    from app.core.redis import get_redis_client
+    get_redis_client()
+    yield
+    # Close Redis client connection gracefully on shutdown
+    from app.core.redis import get_redis_client
+    client = get_redis_client()
+    await client.close()
 
 def create_application() -> FastAPI:
     settings = get_settings()
@@ -20,15 +32,16 @@ def create_application() -> FastAPI:
         title=settings.app_name,
         version="1.0.1",
         description="Flowshield AI — Real-time high-fidelity fraud detection gateway.",
-        docs_url="/docs" if settings.environment != "production" else None,
-        redoc_url="/redoc" if settings.environment != "production" else None,
+        docs_url=None if settings.environment == "production" else "/docs",
+        redoc_url=None,
+        lifespan=lifespan,
     )
 
     # Middlewares
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=get_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -53,28 +66,87 @@ def create_application() -> FastAPI:
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         import traceback
-        error_msg = f"GLOBAL_CRASH: {str(exc)} | TRACE: {traceback.format_exc()}"
-        logger.error(error_msg)
+        logger.error(f"GLOBAL_CRASH: {str(exc)} | TRACE: {traceback.format_exc()}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "error": {
                     "code": "INTERNAL_ERROR",
-                    "message": error_msg,
+                    "message": "An unexpected error occurred. Please contact support.",
                     "request_id": request.state.request_id if hasattr(request.state, "request_id") else ""
                 }
             }
         )
 
     @app.get("/", tags=["Health"])
-    async def health_check():
+    async def index_root():
         return {
             "name": "Flowshield AI Commercial Gateway",
             "version": "1.0.1",
             "status": "operational",
-            "environment": "production"
+            "environment": settings.environment
         }
+
+    @app.get("/health", tags=["Health"])
+    async def health_check():
+        from sqlalchemy import text
+        from app.db.session import AsyncSessionLocal
+        from app.core.redis import get_redis_client
+        from app.ml.ensemble import get_ensemble
+        from app.core.kafka import kafka_streamer
+        
+        services = {}
+        overall_ok = True
+        
+        # 1. Database Check
+        try:
+            async with AsyncSessionLocal() as db:
+                await db.execute(text("SELECT 1"))
+            services["database"] = "ok"
+        except Exception as e:
+            services["database"] = f"error: {str(e)}"
+            overall_ok = False
+            
+        # 2. Redis Check
+        try:
+            client = get_redis_client()
+            await client.ping()
+            services["redis"] = "ok"
+        except Exception as e:
+            services["redis"] = f"error: {str(e)}"
+            # Redis is not hard-blocking for overall system health check if optional
+            
+        # 3. Kafka Check
+        try:
+            if kafka_streamer.producer:
+                services["kafka"] = "ok"
+            else:
+                services["kafka"] = "warning: no broker connection"
+        except Exception:
+            services["kafka"] = "error"
+            
+        # 4. ML Ensemble Check
+        try:
+            ensemble = get_ensemble()
+            if ensemble._mvi_available or ensemble._xgb_available:
+                services["ml_model"] = "ok"
+            else:
+                services["ml_model"] = "error: models not loaded"
+                overall_ok = False
+        except Exception as e:
+            services["ml_model"] = f"error: {str(e)}"
+            overall_ok = False
+            
+        status_code = status.HTTP_200_OK if overall_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "status": "ok" if overall_ok else "degraded",
+                "services": services
+            }
+        )
 
     return app
 
 app = create_application()
+

@@ -28,6 +28,7 @@ import CookiePolicy from '@/pages/legal/CookiePolicy';
 import SecurityPolicy from '@/pages/legal/SecurityPolicy';
 import CookieConsent from '@/components/CookieConsent';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
+import NotFound from '@/pages/NotFound';
 
 function App() {
   useAutoLogout();
@@ -50,7 +51,7 @@ function App() {
           <Route path="/security" element={<SecurityPolicy />} />
           {/* Legacy Decommissioned Routes */}
           <Route path="/demo" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
 
           
           <Route element={<ProtectedRoute />}>

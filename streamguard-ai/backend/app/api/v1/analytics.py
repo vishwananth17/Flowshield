@@ -3,7 +3,7 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from app.core.dependencies import get_db, CurrentUser
 from app.models.transaction import Transaction
@@ -50,7 +50,7 @@ async def get_stats(
     check_analytics_access(user.organization.plan)
     
     # ── Temporal Logic Synthesis ──────────────────────────────────────────
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     filter_date = None
     
     if range == "1h":
@@ -75,35 +75,25 @@ async def get_stats(
             q = q.where(Transaction.created_at <= end)
         return q
 
-    # 1. Total analyzed
-    total_result = await db.execute(_apply_temporal(select(func.count(Transaction.id))))
-    total_analyzed = total_result.scalar() or 0
-    
-    # 2. Fraud blocked
-    fraud_result = await db.execute(
-        _apply_temporal(select(func.count(Transaction.id)).where(Transaction.decision == "block"))
+    # Combined Stats Query using conditional aggregation
+    stats_query = select(
+        func.count(Transaction.id).label("total_analyzed"),
+        func.count(Transaction.id).filter(Transaction.decision == "block").label("fraud_blocked"),
+        func.count(Transaction.id).filter(Transaction.decision == "allow").label("safe_transactions"),
+        func.avg(Transaction.detection_latency_ms).label("avg_latency"),
+        func.sum(Transaction.amount).filter(Transaction.decision == "block").label("protected_volume")
     )
-    fraud_blocked = fraud_result.scalar() or 0
     
-    # 3. Safe transactions
-    safe_result = await db.execute(
-        _apply_temporal(select(func.count(Transaction.id)).where(Transaction.decision == "allow"))
-    )
-    safe_transactions = safe_result.scalar() or 0
+    stats_result = await db.execute(_apply_temporal(stats_query))
+    row = stats_result.mappings().first()
     
-    # 4. Avg latency
-    latency_result = await db.execute(
-        _apply_temporal(select(func.avg(Transaction.detection_latency_ms)))
-    )
-    avg_latency = float(latency_result.scalar() or 0)
-    
-    # 5. Amount Protected (sum of BLOCKED amounts)
-    volume_result = await db.execute(
-        _apply_temporal(select(func.sum(Transaction.amount)).where(Transaction.decision == "block"))
-    )
-    protected_volume = float(volume_result.scalar() or 0)
+    total_analyzed = row["total_analyzed"] or 0
+    fraud_blocked = row["fraud_blocked"] or 0
+    safe_transactions = row["safe_transactions"] or 0
+    avg_latency = float(row["avg_latency"] or 0.0)
+    protected_volume = float(row["protected_volume"] or 0.0)
 
-    # 6. Risk by country
+    # 6. Risk by country (stays as separate query for group_by dimension)
     country_result = await db.execute(
         _apply_temporal(
             select(Transaction.customer_country, func.count(Transaction.id))
@@ -134,7 +124,7 @@ async def export_analytics(
 ):
     check_analytics_access(user.organization.plan)
     
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     filter_date = None
     if range == "1h": filter_date = now - timedelta(hours=1)
     elif range == "24h": filter_date = now - timedelta(days=1)
@@ -191,7 +181,7 @@ async def get_time_series(
 ):
     check_analytics_access(user.organization.plan)
     
-    start_date = datetime.utcnow() - timedelta(days=days)
+    start_date = datetime.now(UTC) - timedelta(days=days)
     
     # Group by day
     result = await db.execute(

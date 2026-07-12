@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import time
 from typing import Any
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-import redis.asyncio as redis
+from app.core.redis import get_redis_client
 
 from app.db.session import get_db
 from app.core.config import get_settings
@@ -21,7 +21,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
         "version": "1.0.1",
         "environment": settings.environment,
         "uptime_seconds": int(time.time() - start_time),
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat() + "Z",
         "services": {}
     }
 
@@ -37,12 +37,11 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
     # 2. Check Redis (Optional in Production)
     try:
-        r = redis.from_url(settings.redis_url, socket_timeout=2.0, socket_connect_timeout=2.0)
+        r = get_redis_client()
         await r.ping()
         health_status["services"]["redis"] = "ok"
     except Exception:
         health_status["services"]["redis"] = "disconnected (optional)"
-        # We don't mark overall_ok as False for Redis
 
     # 3. Check Kafka (Optional)
     try:
@@ -56,20 +55,19 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
     # 4. Check ML model
     try:
-        from app.ml.model import ml_model
-        if ml_model and ml_model._model:
+        from app.ml.ensemble import get_ensemble
+        ensemble = get_ensemble()
+        if ensemble._mvi_available or ensemble._xgb_available:
             health_status["services"]["ml_model"] = "ok"
         else:
-            health_status["services"]["ml_model"] = "loading..."
-    except Exception:
-        health_status["services"]["ml_model"] = "skipped"
-
-    if health_status["services"]["database"] != "ok":
-        health_status["status"] = "degraded"
+            health_status["services"]["ml_model"] = "error: models not loaded"
+            overall_ok = False
+    except Exception as e:
+        health_status["services"]["ml_model"] = f"error: {str(e)}"
         overall_ok = False
-        # We don't raise 503 so that Railway health checks don't restart it if it's just minor
-        # but the user requested 503 if any service is down for monitoring
-        # return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content=health_status)
+
+    if not overall_ok:
+        health_status["status"] = "degraded"
 
     return health_status
 
@@ -80,7 +78,6 @@ async def ml_health_check() -> dict[str, Any]:
     Used for monitoring model drift, throughput, and ensemble health.
     """
     import os
-    import joblib
     from app.services.fraud_detection_service import FraudDetectionService
     _fraud = FraudDetectionService()
     
@@ -115,11 +112,12 @@ async def ml_health_check() -> dict[str, Any]:
 
     # Verify if model is hot in memory
     try:
-        if _fraud and _fraud.ensemble and _fraud.ensemble.xgb_model:
+        if _fraud and _fraud.ensemble and _fraud.ensemble._xgb_available:
             stats["status"] = "operational"
         else:
             stats["status"] = "warm-up"
-    except:
+    except Exception:
         stats["status"] = "degraded"
 
     return stats
+

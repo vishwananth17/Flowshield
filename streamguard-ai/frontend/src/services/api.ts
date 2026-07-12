@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Priority: VITE_API_URL env var → Render cloud (production) → localhost (fallback)
 // VITE_API_URL should be set in Vercel to the Render service URL
-const rawApiUrl = import.meta.env.VITE_API_URL || 'https://flowshield-stdr.onrender.com';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://api.flowshieldai.com';
 export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 const api = axios.create({
@@ -62,7 +62,7 @@ api.interceptors.response.use(
         localStorage.removeItem('flowshield_token');
         // Only redirect if we are on a protected dashboard route
         if (!isPublicPage && window.location.pathname.startsWith('/dashboard')) {
-          window.location.href = '/login';
+          window.location.href = '/login?expired=true';
         }
         return Promise.reject(e);
       }

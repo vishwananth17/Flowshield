@@ -1,23 +1,50 @@
 import json
+import logging
 from datetime import datetime
 from typing import Callable, Coroutine
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-import redis.asyncio as redis
 
 from app.core.config import get_settings
 from app.core.dependencies import get_analyze_auth
+from app.core.redis import get_redis_client
 from app.db.session import AsyncSessionLocal
 from app.models.organization import Organization
 
+logger = logging.getLogger(__name__)
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, redis_url: str):
+    def __init__(self, app, redis_url: str = None):
         super().__init__(app)
-        self.redis = redis.from_url(redis_url, decode_responses=True, socket_timeout=2.0, socket_connect_timeout=2.0)
+        self.redis = get_redis_client()
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Coroutine[None, None, Response]]) -> Response:
+        client_ip = request.client.host if request.client else "unknown"
+
+        # 1. Auth Endpoint Brute-Force Rate Limiting (IP-based)
+        is_auth = request.url.path in {"/api/v1/auth/login", "/api/v1/auth/register"}
+        if is_auth and request.method == "POST":
+            auth_key = f"rate:auth_ip:{client_ip}"
+            try:
+                current = await self.redis.get(auth_key)
+                if current and int(current) >= 10:
+                    return JSONResponse(
+                        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                        content={
+                            "error": {
+                                "code": "TOO_MANY_REQUESTS",
+                                "message": "Too many failed attempts. Please retry after 1 minute."
+                            }
+                        }
+                    )
+                new_val = await self.redis.incr(auth_key)
+                if new_val == 1:
+                    await self.redis.expire(auth_key, 60)
+            except Exception as e:
+                logger.error(f"Auth Rate Limiter Redis Error: {e}")
+
         # Only apply to analyze and sandbox endpoints
         is_analyze = request.url.path == "/api/v1/transactions/analyze"
         is_sandbox = request.url.path == "/api/v1/transactions/sandbox"
@@ -25,11 +52,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if not (is_analyze or is_sandbox) or request.method != "POST":
             return await call_next(request)
 
-        # 1. Identity identification
+        # 2. Identity identification
         org_id = None
         org = None
         limit = 1000
-        client_ip = request.client.host if request.client else "unknown"
         
         # Public sandbox uses IP-based limiting
         if is_sandbox:
@@ -81,10 +107,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     month_key = f"usage:{org_id}:{datetime.now().year}-{datetime.now().month:02d}"
                     
                 except Exception as e:
-                    print(f"Rate Limiter Auth Error: {e}")
+                    logger.error(f"Rate Limiter Auth Error: {e}")
                     return await call_next(request)
 
-        # 2. Check Redis for usage
+        # 3. Check Redis for usage
         try:
             now = datetime.now()
             # If not sandbox, month_key is already set for the org.
@@ -105,7 +131,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     }
                 )
 
-            # 3. Increment and set headers
+            # 4. Increment and set headers
             new_count = await self.redis.incr(month_key)
             if new_count == 1:
                 # Set TTL for the end of the month
@@ -114,12 +140,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 expire_at = datetime(now.year, now.month, last_day, 23, 59, 59)
                 await self.redis.expireat(month_key, int(expire_at.timestamp()))
         except Exception as e:
-            print(f"Rate Limiter Redis Error: {e}")
+            logger.error(f"Rate Limiter Redis Error: {e}")
             # Fallback: allow the request and use DB count + 1 as estimation
             # If it's a sandbox, we don't have a DB count to fallback to
             new_count = ((org.monthly_request_count if org else 0) or 0) + 1
 
-        # 4. Async update DB every 100 increments
+        # 5. Async update DB every 100 increments
         if not is_sandbox and new_count % 100 == 0:
             async def update_db():
                 async with AsyncSessionLocal() as db:
@@ -144,3 +170,4 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response.headers["X-RateLimit-Reset"] = str(int(reset_time))
         
         return response
+

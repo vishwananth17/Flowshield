@@ -15,6 +15,14 @@ export default function Transactions() {
   const [riskFilter, setRiskFilter] = useState('all');
   const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, riskFilter]);
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -35,6 +43,12 @@ export default function Transactions() {
     const matchesRisk = riskFilter === 'all' || tx.risk_label === riskFilter;
     return matchesSearch && matchesRisk;
   });
+
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   const handleExport = () => {
     if (filteredTransactions.length === 0) {
@@ -135,7 +149,7 @@ export default function Transactions() {
                     </td>
                   </tr>
                 ) : (
-                  filteredTransactions.map((tx, idx) => (
+                  paginatedTransactions.map((tx, idx) => (
                     <tr 
                       key={tx.id} 
                       onClick={() => setSelectedTxId(tx.id)}
@@ -187,6 +201,42 @@ export default function Transactions() {
                 )}
               </tbody>
             </table>
+          </div>
+          
+          {/* Pagination Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-[#1F2937]/80 gap-4">
+            <div className="text-xs text-gray-400 font-medium">
+              Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>

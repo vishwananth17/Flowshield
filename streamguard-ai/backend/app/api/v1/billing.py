@@ -140,7 +140,8 @@ async def create_subscription(
             "currency": "INR"
         }
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        logger.error(f"Subscription creation failed: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to initiate subscription with payment gateway.")
 
 
 @router.post(
@@ -201,7 +202,7 @@ async def verify_payment(
 async def razorpay_webhook(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
-    x_razorpay_signature: Annotated[str | None, Header()] = None
+    x_razorpay_signature: Annotated[str | None, Header(alias="X-Razorpay-Signature")] = None
 ):
     if not x_razorpay_signature:
         raise HTTPException(status_code=400, detail="Missing signature")
@@ -308,7 +309,8 @@ async def cancel_subscription(
         await db.commit()
         return {"success": True}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Subscription cancellation failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Failed to cancel subscription with payment gateway.")
 
 
 @router.get(

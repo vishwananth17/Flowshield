@@ -115,7 +115,8 @@ class AlertService:
         page: int = 1,
         per_page: int = 25
     ) -> dict[str, Any]:
-        query = select(Alert).where(Alert.org_id == org_id)
+        from sqlalchemy.orm import joinedload
+        query = select(Alert).options(joinedload(Alert.transaction)).where(Alert.org_id == org_id)
         
         if status != "all":
             query = query.where(Alert.status == status)

@@ -136,7 +136,7 @@ class FlowshieldEnsemble:
             return 0.5
 
         try:
-            from features.feature_engineer import UnifiedFeatureEngineer
+            from app.ml.features.feature_engineer import UnifiedFeatureEngineer
             feat_array = np.array([[
                 float(features.get(f, 0)) for f in UnifiedFeatureEngineer.BASE_FEATURES
             ]])
@@ -153,7 +153,7 @@ class FlowshieldEnsemble:
             return 0.5, []
 
         try:
-            from features.feature_engineer import UnifiedFeatureEngineer
+            from app.ml.features.feature_engineer import UnifiedFeatureEngineer
             feat_df = pd.DataFrame([features])
 
             # Ensure all base features present

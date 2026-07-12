@@ -125,9 +125,9 @@ async def analyze_transaction(
         }
     except Exception as e:
         import traceback
-        error_msg = f"PRODUCTION_CRASH: {str(e)} | TRACE: {traceback.format_exc()}"
-        logger.error(error_msg)
-        raise HTTPException(status_code=500, detail=error_msg)
+        logger.error(f"PRODUCTION_CRASH: {str(e)} | TRACE: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="An error occurred while processing the transaction.")
+
 
 
 @router.get(

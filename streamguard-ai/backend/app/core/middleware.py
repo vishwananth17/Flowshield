@@ -32,6 +32,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             raise
         duration_ms = (time.perf_counter() - start) * 1000
         response.headers["X-Request-ID"] = request_id
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
         log_payload = {
             "request_id": request_id,
             "method": request.method,
@@ -41,6 +46,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         }
         logger.info(json.dumps(log_payload))
         return response
+
 
 def get_cors_origins() -> list[str]:
     """Calculate allowed origins based on environment settings."""
