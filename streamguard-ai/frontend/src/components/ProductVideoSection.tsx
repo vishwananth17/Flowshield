@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 
-const YOUTUBE_VIDEO_ID = "dQw4w9WgXcQ"; // Default placeholder video ID, replace as needed
+const YOUTUBE_VIDEO_ID = "GnSlQz-14JY"; // Stripe Sessions 2024 Product Keynote placeholder
 
 export default function ProductVideoSection() {
   const [playing, setPlaying] = useState(false);
