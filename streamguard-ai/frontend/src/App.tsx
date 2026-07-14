@@ -35,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-right" richColors closeButton />
         <CookieConsent />
         <Routes>
           <Route path="/" element={<Landing />} />
