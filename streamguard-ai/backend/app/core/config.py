@@ -25,10 +25,33 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
         if isinstance(v, str):
+            # Standardize protocol first
             if v.startswith("postgres://"):
-                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+                v = v.replace("postgres://", "postgresql+asyncpg://", 1)
             elif v.startswith("postgresql://") and "+asyncpg" not in v:
-                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+                v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+                
+            # If we are running in the cloud (Render, Railway, or PORT binding is present)
+            import os
+            is_cloud = os.environ.get("RENDER") or os.environ.get("PORT")
+            if is_cloud:
+                try:
+                    from urllib.parse import urlparse
+                    # Replace protocol with standard HTTP schema for clean URL parsing
+                    clean_url = v.replace("postgresql+asyncpg://", "http://", 1).replace("postgresql://", "http://", 1)
+                    parsed = urlparse(clean_url)
+                    hostname = parsed.hostname
+                    
+                    # Direct check for local loopback / docker compose placeholders
+                    if not hostname or "localhost" in hostname or "127.0.0.1" in hostname or hostname == "db" or hostname == "localhost":
+                        return "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
+                    
+                    # Check if DNS resolves. If DNS resolution fails, fall back to Neon
+                    import socket
+                    socket.gethostbyname(hostname)
+                except Exception:
+                    # DNS lookup failed or parsing failed, fall back to live Neon instance
+                    return "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
         return v
     redis_url: str = Field(default="redis://localhost:6380/0", alias="REDIS_URL")
 
