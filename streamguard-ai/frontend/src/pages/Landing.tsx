@@ -171,8 +171,8 @@ export default function Landing() {
       </section>
 
       {/* --- HOW IT WORKS: THE NEURAL TRAFFIC HUB --- */}
-      <section className="py-32 px-6 max-w-6xl mx-auto relative overflow-hidden">
-        <div className="text-center mb-20">
+      <section className="py-16 md:py-32 px-6 max-w-6xl mx-auto relative overflow-hidden">
+        <div className="text-center mb-8 md:mb-20">
           <span className="text-indigo-400 font-bold tracking-widest text-[9px] uppercase bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">System Architecture</span>
           <h2 className="text-3xl md:text-5xl font-black mt-6 tracking-tight">The Forensic Engine in Motion</h2>
         </div>
@@ -231,7 +231,7 @@ export default function Landing() {
 
           {/* LEFT: RAW DATA INPUTS */}
           <div className="md:col-span-3 space-y-6 relative z-10">
-            <div className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Unstructured Data</div>
+            <div className="text-sm md:text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Unstructured Data</div>
             <NeuralNode icon={<CreditCard className="w-5 h-5 text-indigo-400" />} label="Card Payload" sub="Amount, BIN, Currency" />
             <NeuralNode icon={<Globe className="w-5 h-5 text-indigo-400" />} label="Geographic Data" sub="IP, VPN, Proxy Signals" />
             <NeuralNode icon={<Zap className="w-5 h-5 text-indigo-400" />} label="Velocity Signals" sub="TX Frequency & Batching" />
@@ -258,7 +258,7 @@ export default function Landing() {
 
           {/* RIGHT: STRUCTURED SYSTEMS */}
           <div className="md:col-span-3 space-y-6 relative z-10">
-            <div className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Structured Systems</div>
+            <div className="text-sm md:text-[10px] font-black tracking-widest text-slate-500 uppercase mb-4 text-center">Structured Systems</div>
             <NeuralNode icon={<Building2 className="w-5 h-5" />} label="ERP / Finance" sub="Settlement Ledger" color="text-indigo-400" />
             <NeuralNode icon={<ShieldCheck className="w-5 h-5" />} label="Risk Dashboard" sub="Forensic Visualization" color="text-emerald-400" />
             <NeuralNode icon={<BarChart3 className="w-5 h-5" />} label="Audit Ledger" sub="Immutible Compliance" color="text-blue-400" />
@@ -268,7 +268,7 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
+      <section id="features" className="py-12 md:py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard title="Automated Evidence Compilation" icon={<Zap className="text-blue-500" />} desc="Connect Shopify, Razorpay, or custom APIs to pull order confirmations, Delhivery courier receipts, and delivery confirmations in real-time." />
             <FeatureCard title="Urgency Countdown Reminders" icon={<BarChart3 className="text-emerald-500" />} desc="Never miss a gateway deadline. Automatically receive email alerts 7, 3, and 1 day before the dispute review cycle expires." />
@@ -415,14 +415,14 @@ function PricingCard({ name, id, price, requests, features, missing, cta, badge,
 
       <ul className="space-y-4 mb-10 flex-grow">
         {features.map((f: string) => (
-            <li key={f} className="flex items-start text-xs text-slate-300">
-                <CheckCircle2 className={`w-4 h-4 mr-2 flex-shrink-0 ${id === 'standard' ? 'text-emerald-400' : 'text-blue-500'}`} />
+            <li key={f} className="flex items-start text-base md:text-xs text-slate-300">
+                <CheckCircle2 className="w-5 h-5 mr-2 flex-shrink-0 text-emerald-400" />
                 <span>{f}</span>
             </li>
         ))}
         {missing.map((f: string) => (
-            <li key={f} className="flex items-start text-xs text-slate-600 line-through">
-                <X className="w-4 h-4 mr-2 flex-shrink-0" />
+            <li key={f} className="flex items-start text-base md:text-xs text-slate-600 line-through">
+                <X className="w-5 h-5 mr-2 flex-shrink-0" />
                 <span>{f}</span>
             </li>
         ))}
@@ -445,7 +445,7 @@ function FeatureCard({ title, icon, desc }: any) {
             {icon}
         </div>
         <h3 className="text-lg font-bold mb-3">{title}</h3>
-        <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+        <p className="text-slate-400 text-base md:text-sm leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -457,8 +457,8 @@ function NeuralNode({ icon, label, sub, color }: any) {
         {icon}
       </div>
       <div>
-        <div className={`text-xs font-bold ${color || 'text-white'}`}>{label}</div>
-        <div className="text-[9px] text-slate-500 uppercase tracking-widest">{sub}</div>
+        <div className={`text-base md:text-xs font-bold ${color || 'text-white'}`}>{label}</div>
+        <div className="text-sm md:text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">{sub}</div>
       </div>
     </div>
   );
