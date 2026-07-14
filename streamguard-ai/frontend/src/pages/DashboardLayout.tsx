@@ -38,6 +38,11 @@ export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, organization, logout } = useAuthStore();
   const location = useLocation();
+
+  // Close sidebar automatically on navigation path changes (for mobile/tablet sizes)
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
   
   // Derive display label and style from org plan
   const orgPlan = organization?.plan || 'free';
@@ -91,14 +96,31 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-[#0A0E1A] text-white overflow-hidden">
+      {/* Mobile Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar - Desktop & Tablet */}
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-[#1F2937] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-6 flex items-center space-x-3">
-          <Logo size={32} iconSize={18} theme="dark" />
-          <span className="text-xl font-display font-bold">Flowshield AI</span>
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Logo size={32} iconSize={18} theme="dark" />
+            <span className="text-xl font-display font-bold">Flowshield AI</span>
+          </div>
+          <button 
+            type="button"
+            className="lg:hidden text-gray-400 hover:text-white"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">
