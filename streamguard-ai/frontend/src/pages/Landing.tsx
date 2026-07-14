@@ -163,6 +163,14 @@ export default function Landing() {
                 Get Started Now
               </Link>
             </Button>
+            <Button 
+              onClick={() => document.getElementById('product-tour')?.scrollIntoView({ behavior: 'smooth' })}
+              variant="outline" 
+              className="border-white/10 hover:bg-white/5 text-slate-400 hover:text-white h-12 px-8 rounded-xl font-bold bg-slate-900/50 backdrop-blur-sm flex items-center gap-2"
+            >
+              <Play className="w-4 h-4 text-emerald-400 fill-current" />
+              Watch 60s Tour
+            </Button>
             <Button asChild variant="ghost" className="text-slate-500 hover:text-white h-12 px-8 rounded-xl font-bold">
               <Link to="/developers" className="flex items-center gap-2">
                 <Code className="w-4 h-4" />
@@ -271,7 +279,7 @@ export default function Landing() {
       </section>
 
       {/* --- PLATFORM DEMO: 60 SEC WALKTHROUGH --- */}
-      <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto text-center border-t border-white/5 relative">
+      <section id="product-tour" className="py-16 md:py-24 px-6 max-w-6xl mx-auto text-center border-t border-white/5 relative">
         <div className="mb-12">
           <span className="text-blue-500 font-bold tracking-widest text-[9px] uppercase bg-blue-500/10 px-4 py-1.5 rounded-full border border-blue-500/20">Product Tour</span>
           <h2 className="text-3xl md:text-5xl font-black mt-6 tracking-tight">60-Second Walkthrough</h2>
