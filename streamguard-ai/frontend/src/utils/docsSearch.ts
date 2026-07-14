@@ -15,6 +15,12 @@ const DOC_INDEX: DocEntry[] = [
   },
   { 
     id: '2', section: 'Getting Started',
+    title: 'Merchant Guide (Non-Technical)',
+    content: 'general overview non-technical chargebacks dispute manual shipping tracking delhivery express courier setup walkthrough video checklists',
+    anchor: '#merchant-guide' 
+  },
+  { 
+    id: '13', section: 'Getting Started',
     title: 'Quick Start',
     content: 'API key authentication X-API-Key header analyze transaction fraud detection post json curl Python Node.js',
     anchor: '#quick-start' 

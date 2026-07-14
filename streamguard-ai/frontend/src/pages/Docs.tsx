@@ -31,6 +31,7 @@ import { useActiveSection } from '../hooks/useActiveSection';
 
 const SECTION_IDS = [
   'introduction',
+  'merchant-guide',
   'quick-start',
   'authentication',
   'request-schema',
@@ -119,6 +120,7 @@ export default function Docs() {
       category: 'Getting Started',
       items: [
         { id: 'introduction', label: 'Introduction' },
+        { id: 'merchant-guide', label: 'Merchant Guide (Non-Technical)' },
         { id: 'quick-start', label: 'Quick Start (5 minutes)' },
       ]
     },
@@ -325,6 +327,116 @@ export default function Docs() {
                 </div>
                 <div className="mt-4 sm:mt-0 p-2 bg-[#3B82F6]/10 text-[#3B82F6] rounded-lg text-xs font-bold tracking-widest border border-[#3B82F6]/20">
                   V1.0.0 — STABLE
+                </div>
+              </div>
+            </AnimatedSection>
+
+            <hr className="my-16 border-[#1F2937]" />
+
+            {/* SECTION: MERCHANT GUIDE (NON-TECHNICAL) */}
+            <AnimatedSection id="merchant-guide">
+              <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
+                <BookOpen className="text-blue-500 h-8 w-8" /> 
+                Merchant Guide & General Overview
+              </h2>
+              <p className="text-[#9CA3AF] text-base leading-relaxed mb-6">
+                Not a developer? No problem! This section explains how Flowshield AI protects your business, matches customer orders, and resolves disputes automatically without writing code.
+              </p>
+
+              {/* Simplified Visual Overview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-[#111827]/80 border border-[#1F2937] p-6 rounded-2xl">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 border border-blue-500/20">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-bold text-white mb-2">1. Real-time Protection</h4>
+                  <p className="text-xs text-[#9CA3AF] leading-relaxed">
+                    Our AI monitors payment checkouts. If a known scammer or card-tester attempts a checkout, Flowshield blocks it before they can cause damage.
+                  </p>
+                </div>
+
+                <div className="bg-[#111827]/80 border border-[#1F2937] p-6 rounded-2xl">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-4 border border-purple-500/20">
+                    <Shield className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-bold text-white mb-2">2. Auto-Evidence Gathering</h4>
+                  <p className="text-xs text-[#9CA3AF] leading-relaxed">
+                    When a customer files a chargeback, Flowshield automatically matches their order against shipping records, tracking numbers, and delivery signatures.
+                  </p>
+                </div>
+
+                <div className="bg-[#111827]/80 border border-[#1F2937] p-6 rounded-2xl">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 border border-emerald-500/20">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-bold text-white mb-2">3. One-Click Response</h4>
+                  <p className="text-xs text-[#9CA3AF] leading-relaxed">
+                    Flowshield compiles all gathered evidence into a PDF document containing the tracking receipt and customer chats. Click "Submit" to win back your money.
+                  </p>
+                </div>
+              </div>
+
+              {/* Interactive Showcase Panel / Video Walkthrough Placeholder */}
+              <div className="bg-gradient-to-br from-[#111827] to-[#1F2937]/50 border border-[#1F2937] rounded-3xl p-6 md:p-8 mb-8 relative overflow-hidden">
+                <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]" />
+                
+                <div className="max-w-xl space-y-4">
+                  <span className="text-[10px] tracking-wider uppercase font-extrabold text-blue-400 bg-blue-900/30 px-2.5 py-1 rounded-full border border-blue-500/20">
+                    Brief Platform Walkthrough
+                  </span>
+                  <h3 className="text-2xl font-bold text-white">Watch Flowshield in Action</h3>
+                  <p className="text-sm text-[#9CA3AF] leading-relaxed">
+                    See how a real dispute is intercepted, evidence is pulled from Delhivery Express logs, and a defense package is automatically generated under 10 seconds.
+                  </p>
+                </div>
+
+                {/* Styled Video Preview Placeholder */}
+                <div className="mt-8 border border-[#374151] rounded-2xl overflow-hidden aspect-video bg-[#0A0E1A] flex flex-col items-center justify-center relative group cursor-pointer">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.15),transparent)] pointer-events-none" />
+                  
+                  {/* Play Button Icon */}
+                  <div className="w-16 h-16 rounded-full bg-blue-600/10 border border-blue-500/30 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white text-blue-400 transition-all duration-300 shadow-xl group-hover:scale-105 z-10">
+                    <ArrowRight className="h-6 w-6 fill-current ml-0.5" />
+                  </div>
+                  
+                  <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors mt-4 z-10 tracking-widest uppercase">
+                    Launch Interactive Walkthrough Demo (1 Min Video)
+                  </span>
+                </div>
+              </div>
+
+              {/* Step-by-Step Setup Guide */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-white">Merchant Checklist: Getting Started in 3 Steps</h4>
+                
+                <div className="flex gap-4 items-start">
+                  <div className="w-6 h-6 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-xs font-black text-blue-400 mt-0.5">1</div>
+                  <div>
+                    <h5 className="font-semibold text-white text-sm">Connect your Payment Gateway</h5>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      Go to **Integrations** in your dashboard, choose your payment processor (Razorpay, Cashfree, or PayU), and paste the Webhook Key.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <div className="w-6 h-6 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-xs font-black text-blue-400 mt-0.5">2</div>
+                  <div>
+                    <h5 className="font-semibold text-white text-sm">Connect your Shipping Provider</h5>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      Add credentials for Delhivery, Shiprocket, or your custom courier partner. This allows our system to query delivery proofs instantly.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <div className="w-6 h-6 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-xs font-black text-blue-400 mt-0.5">3</div>
+                  <div>
+                    <h5 className="font-semibold text-white text-sm">Set your Safety Rules</h5>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      Under **Settings**, configure the safety score limit. Any transaction scoring higher than this will trigger warnings or block actions.
+                    </p>
+                  </div>
                 </div>
               </div>
             </AnimatedSection>
