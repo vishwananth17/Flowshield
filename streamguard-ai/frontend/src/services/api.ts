@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Priority: VITE_API_URL env var → Render cloud (production) → localhost (fallback)
-// VITE_API_URL should be set in Vercel to the Render service URL
-const rawApiUrl = import.meta.env.VITE_API_URL || 'https://api.flowshieldai.com';
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const defaultApiUrl = isLocal ? 'http://localhost:8000' : '';
+const rawApiUrl = import.meta.env.VITE_API_URL || defaultApiUrl;
 export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 const api = axios.create({
