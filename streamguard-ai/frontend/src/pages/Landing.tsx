@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
+import ProductVideoSection from '@/components/ProductVideoSection';
 import EnterpriseModal from '@/components/EnterpriseModal';
 import Logo from '@/components/Logo';
 
@@ -290,6 +291,8 @@ export default function Landing() {
 
         <InteractiveWalkthrough />
       </section>
+
+      <ProductVideoSection />
 
       {/* Features */}
       <section id="features" className="py-12 md:py-24 px-6 max-w-7xl mx-auto">
