@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     database_url: str = Field(
-        default="postgresql+asyncpg://streamguard:devpassword@localhost:5433/streamguard",
+        default="postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require",
         alias="DATABASE_URL",
     )
 
