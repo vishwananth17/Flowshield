@@ -13,7 +13,10 @@ import {
   Building2,
   ShieldCheck,
   MessageSquare,
-  Code
+  Code,
+  Play,
+  Pause,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -267,6 +270,19 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* --- PLATFORM DEMO: 60 SEC WALKTHROUGH --- */}
+      <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto text-center border-t border-white/5 relative">
+        <div className="mb-12">
+          <span className="text-blue-500 font-bold tracking-widest text-[9px] uppercase bg-blue-500/10 px-4 py-1.5 rounded-full border border-blue-500/20">Product Tour</span>
+          <h2 className="text-3xl md:text-5xl font-black mt-6 tracking-tight">60-Second Walkthrough</h2>
+          <p className="max-w-2xl mx-auto text-sm text-slate-400 mt-4 leading-relaxed">
+            Experience Flowshield in action. Click play below to watch the autonomous fraud intelligence engine analyze a checkout, detect anomaly signals, query shipping logs, and defend a chargeback dispute.
+          </p>
+        </div>
+
+        <InteractiveWalkthrough />
+      </section>
+
       {/* Features */}
       <section id="features" className="py-12 md:py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -459,6 +475,240 @@ function NeuralNode({ icon, label, sub, color }: any) {
       <div>
         <div className={`text-base md:text-xs font-bold ${color || 'text-white'}`}>{label}</div>
         <div className="text-sm md:text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+const WALKTHROUGH_STEPS = [
+  {
+    title: "1. Real-time Checkout Evaluation",
+    duration: 15,
+    subtitle: "Zenith ML Engine processing customer telemetry.",
+    details: [
+      { label: "IP Address", value: "103.241.12.89 (Bangalore, IN)", status: "safe" },
+      { label: "Payment Channel", value: "UPI Collect Request", status: "review" },
+      { label: "Velocity Check", value: "3 checkouts under 2 mins", status: "danger" }
+    ],
+    statusMessage: "Evaluating transaction signatures...",
+    phaseMessage: "Zenith Engine flagged high velocity: Risk score 0.82 (Flagged for Review)"
+  },
+  {
+    title: "2. Chargeback Dispute Created",
+    duration: 15,
+    subtitle: "Customer files dispute claiming: 'Product Not Received'.",
+    details: [
+      { label: "Gateway Ref", value: "disp_9918skL90", status: "neutral" },
+      { label: "Reason Code", value: "Product not received", status: "danger" },
+      { label: "Deadline", value: "7 days remaining", status: "warning" }
+    ],
+    statusMessage: "Intercepting Razorpay webhook...",
+    phaseMessage: "Webhook validated. Initializing automated evidence docket #disp_9918."
+  },
+  {
+    title: "3. Autonomous Evidence Gathering",
+    duration: 15,
+    subtitle: "Flowshield queries connected store and courier logs.",
+    details: [
+      { label: "Shopify Matching", value: "Order #ORD-9918 matches customer email", status: "safe" },
+      { label: "Delhivery Express", value: "Shipment DEL98871625: DELIVERED", status: "safe" },
+      { label: "Delivery Proof", value: "Signed by 'Rahul S.' on 12-07-2026", status: "safe" }
+    ],
+    statusMessage: "Matching order against tracking numbers...",
+    phaseMessage: "Evidence Score computed: 95/100 (Strong delivery proof found)."
+  },
+  {
+    title: "4. Court-Grade PDF Compiled & Won",
+    duration: 15,
+    subtitle: "Compiling branded PDF docket and auto-submitting to gateway.",
+    details: [
+      { label: "Docket Pages", value: "Cover, Ledger, Courier Logs, Return Policy", status: "safe" },
+      { label: "Submission", value: "Auto-uploaded to Razorpay API", status: "safe" },
+      { label: "Final Status", value: "DISPUTE WON (Funds Returned)", status: "safe" }
+    ],
+    statusMessage: "Compiling ReportLab PDF dossier...",
+    phaseMessage: "Chargeback successfully defended and reversed! Win rate updated to 94.2%."
+  }
+];
+
+function InteractiveWalkthrough() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (isPlaying) {
+      timer = setInterval(() => {
+        setCurrentTime((prevTime) => {
+          if (prevTime >= 59) {
+            setIsPlaying(false);
+            return 60;
+          }
+          const nextTime = prevTime + 1;
+          const stepIndex = Math.min(Math.floor(nextTime / 15), 3);
+          setActiveStepIndex(stepIndex);
+          return nextTime;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying]);
+
+  const handlePlayPause = () => {
+    if (currentTime >= 60) {
+      setCurrentTime(0);
+      setActiveStepIndex(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleReset = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setActiveStepIndex(0);
+  };
+
+  const progressPercentage = (currentTime / 60) * 100;
+  const currentStep = WALKTHROUGH_STEPS[activeStepIndex];
+
+  return (
+    <div className="bg-[#111827]/80 border border-[#1F2937] rounded-3xl overflow-hidden max-w-4xl mx-auto shadow-2xl relative text-left">
+      <div className="aspect-video bg-[#0A0E1A] p-6 flex flex-col justify-between relative overflow-hidden group">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-40 z-10" />
+        
+        {!isPlaying && currentTime === 0 && (
+          <div 
+            onClick={handlePlayPause}
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center cursor-pointer z-20 group-hover:bg-black/50 transition-all"
+          >
+            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+              <Play className="h-8 w-8 fill-current ml-1" />
+            </div>
+            <span className="text-sm font-bold text-slate-300 mt-4 uppercase tracking-widest">
+              Watch 60-Second Video Demo
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-b border-[#1F2937]/50 pb-4 z-10">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
+              Live Simulation Feed
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400">
+            00:{currentTime.toString().padStart(2, '0')} / 00:60
+          </span>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center py-6 px-4 md:px-12 z-10 relative">
+          <motion.div 
+            key={activeStepIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-xl mx-auto bg-[#111827]/90 border border-[#1F2937] rounded-2xl p-6 shadow-xl relative"
+          >
+            <div className="mb-4">
+              <h4 className="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
+                {currentStep.title}
+              </h4>
+              <p className="text-xs text-slate-400 mt-1">{currentStep.subtitle}</p>
+            </div>
+
+            <div className="space-y-2 border-t border-[#1F2937] pt-4">
+              {currentStep.details.map((detail, idx) => (
+                <div key={idx} className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400 font-mono">{detail.label}:</span>
+                  <span className={`font-semibold px-2 py-0.5 rounded text-[11px] font-mono ${
+                    detail.status === 'safe' ? 'text-emerald-400 bg-emerald-500/10' :
+                    detail.status === 'danger' ? 'text-red-400 bg-red-500/10' :
+                    detail.status === 'warning' ? 'text-amber-400 bg-amber-500/10' :
+                    detail.status === 'review' ? 'text-indigo-400 bg-indigo-500/10' :
+                    'text-slate-300 bg-white/5'
+                  }`}>
+                    {detail.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-center space-x-2 text-[10px] text-blue-400 font-mono tracking-widest uppercase animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span>{currentStep.statusMessage}</span>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="h-14 border-t border-[#1F2937]/50 pt-3 flex items-center justify-center text-center z-10">
+          <p className="text-xs md:text-sm text-slate-300 font-medium">
+            <span className="text-blue-400 mr-2 font-mono">[00:{currentTime.toString().padStart(2, '0')}]</span>
+            {currentStep.phaseMessage}
+          </p>
+        </div>
+
+      </div>
+
+      <div className="bg-[#111827] px-6 py-4 border-t border-[#1F2937] flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <button 
+            type="button"
+            onClick={handlePlayPause}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all"
+          >
+            {isPlaying ? (
+              <>
+                <Pause className="h-3.5 w-3.5 fill-current" />
+                <span>Pause</span>
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>{currentTime >= 60 ? 'Replay' : 'Play Tour'}</span>
+              </>
+            )}
+          </button>
+          
+          <button 
+            type="button"
+            onClick={handleReset}
+            className="flex items-center space-x-1.5 border border-[#1F2937] bg-transparent text-slate-400 hover:text-white px-3 py-2 rounded-xl text-xs transition-colors"
+            title="Reset"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden md:flex">
+          {WALKTHROUGH_STEPS.map((step, idx) => (
+            <span 
+              key={idx}
+              className={`transition-colors duration-300 ${
+                activeStepIndex === idx ? 'text-blue-400 font-black' : 'text-slate-600'
+              }`}
+            >
+              Step {idx + 1}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex-1 max-w-xs w-full flex items-center space-x-3">
+          <div className="flex-1 bg-slate-950 h-2 rounded-full overflow-hidden border border-[#1F2937]">
+            <div 
+              className="bg-blue-500 h-full transition-all duration-300 ease-linear shadow-[0_0_10px_#3b82f6]"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <span className="text-xs font-mono text-slate-500">
+            {Math.round(progressPercentage)}%
+          </span>
+        </div>
+
       </div>
     </div>
   );
