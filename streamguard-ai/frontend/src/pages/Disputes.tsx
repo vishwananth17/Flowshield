@@ -353,89 +353,91 @@ export default function Disputes() {
               <p className="text-gray-400 text-xs mt-1">Try relaxing your search parameters, or log a dispute manually.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#1F2937] text-gray-400 text-[10px] uppercase font-black tracking-wider">
-                  <th className="pb-3 pr-4">Dispute Reference</th>
-                  <th className="pb-3 px-4">Customer Details</th>
-                  <th className="pb-3 px-4">Gateway</th>
-                  <th className="pb-3 px-4">Evidence Strength</th>
-                  <th className="pb-3 px-4">Status</th>
-                  <th className="pb-3 px-4">Response Deadline</th>
-                  <th className="pb-3 pl-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1F2937]/40">
-                {paginatedDisputes.map((dispute) => (
-                  <tr key={dispute.id} className="hover:bg-[#1F2937]/15 transition-colors group">
-                    <td className="py-4 pr-4 align-middle">
-                      <div className="font-bold text-white text-sm">{dispute.dispute_reference}</div>
-                      <div className="text-gray-400 text-xs font-mono mt-0.5">Order: {dispute.order_id || 'N/A'}</div>
-                    </td>
-                    <td className="py-4 px-4 align-middle">
-                      <div className="text-white text-sm font-semibold">{dispute.customer_name || 'Razorpay Client'}</div>
-                      <div className="text-gray-400 text-xs mt-0.5">{dispute.customer_email || 'N/A'}</div>
-                    </td>
-                    <td className="py-4 px-4 align-middle">
-                      <span className="bg-[#1F2937]/80 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-700 uppercase">{dispute.payment_gateway}</span>
-                    </td>
-                    <td className="py-4 px-4 align-middle">
-                      {getStrengthBadge(dispute.evidence_strength_score)}
-                    </td>
-                    <td className="py-4 px-4 align-middle">
-                      {getStatusBadge(dispute.status)}
-                    </td>
-                    <td className="py-4 px-4 align-middle">
-                      {getUrgencyBadge(dispute.urgency, dispute.response_deadline)}
-                    </td>
-                    <td className="py-4 pl-4 align-middle text-right">
-                      <button
-                        onClick={() => navigate(`/dashboard/disputes/${dispute.id}`)}
-                        className="bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 text-blue-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
-                      >
-                        Manage
-                      </button>
-                    </td>
+            <>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#1F2937] text-gray-400 text-[10px] uppercase font-black tracking-wider">
+                    <th className="pb-3 pr-4">Dispute Reference</th>
+                    <th className="pb-3 px-4">Customer Details</th>
+                    <th className="pb-3 px-4">Gateway</th>
+                    <th className="pb-3 px-4">Evidence Strength</th>
+                    <th className="pb-3 px-4">Status</th>
+                    <th className="pb-3 px-4">Response Deadline</th>
+                    <th className="pb-3 pl-4 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#1F2937]/80 gap-4 mt-4">
-              <div className="text-xs text-gray-400 font-medium">
-                Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                </thead>
+                <tbody className="divide-y divide-[#1F2937]/40">
+                  {paginatedDisputes.map((dispute) => (
+                    <tr key={dispute.id} className="hover:bg-[#1F2937]/15 transition-colors group">
+                      <td className="py-4 pr-4 align-middle">
+                        <div className="font-bold text-white text-sm">{dispute.dispute_reference}</div>
+                        <div className="text-gray-400 text-xs font-mono mt-0.5">Order: {dispute.order_id || 'N/A'}</div>
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        <div className="text-white text-sm font-semibold">{dispute.customer_name || 'Razorpay Client'}</div>
+                        <div className="text-gray-400 text-xs mt-0.5">{dispute.customer_email || 'N/A'}</div>
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        <span className="bg-[#1F2937]/80 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-700 uppercase">{dispute.payment_gateway}</span>
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        {getStrengthBadge(dispute.evidence_strength_score)}
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        {getStatusBadge(dispute.status)}
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        {getUrgencyBadge(dispute.urgency, dispute.response_deadline)}
+                      </td>
+                      <td className="py-4 pl-4 align-middle text-right">
+                        <button
+                          onClick={() => navigate(`/dashboard/disputes/${dispute.id}`)}
+                          className="bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 text-blue-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              
+              {/* Pagination Controls */}
+              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#1F2937]/80 gap-4 mt-4">
+                <div className="text-xs text-gray-400 font-medium">
+                  Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
+                </div>
+                <div className="flex items-center space-x-1.5">
                   <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                      currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
-                    }`}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
-                    {page}
+                    Previous
                   </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  Next
-                </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
