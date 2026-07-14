@@ -1,3 +1,13 @@
+import socket
+
+# Force IPv4 resolution first to prevent ENETUNREACH / NameResolutionError on IPv6-disabled hosts (e.g. Render/Docker)
+orig_getaddrinfo = socket.getaddrinfo
+def custom_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if family == socket.AF_UNSPEC:
+        family = socket.AF_INET
+    return orig_getaddrinfo(host, port, family, type, proto, flags)
+socket.getaddrinfo = custom_getaddrinfo
+
 import logging
 import time
 from contextlib import asynccontextmanager
