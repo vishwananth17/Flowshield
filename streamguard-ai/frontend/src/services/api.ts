@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const defaultApiUrl = isLocal ? 'http://localhost:8000' : '';
+const defaultApiUrl = isLocal ? 'http://localhost:8000' : 'https://flowshield-backend-ani8.onrender.com';
 const rawApiUrl = import.meta.env.VITE_API_URL || defaultApiUrl;
 export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
