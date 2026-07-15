@@ -37,7 +37,9 @@ REFRESH_COOKIE = "refresh_token"
 
 def _cookie_args() -> dict:
     settings = get_settings()
-    is_prod = settings.environment == "production"
+    import os
+    is_cloud = os.environ.get("RENDER") or os.environ.get("PORT")
+    is_prod = (settings.environment == "production") or is_cloud
     args: dict = {
         "httponly": True,
         "secure": True if is_prod else settings.cookie_secure,
