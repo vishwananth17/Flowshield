@@ -7,11 +7,12 @@ import {
   Clock, 
   Zap, 
   ArrowUpRight, 
-  ArrowDownRight 
+  ArrowDownRight,
+  Download,
+  CheckCircle2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/transactionStore';
-
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -25,7 +26,6 @@ export default function Dashboard() {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Stable fetch with useCallback so effects don't re-run endlessly
   const fetchStats = useCallback(async () => {
     try {
       const api = (await import('@/services/api')).default;
@@ -34,7 +34,7 @@ export default function Dashboard() {
     } catch (e: any) {
       console.error("Failed to fetch stats", e);
       if (e.response?.status === 403) {
-        // Analytics might be gated for free tier
+        // Analytics gated
       } else if (e.response) {
         toast.error(`Stats sync failed: ${e.response.data?.error?.message || 'Server error'}`);
       }
@@ -65,19 +65,16 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch on mount and whenever the time range changes
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
 
-  // 🔄 Auto-refresh poll every 30s for live ranges (1h / 24h)
   useEffect(() => {
     if (timeRange !== '1h' && timeRange !== '24h') return;
     const interval = setInterval(fetchStats, 30_000);
     return () => clearInterval(interval);
   }, [fetchStats, timeRange]);
 
-  // Refresh stats when new WS transactions arrive (live ranges only)
   useEffect(() => {
     if ((timeRange === '24h' || timeRange === '1h') && recentTransactions.length > prevCountRef.current) {
       fetchStats();
@@ -87,13 +84,11 @@ export default function Dashboard() {
 
   const stats = [
     { 
-      title: `Total Analyzed (${timeRange})`, 
+      title: `Total Analyzed (${timeRange.toUpperCase()})`, 
       value: statsData?.total_analyzed?.toLocaleString() || '0', 
       trend: '+0%', 
       isUp: true, 
       icon: Activity, 
-      color: 'text-blue-500', 
-      bg: 'bg-blue-500/10' 
     },
     { 
       title: 'Fraud Detected', 
@@ -103,8 +98,6 @@ export default function Dashboard() {
         : '0%', 
       isUp: false, 
       icon: ShieldAlert, 
-      color: 'text-red-500', 
-      bg: 'bg-red-500/10' 
     },
     { 
       title: 'Protected Volume', 
@@ -112,8 +105,6 @@ export default function Dashboard() {
       trend: '+0%', 
       isUp: true, 
       icon: DollarSign, 
-      color: 'text-emerald-500', 
-      bg: 'bg-emerald-500/10' 
     },
     { 
       title: 'Inference Latency', 
@@ -121,8 +112,6 @@ export default function Dashboard() {
       trend: '-0%', 
       isUp: true, 
       icon: Clock, 
-      color: 'text-purple-500', 
-      bg: 'bg-purple-500/10' 
     },
   ];
 
@@ -140,45 +129,43 @@ export default function Dashboard() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.08
       }
     }
   };
 
   const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0 }
   };
 
   return (
-    <div className="space-y-8 relative">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
-
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="space-y-6 text-left font-body">
+      {/* Header Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2 border-b border-zinc-800">
         <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-gray-400 mt-1">Institutional risk visibility for your organizational traffic.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-zinc-400 text-xs mt-1">Institutional risk visibility for your organizational traffic.</p>
         </motion.div>
 
         <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className="flex flex-wrap items-center gap-3"
         >
-          {/* Time Range Filter */}
-          <div className="bg-[#111827] border border-[#1F2937] p-1 rounded-xl flex items-center shadow-lg">
+          {/* Stark B&W Time Range Filter */}
+          <div className="bg-zinc-950 border border-zinc-800 p-1 rounded-md flex items-center">
             {timeRanges.map((range) => (
               <button
                 key={range.value}
                 onClick={() => setTimeRange(range.value)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-mono font-bold transition-colors ${
                   timeRange === range.value 
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
-                    : 'text-gray-500 hover:text-white'
+                    ? 'bg-white text-black font-extrabold' 
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {range.label}
@@ -186,10 +173,10 @@ export default function Dashboard() {
             ))}
             <button
                 onClick={() => setTimeRange('custom')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-mono font-bold transition-colors ${
                   timeRange === 'custom' 
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20' 
-                    : 'text-gray-500 hover:text-white'
+                    ? 'bg-white text-black font-extrabold' 
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 CUSTOM
@@ -199,30 +186,26 @@ export default function Dashboard() {
           <button 
             disabled={isDownloading}
             onClick={handleDownload}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-blue-900/20 transition-all font-bold text-xs"
+            className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
           >
-            {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowDownRight className="h-3.5 w-3.5 rotate-45" />}
+            {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             <span>Download Report</span>
           </button>
 
         </motion.div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between bg-[#111827]/40 p-4 rounded-2xl border border-[#1F2937]/50"
-      >
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-            <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Live Stream Active</span>
-          </div>
+      {/* Engine Control Strip */}
+      <div className="flex flex-col sm:flex-row items-center justify-between bg-zinc-950 p-3.5 rounded-lg border border-zinc-800 gap-4">
+        <div className="flex items-center space-x-2 bg-black px-3 py-1 rounded border border-zinc-800">
+          <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider">Live Stream Active</span>
         </div>
-        <div className="flex items-center space-x-4">
+
+        <div className="flex items-center space-x-3">
           <button 
             disabled={isSimulating}
             onClick={async () => {
@@ -239,9 +222,9 @@ export default function Dashboard() {
                 setIsSimulating(false);
               }
             }}
-            className="flex items-center space-x-2 text-red-500 hover:text-red-400 font-bold text-xs transition-colors px-3 py-2"
+            className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
-            {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5" />}
+            {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
             <span>Run Stress Test</span>
           </button>
           
@@ -260,43 +243,42 @@ export default function Dashboard() {
                 setIsCheckingHealth(false);
               }
             }}
-            className="flex items-center space-x-2 text-blue-500 hover:text-blue-400 font-bold text-xs transition-colors px-3 py-2"
+            className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
-            {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 text-white" />}
             <span>System Health</span>
           </button>
         </div>
-      </motion.div>
+      </div>
 
+      {/* Metric Cards Grid */}
       <motion.div 
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <motion.div variants={item} key={i}>
-              <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80 hover:bg-[#111827]/80 transition-all duration-300 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
-                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.color.replace('text-', 'bg-')}`} />
-                <CardContent className="p-6">
+              <Card className="bg-zinc-950 border-zinc-800 hover:border-zinc-700 transition-colors p-5 rounded-lg">
+                <CardContent className="p-0">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium text-gray-400">{stat.title}</p>
-                      <p className="text-3xl font-bold mt-2 text-white">{stat.value}</p>
+                      <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">{stat.title}</p>
+                      <p className="text-3xl font-extrabold mt-2 text-white tracking-tight">{stat.value}</p>
                     </div>
-                    <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} shadow-inner`}>
-                      <Icon className="h-6 w-6" />
+                    <div className="p-2.5 rounded bg-zinc-900 border border-zinc-800 text-white">
+                      <Icon className="h-5 w-5" />
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center text-sm">
-                    <span className={`flex items-center font-medium ${stat.isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {stat.isUp ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                  <div className="mt-4 flex items-center text-xs font-mono">
+                    <span className={`flex items-center font-bold ${stat.isUp ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                      {stat.isUp ? <ArrowUpRight className="h-3.5 w-3.5 mr-1 text-white" /> : <ArrowDownRight className="h-3.5 w-3.5 mr-1 text-zinc-400" />}
                       {stat.trend}
                     </span>
-                    <span className="text-gray-500 ml-2">vs last week</span>
+                    <span className="text-zinc-500 ml-2">vs last week</span>
                   </div>
                 </CardContent>
               </Card>
@@ -305,79 +287,66 @@ export default function Dashboard() {
         })}
       </motion.div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-      >
-        <Card className="col-span-2 backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80 overflow-hidden">
-          <CardHeader className="border-b border-[#1F2937]/50 bg-[#111827]/40 pb-4">
-            <CardTitle className="text-white text-lg font-medium flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-blue-400" />
+      {/* Transactions Feed & Recent Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="col-span-2 bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
+          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
+            <CardTitle className="text-white text-sm font-bold flex items-center">
+              <Activity className="h-4 w-4 mr-2 text-white" />
               Live Transactions Feed
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 h-[350px] overflow-y-auto w-full">
             {recentTransactions.length === 0 ? (
-              <div className="flex h-full items-center justify-center relative">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
-                <div className="text-center z-10">
-                  <div className="relative inline-flex mb-4">
-                    <div className="w-12 h-12 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-                    <div className="absolute inset-0 w-12 h-12 rounded-full border border-blue-500/10 blur-sm" />
-                  </div>
-                  <p className="text-gray-400 font-medium font-mono text-sm">Waiting for live events...</p>
-                  <p className="text-gray-500 text-xs mt-1">Listening for real-time transactions</p>
+              <div className="flex h-full items-center justify-center p-6 text-center">
+                <div>
+                  <div className="w-10 h-10 rounded-full border-2 border-zinc-700 border-t-white animate-spin mx-auto mb-3" />
+                  <p className="text-zinc-400 font-mono text-xs font-bold">Waiting for live events...</p>
+                  <p className="text-zinc-500 text-xs mt-1">Listening for real-time transactions</p>
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-[#1F2937]/50 w-full overflow-hidden">
+              <div className="divide-y divide-zinc-800 w-full">
                 {recentTransactions.slice(0, 10).map((tx: any) => (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                  <div 
                     key={tx.id} 
-                    className="p-4 hover:bg-[#1F2937]/30 transition-colors flex items-center justify-between"
+                    className="p-4 hover:bg-zinc-900 transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{tx.merchant_name || 'Unknown'}</p>
-                      <p className="text-xs text-gray-400 font-mono mt-1">{(tx.id || '').substring(0, 13)}...</p>
+                      <p className="text-xs font-bold text-white">{tx.merchant_name || 'Unknown'}</p>
+                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{(tx.id || '').substring(0, 13)}...</p>
                     </div>
-                    <div className="text-right flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-white">{tx.currency} {tx.amount}</p>
-                        <p className={`text-xs mt-1 font-medium ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                          {(tx.risk_label || 'unknown').toUpperCase()}
-                        </p>
-                      </div>
+                    <div className="text-right">
+                      <p className="text-xs font-mono font-bold text-white">{tx.currency} {tx.amount}</p>
+                      <p className="text-[10px] font-mono font-bold uppercase mt-0.5 text-zinc-400">
+                        {tx.risk_label || 'unknown'}
+                      </p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
         
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardHeader className="border-b border-[#1F2937]/50 bg-[#111827]/40 pb-4">
-            <CardTitle className="text-white text-lg font-medium flex items-center">
-              <ShieldAlert className="h-5 w-5 mr-2 text-red-400" />
+        <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
+          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
+            <CardTitle className="text-white text-sm font-bold flex items-center">
+              <ShieldAlert className="h-4 w-4 mr-2 text-white" />
               Recent Alerts
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="flex h-[350px] items-center justify-center flex-col p-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-[#1F2937] flex items-center justify-center mb-4 border border-[#374151]">
-                <ShieldAlert className="h-8 w-8 text-gray-500" />
+              <div className="w-12 h-12 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-3 text-white">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
-              <p className="text-gray-300 font-medium">All clear</p>
-              <p className="text-gray-500 text-sm mt-1">No anomalous patterns detected in the last hour.</p>
+              <p className="text-white font-bold text-xs uppercase tracking-wider">All Clear</p>
+              <p className="text-zinc-500 text-xs mt-1 leading-relaxed">No anomalous patterns detected in the last hour.</p>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }
-
