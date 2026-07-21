@@ -13,7 +13,7 @@ import {
   XCircle,
   Info,
   Calendar,
-  AlertCircle
+  X
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -110,7 +110,7 @@ export default function Disputes() {
         external_transaction_id: formTxId || null
       };
 
-      const res = await api.post('/disputes', payload);
+      await api.post('/disputes', payload);
       toast.success("Dispute logged. Automated evidence gathering sequence started!", { id: toastId });
       
       // Reset Form & Close
@@ -134,71 +134,37 @@ export default function Disputes() {
     }
   };
 
-  const getUrgencyBadge = (urgency: string, deadlineStr: string) => {
+  const getUrgencyBadge = (_urgency: string, deadlineStr: string) => {
     const deadline = new Date(deadlineStr);
     const label = deadline.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-    
-    switch (urgency) {
-      case 'expired':
-        return <span className="bg-gray-800/80 text-gray-500 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-gray-700">Expired ({label})</span>;
-      case 'critical':
-        return <span className="bg-red-500/10 text-red-500 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-red-500/20 animate-pulse">Critical ({label})</span>;
-      case 'warning':
-        return <span className="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-amber-500/20">Action Required ({label})</span>;
-      default:
-        return <span className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-emerald-500/20">Normal ({label})</span>;
-    }
-  };
-
-  const getStrengthBadge = (score: number) => {
-    if (score >= 70) {
-      return (
-        <div className="flex items-center space-x-1.5 text-emerald-400">
-          <TrendingUp className="h-4 w-4" />
-          <span className="text-xs font-bold">Strong Case ({score}%)</span>
-        </div>
-      );
-    } else if (score >= 40) {
-      return (
-        <div className="flex items-center space-x-1.5 text-amber-400">
-          <Info className="h-4 w-4" />
-          <span className="text-xs font-bold">Moderate ({score}%)</span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center space-x-1.5 text-red-400">
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-xs font-bold">Weak ({score}%)</span>
-        </div>
-      );
-    }
+    return (
+      <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase">
+        Deadline: {label}
+      </span>
+    );
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'won':
-        return <span className="text-emerald-400 font-bold text-xs uppercase flex items-center"><CheckCircle className="h-3 w-3 mr-1" /> Won</span>;
+        return <span className="bg-white text-black font-extrabold px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">WON</span>;
       case 'lost':
-        return <span className="text-red-400 font-bold text-xs uppercase flex items-center"><XCircle className="h-3 w-3 mr-1" /> Lost</span>;
-      case 'accepted':
-        return <span className="text-gray-400 font-bold text-xs uppercase flex items-center"><CheckCircle className="h-3 w-3 mr-1" /> Accepted</span>;
+        return <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">LOST</span>;
+      case 'submitted':
+        return <span className="bg-zinc-900 text-white border border-zinc-700 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">SUBMITTED</span>;
       case 'evidence_gathering':
-        return <span className="text-blue-400 font-bold text-xs uppercase flex items-center animate-pulse"><Clock className="h-3 w-3 mr-1" /> Gathering</span>;
+        return <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">GATHERING</span>;
       default:
-        return <span className="text-amber-400 font-bold text-xs uppercase flex items-center"><Clock className="h-3 w-3 mr-1" /> Open</span>;
+        return <span className="bg-black text-white border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">{status}</span>;
     }
   };
 
   const filteredDisputes = disputes.filter(d => {
-    if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    return (
-      d.dispute_reference.toLowerCase().includes(query) ||
-      (d.customer_name || '').toLowerCase().includes(query) ||
-      (d.customer_email || '').toLowerCase().includes(query) ||
-      (d.order_id || '').toLowerCase().includes(query)
-    );
+    const matchRef = d.dispute_reference?.toLowerCase().includes(query);
+    const matchCust = d.customer_name?.toLowerCase().includes(query) || d.customer_email?.toLowerCase().includes(query);
+    const matchOrder = d.order_id?.toLowerCase().includes(query);
+    return matchRef || matchCust || matchOrder;
   });
 
   const totalItems = filteredDisputes.length;
@@ -208,412 +174,307 @@ export default function Disputes() {
   const paginatedDisputes = filteredDisputes.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="space-y-8 relative">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="space-y-6 text-left font-body">
+      {/* Top Header & Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Dispute Resolution Workspace</h1>
-          <p className="text-gray-400 mt-1">Automated evidence compilation and chargeback defense center.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Dispute Command Center</h1>
+          <p className="text-zinc-400 text-xs mt-1">Automated evidence compilation and gateway dispute defense.</p>
         </div>
-
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl shadow-lg shadow-blue-900/20 transition-all font-bold text-xs self-start lg:self-auto"
+          className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
         >
           <Plus className="h-4 w-4" />
-          <span>Log Chargeback Dispute</span>
+          <span>Log Manual Dispute</span>
         </button>
       </div>
 
-      {/* Analytics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Win Rate</p>
-              <p className="text-3xl font-bold mt-2 text-white">{stats ? `${(stats.win_rate * 100).toFixed(1)}%` : '0.0%'}</p>
-              <p className="text-[10px] text-emerald-400 mt-1 flex items-center font-bold">
-                <ArrowUpRight className="h-3.5 w-3.5 mr-0.5" /> High chargeback win recovery rate
-              </p>
+      {/* KPI Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
+          <CardContent className="p-0">
+            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
+              <span>Win Rate</span>
+              <TrendingUp className="h-4 w-4 text-white" />
             </div>
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <TrendingUp className="h-6 w-6" />
+            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+              {stats?.win_rate_percent !== undefined ? `${stats.win_rate_percent}%` : '0%'}
             </div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Based on resolved cases</div>
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Total Volume at Risk</p>
-              <p className="text-3xl font-bold mt-2 text-white">₹{stats ? stats.total_amount_at_risk.toLocaleString('en-IN') : '0'}</p>
-              <p className="text-[10px] text-amber-400 mt-1 flex items-center font-bold">
-                <AlertTriangle className="h-3.5 w-3.5 mr-0.5" /> Blocked payment gateway assets
-              </p>
+        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
+          <CardContent className="p-0">
+            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
+              <span>Open Disputes</span>
+              <AlertTriangle className="h-4 w-4 text-white" />
             </div>
-            <div className="p-3.5 rounded-xl bg-amber-500/10 text-amber-400">
-              <ShieldAlert className="h-6 w-6" />
+            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+              {stats?.open_disputes || 0}
             </div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Require response</div>
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Amount Recovered</p>
-              <p className="text-3xl font-bold mt-2 text-white">₹{stats ? stats.total_amount_recovered.toLocaleString('en-IN') : '0'}</p>
-              <p className="text-[10px] text-emerald-400 mt-1 flex items-center font-bold">
-                <CheckCircle className="h-3.5 w-3.5 mr-0.5" /> Dispute settlements won
-              </p>
+        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
+          <CardContent className="p-0">
+            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
+              <span>At Risk Volume</span>
+              <Clock className="h-4 w-4 text-white" />
             </div>
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <CheckCircle className="h-6 w-6" />
+            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+              ₹{(stats?.total_at_risk_amount || 0).toLocaleString()}
             </div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Pending gateway review</div>
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Pending Open Cases</p>
-              <p className="text-3xl font-bold mt-2 text-white">{stats ? stats.open : '0'}</p>
-              <p className="text-[10px] text-gray-400 mt-1 flex items-center">
-                <Clock className="h-3.5 w-3.5 mr-0.5" /> Gathering/Response compiled
-              </p>
+        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
+          <CardContent className="p-0">
+            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
+              <span>Recovered Revenue</span>
+              <CheckCircle className="h-4 w-4 text-white" />
             </div>
-            <div className="p-3.5 rounded-xl bg-blue-500/10 text-blue-400">
-              <Clock className="h-6 w-6" />
+            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+              ₹{(stats?.total_won_amount || 0).toLocaleString()}
             </div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Funds returned to merchant</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Workspace Area */}
-      <div className="bg-[#111827]/60 border border-[#1F2937]/80 rounded-2xl p-6 backdrop-blur-xl space-y-6">
-        
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search disputes, customer or order ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-white pl-10 pr-4 py-2 rounded-xl text-sm w-full focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-            {/* Gateway Filter */}
-            <select
-              value={gatewayFilter}
-              onChange={(e) => setGatewayFilter(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-gray-300 text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 font-bold"
-            >
-              <option value="">All Gateways</option>
-              <option value="razorpay">Razorpay</option>
-              <option value="cashfree">Cashfree</option>
-              <option value="payu">PayU</option>
-              <option value="stripe">Stripe</option>
-              <option value="manual">Manual</option>
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-gray-300 text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 font-bold"
-            >
-              <option value="">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="evidence_gathering">Evidence Gathering</option>
-              <option value="won">Won</option>
-              <option value="lost">Lost</option>
-              <option value="accepted">Accepted</option>
-            </select>
-          </div>
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center bg-black border border-zinc-800 rounded px-3.5 py-2 w-full sm:w-80 focus-within:border-white transition-colors">
+          <Search className="h-3.5 w-3.5 text-zinc-500 mr-2.5" />
+          <input
+            type="text"
+            placeholder="Search reference, customer, order..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-600 font-mono"
+          />
         </div>
 
-        {/* Dispute Listing Table */}
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-10 h-10 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-              <p className="text-gray-400 mt-4 font-bold text-sm">Syncing dispute registries...</p>
-            </div>
-          ) : filteredDisputes.length === 0 ? (
-            <div className="text-center py-20 border border-dashed border-[#1F2937] rounded-xl">
-              <div className="w-12 h-12 rounded-full bg-[#1F2937] flex items-center justify-center mx-auto mb-4 border border-[#374151]">
-                <ShieldAlert className="h-6 w-6 text-gray-400" />
-              </div>
-              <h3 className="text-white font-bold">No active disputes found</h3>
-              <p className="text-gray-400 text-xs mt-1">Try relaxing your search parameters, or log a dispute manually.</p>
-            </div>
-          ) : (
-            <>
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[#1F2937] text-gray-400 text-[10px] uppercase font-black tracking-wider">
-                    <th className="pb-3 pr-4">Dispute Reference</th>
-                    <th className="pb-3 px-4">Customer Details</th>
-                    <th className="pb-3 px-4">Gateway</th>
-                    <th className="pb-3 px-4">Evidence Strength</th>
-                    <th className="pb-3 px-4">Status</th>
-                    <th className="pb-3 px-4">Response Deadline</th>
-                    <th className="pb-3 pl-4 text-right">Action</th>
+        <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="bg-black border border-zinc-800 rounded px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+          >
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="evidence_gathering">Evidence Gathering</option>
+            <option value="submitted">Submitted</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+          </select>
+
+          <select
+            value={gatewayFilter}
+            onChange={e => setGatewayFilter(e.target.value)}
+            className="bg-black border border-zinc-800 rounded px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+          >
+            <option value="">All Gateways</option>
+            <option value="razorpay">Razorpay</option>
+            <option value="cashfree">Cashfree</option>
+            <option value="stripe">Stripe</option>
+            <option value="manual">Manual Log</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Disputes Table */}
+      <Card className="bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="text-[10px] font-mono text-zinc-400 uppercase bg-black border-b border-zinc-800">
+                <tr>
+                  <th className="px-5 py-3.5">Reference / Gateway</th>
+                  <th className="px-5 py-3.5">Customer / Order</th>
+                  <th className="px-5 py-3.5">Reason</th>
+                  <th className="px-5 py-3.5">Amount</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5">Urgency</th>
+                  <th className="px-5 py-3.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
+                      Loading dispute records...
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1F2937]/40">
-                  {paginatedDisputes.map((dispute) => (
-                    <tr key={dispute.id} className="hover:bg-[#1F2937]/15 transition-colors group">
-                      <td className="py-4 pr-4 align-middle">
-                        <div className="font-bold text-white text-sm">{dispute.dispute_reference}</div>
-                        <div className="text-gray-400 text-xs font-mono mt-0.5">Order: {dispute.order_id || 'N/A'}</div>
+                ) : paginatedDisputes.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
+                      No disputes matching criteria.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedDisputes.map(d => (
+                    <tr key={d.id} className="hover:bg-zinc-900 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="font-mono font-bold text-white">{d.dispute_reference}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono uppercase mt-0.5">{d.payment_gateway}</div>
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        <div className="text-white text-sm font-semibold">{dispute.customer_name || 'Razorpay Client'}</div>
-                        <div className="text-gray-400 text-xs mt-0.5">{dispute.customer_email || 'N/A'}</div>
+                      <td className="px-5 py-3.5">
+                        <div className="text-white font-medium">{d.customer_name || 'N/A'}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{d.order_id || 'No Order ID'}</div>
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        <span className="bg-[#1F2937]/80 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-700 uppercase">{dispute.payment_gateway}</span>
+                      <td className="px-5 py-3.5 text-zinc-400">
+                        {d.dispute_reason}
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        {getStrengthBadge(dispute.evidence_strength_score)}
+                      <td className="px-5 py-3.5 font-mono font-bold text-white">
+                        ₹{d.dispute_amount?.toLocaleString()}
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        {getStatusBadge(dispute.status)}
+                      <td className="px-5 py-3.5">
+                        {getStatusBadge(d.status)}
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        {getUrgencyBadge(dispute.urgency, dispute.response_deadline)}
+                      <td className="px-5 py-3.5">
+                        {getUrgencyBadge(d.urgency, d.response_deadline)}
                       </td>
-                      <td className="py-4 pl-4 align-middle text-right">
+                      <td className="px-5 py-3.5 text-right">
                         <button
-                          onClick={() => navigate(`/dashboard/disputes/${dispute.id}`)}
-                          className="bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 text-blue-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                          onClick={() => navigate(`/dashboard/disputes/${d.id}`)}
+                          className="text-xs text-white hover:bg-zinc-800 font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors"
                         >
-                          Manage
+                          View Dossier
                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              
-              {/* Pagination Controls */}
-              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#1F2937]/80 gap-4 mt-4">
-                <div className="text-xs text-gray-400 font-medium">
-                  Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Manual Dispute Modal Dialog */}
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-zinc-800 pt-4 text-xs font-mono">
+          <span className="text-zinc-500">
+            Showing {startIndex + 1}-{endIndex} of {totalItems} disputes
+          </span>
+          <div className="flex items-center space-x-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+              className="bg-black border border-zinc-800 text-white px-3 py-1.5 rounded hover:bg-zinc-900 disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-zinc-400 font-bold px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="bg-black border border-zinc-800 text-white px-3 py-1.5 rounded hover:bg-zinc-900 disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Dispute Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#111827] border border-[#1F2937] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative"
-          >
-            <div className="flex justify-between items-center pb-4 border-b border-[#1F2937]">
-              <h2 className="text-lg font-bold text-white flex items-center"><Plus className="h-5 w-5 mr-2 text-blue-400" /> Log Dispute Manually</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-lg">&times;</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="text-lg font-bold text-white">Log Manual Dispute</h3>
+              <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <form onSubmit={handleCreateDispute} className="py-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Dispute Reference (ID) *</label>
+            <form onSubmit={handleCreateDispute} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400">Reference #</label>
                   <input
-                    type="text"
                     required
-                    placeholder="disp_PzX891HskL"
+                    type="text"
                     value={formRef}
-                    onChange={(e) => setFormRef(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                    onChange={e => setFormRef(e.target.value)}
+                    placeholder="disp_991823"
+                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Dispute Amount (INR) *</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400">Amount (INR)</label>
                   <input
-                    type="number"
-                    step="0.01"
                     required
-                    placeholder="4999.00"
+                    type="number"
                     value={formAmount}
-                    onChange={(e) => setFormAmount(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                    onChange={e => setFormAmount(e.target.value)}
+                    placeholder="4500"
+                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Payment Gateway</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400">Gateway</label>
                   <select
                     value={formGateway}
-                    onChange={(e) => setFormGateway(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500 font-bold"
+                    onChange={e => setFormGateway(e.target.value)}
+                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
                   >
                     <option value="razorpay">Razorpay</option>
                     <option value="cashfree">Cashfree</option>
-                    <option value="payu">PayU</option>
                     <option value="stripe">Stripe</option>
-                    <option value="manual">Manual/Bank</option>
+                    <option value="manual">Manual Log</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Dispute Type</label>
-                  <select
-                    value={formType}
-                    onChange={(e) => setFormType(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500 font-bold"
-                  >
-                    <option value="chargeback">Chargeback</option>
-                    <option value="dispute">UPI Dispute</option>
-                    <option value="refund_claim">Refund Claim</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Dispute Reason</label>
-                  <select
-                    value={formReason}
-                    onChange={(e) => setFormReason(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500 font-bold"
-                  >
-                    <option value="Product not received">Product not received</option>
-                    <option value="Defective merchandise">Defective/Damaged</option>
-                    <option value="Fraudulent transaction">Unrecognized/Fraud</option>
-                    <option value="Duplicate payment">Duplicate charging</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Response Deadline *</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400">Deadline</label>
                   <input
-                    type="date"
                     required
+                    type="date"
                     value={formDeadline}
-                    onChange={(e) => setFormDeadline(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">External Transaction Ref (ID)</label>
-                  <input
-                    type="text"
-                    placeholder="pay_PzX891HskL"
-                    value={formTxId}
-                    onChange={(e) => setFormTxId(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                    onChange={e => setFormDeadline(e.target.value)}
+                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
                   />
                 </div>
               </div>
 
-              <div className="border-t border-[#1F2937] pt-3">
-                <h4 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-3">Customer Information (Recommended)</h4>
-                
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Customer Name</label>
-                    <input
-                      type="text"
-                      placeholder="Rahul Sharma"
-                      value={formCustName}
-                      onChange={(e) => setFormCustName(e.target.value)}
-                      className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Email</label>
-                    <input
-                      type="email"
-                      placeholder="rahul@gmail.com"
-                      value={formCustEmail}
-                      onChange={(e) => setFormCustEmail(e.target.value)}
-                      className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Phone</label>
-                    <input
-                      type="text"
-                      placeholder="9988776655"
-                      value={formCustPhone}
-                      onChange={(e) => setFormCustPhone(e.target.value)}
-                      className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Store Order Reference (ID)</label>
-                  <input
-                    type="text"
-                    placeholder="ORD-998811"
-                    value={formOrderId}
-                    onChange={(e) => setFormOrderId(e.target.value)}
-                    className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono uppercase text-zinc-400">Customer Email</label>
+                <input
+                  type="email"
+                  value={formCustEmail}
+                  onChange={e => setFormCustEmail(e.target.value)}
+                  placeholder="customer@email.com"
+                  className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
+                />
               </div>
 
-              <div className="flex items-center space-x-3 justify-end pt-4 border-t border-[#1F2937]">
+              <div className="flex justify-end space-x-3 pt-2 border-t border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="bg-transparent border border-[#1F2937] hover:border-gray-500 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white uppercase"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2"
+                  className="px-5 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-zinc-200"
                 >
-                  {submitting && <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white animate-spin mr-1.5" />}
-                  <span>Save Dispute & Gather</span>
+                  {submitting ? 'Submitting...' : 'Create Dispute'}
                 </button>
               </div>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>

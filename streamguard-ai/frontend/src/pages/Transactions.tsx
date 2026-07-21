@@ -36,6 +36,7 @@ export default function Transactions() {
     };
     fetchTransactions();
   }, [setInitialTransactions]);
+
   const filteredTransactions = recentTransactions.filter(tx => {
     const matchesSearch = tx.merchant_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          tx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,26 +73,20 @@ export default function Transactions() {
     toast.success(`Exported ${filteredTransactions.length} records to CSV`);
   };
 
-  const getRiskColor = (score: number) => {
-    if (score < 0.3) return 'bg-[#10B981]';
-    if (score < 0.7) return 'bg-[#F59E0B]';
-    return 'bg-[#EF4444]';
-  };
-
   return (
-    <div className="space-y-6 relative">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 text-left font-body">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Transactions Feed</h1>
-          <p className="text-gray-400 mt-1">Live monitoring of your transaction stream</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Transactions Feed</h1>
+          <p className="text-zinc-400 text-xs mt-1">Live monitoring of your transaction stream</p>
         </div>
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <select 
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="pl-8 pr-4 py-1.5 bg-black border border-zinc-800 rounded text-xs text-white appearance-none focus:outline-none focus:border-white font-mono"
             >
               <option value="all">All Risk Levels</option>
               <option value="fraud">Fraud</option>
@@ -102,157 +97,143 @@ export default function Transactions() {
           <Button 
             variant="outline" 
             onClick={handleExport}
-            className="text-gray-300 border-[#374151] hover:bg-[#1F2937]"
+            className="text-white border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold uppercase tracking-wider rounded h-9"
           >
-            <Download className="mr-2 h-4 w-4" /> Export CSV
+            <Download className="mr-2 h-3.5 w-3.5" /> Export CSV
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2 focus-within:border-blue-500/50 transition-colors">
-        <Search className="h-4 w-4 text-gray-500 mr-3" />
+      <div className="flex items-center bg-black border border-zinc-800 rounded px-3.5 py-2 focus-within:border-white transition-colors">
+        <Search className="h-3.5 w-3.5 text-zinc-500 mr-2.5" />
         <input 
           type="text"
           placeholder="Search by Merchant, ID, or Reference..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
+          className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-600 font-mono"
         />
       </div>
 
-      <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80 overflow-hidden">
+      <Card className="bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-[#1F2937]/50 border-b border-[#1F2937]/50">
+            <table className="w-full text-xs text-left">
+              <thead className="text-[10px] font-mono text-zinc-400 uppercase bg-black border-b border-zinc-800">
                 <tr>
-                  <th className="px-6 py-4">Transaction ID</th>
-                  <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4">Merchant</th>
-                  <th className="px-6 py-4 text-center">Risk Analysis</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <th className="px-5 py-3.5">Transaction ID</th>
+                  <th className="px-5 py-3.5">Amount</th>
+                  <th className="px-5 py-3.5">Merchant</th>
+                  <th className="px-5 py-3.5 text-center">Risk Analysis</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5">Time</th>
+                  <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F2937]/30">
+              <tbody className="divide-y divide-zinc-800">
                 {loading && filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 italic">
+                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
                       Intercepting transaction packets...
                     </td>
                   </tr>
                 ) : filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
                       No matches found for your current filters.
                     </td>
                   </tr>
                 ) : (
-                  paginatedTransactions.map((tx, idx) => (
-                    <tr 
-                      key={tx.id} 
-                      onClick={() => setSelectedTxId(tx.id)}
-                      className={`group border-b border-[#1F2937] ${idx % 2 === 0 ? 'bg-[#0A0E1A]' : 'bg-[#111827]'} hover:bg-blue-500/5 transition-colors cursor-pointer`}
-                    >
-                      <td className="px-6 py-4 font-mono text-gray-300 group-hover:text-blue-400 transition-colors">
-                        {tx.external_id || tx.id.substring(0, 13)}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-white">
-                        {tx.currency} {tx.amount}
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">
-                        {tx.merchant_name || 'Unknown'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 w-24">
-                          <span className="font-mono text-xs">{tx.risk_score.toFixed(2)}</span>
-                          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${getRiskColor(tx.risk_score)}`} 
-                              style={{ width: `${Math.min(100, Math.max(0, tx.risk_score * 100))}%` }}
-                            ></div>
+                  paginatedTransactions.map((tx) => {
+                    return (
+                      <tr key={tx.id} className="hover:bg-zinc-900 transition-colors">
+                        <td className="px-5 py-3.5 font-mono text-zinc-300">
+                          {tx.id.substring(0, 16)}...
+                        </td>
+                        <td className="px-5 py-3.5 font-mono font-bold text-white">
+                          {tx.currency} {tx.amount}
+                        </td>
+                        <td className="px-5 py-3.5 text-zinc-300 font-medium">
+                          {tx.merchant_name || 'N/A'}
+                        </td>
+                        <td className="px-5 py-3.5 text-center">
+                          <div className="inline-flex items-center gap-2 bg-black px-2.5 py-1 rounded border border-zinc-800">
+                            <span className="text-[10px] font-mono font-bold text-white">
+                              {(tx.risk_score * 100).toFixed(0)}/100
+                            </span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant={tx.risk_label as any} pulsingDot={tx.risk_label === 'fraud' || tx.risk_label === 'review'}>
-                          {tx.risk_label.toUpperCase()}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                        {new Date(tx.created_at).toLocaleTimeString()}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTxId(tx.id);
-                          }}
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 font-bold text-[10px] uppercase tracking-widest"
-                        >
-                          Details
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <Badge className={`font-mono text-[10px] uppercase font-bold border ${
+                            tx.risk_label === 'fraud' ? 'bg-zinc-900 text-white border-zinc-700' :
+                            tx.risk_label === 'review' ? 'bg-zinc-900 text-zinc-300 border-zinc-800' :
+                            'bg-black text-white border-zinc-800'
+                          }`}>
+                            {tx.risk_label || 'SAFE'}
+                          </Badge>
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-zinc-500 text-[10px]">
+                          {tx.created_at ? new Date(tx.created_at).toLocaleTimeString() : 'Just now'}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setSelectedTxId(tx.id)}
+                            className="text-xs text-white hover:bg-zinc-800 font-bold uppercase tracking-wider"
+                          >
+                            Inspect
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
-          
-          {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-[#1F2937]/80 gap-4">
-            <div className="text-xs text-gray-400 font-medium">
-              Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
-            </div>
-            <div className="flex items-center space-x-1.5">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Next
-              </button>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Overlay Backdrop */}
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-zinc-800 pt-4 text-xs font-mono">
+          <span className="text-zinc-500">
+            Showing {startIndex + 1}-{endIndex} of {totalItems} transactions
+          </span>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+              className="bg-black border-zinc-800 text-white hover:bg-zinc-900 disabled:opacity-40"
+            >
+              Previous
+            </Button>
+            <span className="text-zinc-400 font-bold px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="bg-black border-zinc-800 text-white hover:bg-zinc-900 disabled:opacity-40"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
       {selectedTxId && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-in fade-in duration-300"
-          onClick={() => setSelectedTxId(null)}
+        <TransactionDrawer 
+          transactionId={selectedTxId}
+          isOpen={!!selectedTxId}
+          onClose={() => setSelectedTxId(null)}
         />
       )}
-      <TransactionDrawer 
-        txId={selectedTxId} 
-        onClose={() => setSelectedTxId(null)} 
-      />
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '@/services/api';
@@ -7,14 +7,7 @@ import DeveloperFlow from '@/components/integrations/DeveloperFlow';
 import { 
   Plug2, 
   Code, 
-  HelpCircle, 
-  CheckCircle, 
-  AlertCircle, 
-  Clock, 
-  Trash2, 
-  Info,
-  ChevronDown,
-  ChevronUp
+  Trash2,
 } from 'lucide-react';
 
 interface Integration {
@@ -32,9 +25,7 @@ export default function Integrations() {
   const [activePath, setActivePath] = useState<'no_code' | 'developer' | null>('no_code');
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Fetch connected integrations
   const fetchIntegrations = async () => {
     setLoading(true);
     try {
@@ -79,193 +70,128 @@ export default function Integrations() {
     }
   };
 
-  const getPlatformColors = (platform: string) => {
-    switch (platform) {
-      case 'shopify':
-        return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' };
-      case 'woocommerce':
-        return { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' };
-      case 'razorpay_pages':
-        return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' };
-      default:
-        return { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
-    }
-  };
-
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto text-left font-body">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-800 pb-4 gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-display text-white">Integrations</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Connect your shop, payment page, or custom app to monitor checkout transactions.
-          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Integrations Hub</h1>
+          <p className="text-zinc-400 text-xs mt-1">Connect payment gateways, e-commerce stores, and fraud webhooks.</p>
         </div>
-        
-        {/* Info Tooltip Trigger */}
-        <button 
-          onClick={() => setShowTooltip(!showTooltip)} 
-          className="flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-1.5 self-start md:self-auto transition-colors"
+      </div>
+
+      {/* Path Selector Tabs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          onClick={() => setActivePath('no_code')}
+          className={`p-6 rounded-lg border text-left transition-colors ${
+            activePath === 'no_code'
+              ? 'bg-zinc-950 border-white text-white'
+              : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+          }`}
         >
-          <HelpCircle className="h-4 w-4" />
-          <span>How does 'Connect Your Store' work?</span>
-          {showTooltip ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="p-2 rounded bg-black border border-zinc-800 text-white">
+              <Plug2 className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-white text-base">No-Code Store Connection</h3>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Connect Shopify, WooCommerce, Razorpay, or Cashfree stores automatically in under 60 seconds without code.
+          </p>
+        </button>
+
+        <button
+          onClick={() => setActivePath('developer')}
+          className={`p-6 rounded-lg border text-left transition-colors ${
+            activePath === 'developer'
+              ? 'bg-zinc-950 border-white text-white'
+              : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+          }`}
+        >
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="p-2 rounded bg-black border border-zinc-800 text-white">
+              <Code className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-white text-base">Developer Custom API</h3>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Embed JavaScript monitoring tags or integrate sub-100ms Python/Node REST API endpoints directly into your checkout.
+          </p>
         </button>
       </div>
 
-      {/* Tooltip Content */}
-      {showTooltip && (
-        <div className="bg-[#111827] border border-blue-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-3 shadow-lg">
-          <div className="flex items-center space-x-2 text-blue-400 font-semibold">
-            <Info className="h-4 w-4" />
-            <span>Honest & Secure Onboarding Info</span>
-          </div>
-          <ul className="list-disc pl-5 space-y-2 text-xs leading-relaxed text-gray-400">
-            <li>
-              <b>Supported Platforms:</b> For Shopify, WooCommerce, and Razorpay, we provide secure zero-code connectors.
-            </li>
-            <li>
-              <b>Unknown/Unsupported Sites:</b> If our detector doesn't find a platform tag, we route you to the manual SDK block code or the lightweight client monitoring tag.
-            </li>
-            <li>
-              <b>Data Isolation & Security:</b> Flowshield AI only accesses checkout metadata (amounts, device indicators) needed for fraud score analytics. We do not access customer logins or credentials.
-            </li>
-          </ul>
+      {/* Connection Flow Sub-components */}
+      {activePath === 'no_code' && (
+        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <ConnectStoreFlow onConnected={fetchIntegrations} />
         </div>
       )}
 
-      {/* Two Path Choice Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card A: Connect Your Store */}
-        <div 
-          onClick={() => setActivePath('no_code')}
-          className={`cursor-pointer rounded-xl p-6 border transition-all duration-200 ${
-            activePath === 'no_code' 
-              ? 'bg-[#111827] border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-              : 'bg-[#111827]/60 border-[#1F2937] hover:border-[#374151]'
-          }`}
-        >
-          <div className="flex items-center space-x-3 mb-3">
-            <div className={`p-2 rounded-lg ${activePath === 'no_code' ? 'bg-blue-600/20' : 'bg-gray-800'}`}>
-              <Plug2 className={`h-5 w-5 ${activePath === 'no_code' ? 'text-blue-400' : 'text-gray-400'}`} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Connect Your Store</h3>
-              <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">NO CODE NEEDED</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Just paste your website URL. We will scan platform headers and automatically link Shopify, WooCommerce, and Razorpay Pages.
-          </p>
-        </div>
-
-        {/* Card B: Developer Integration */}
-        <div 
-          onClick={() => setActivePath('developer')}
-          className={`cursor-pointer rounded-xl p-6 border transition-all duration-200 ${
-            activePath === 'developer' 
-              ? 'bg-[#111827] border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-              : 'bg-[#111827]/60 border-[#1F2937] hover:border-[#374151]'
-          }`}
-        >
-          <div className="flex items-center space-x-3 mb-3">
-            <div className={`p-2 rounded-lg ${activePath === 'developer' ? 'bg-blue-600/20' : 'bg-gray-800'}`}>
-              <Code className={`h-5 w-5 ${activePath === 'developer' ? 'text-blue-400' : 'text-gray-400'}`} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Developer Integration</h3>
-              <span className="text-[10px] text-gray-400 font-bold bg-gray-800 border border-gray-700 px-2 py-0.5 rounded">API & SDK</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Connect using server-side SDKs (Node.js, Python, PHP), standard cURL endpoints, or checkout monitoring tags.
-          </p>
-        </div>
-      </div>
-
-      {/* Expanded Flows */}
-      <div className="mt-8 border-t border-[#1F2937] pt-8">
-        {activePath === 'no_code' ? (
-          <ConnectStoreFlow 
-            onFallback={() => setActivePath('developer')} 
-            onSuccess={fetchIntegrations} 
-          />
-        ) : (
+      {activePath === 'developer' && (
+        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
           <DeveloperFlow />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Connected Integrations List */}
-      <div className="mt-12 space-y-4">
-        <h2 className="text-lg font-semibold text-white">Connected Stores</h2>
-        {integrations.length === 0 ? (
-          <div className="bg-[#111827]/30 border border-dashed border-[#1F2937] rounded-xl p-8 text-center text-gray-500">
-            No connected storefronts or active integrations found.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {integrations.map((integration) => {
-              const colors = getPlatformColors(integration.platform);
-              return (
-                <div 
-                  key={integration.id} 
-                  className="bg-[#111827] border border-[#1F2937] rounded-xl p-5 space-y-4 flex flex-col justify-between"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${colors.bg} ${colors.text} ${colors.border}`}>
-                          {integration.platform.replace('_', ' ')}
-                        </span>
-                        <span className="text-[10px] text-gray-400 bg-gray-800 border border-gray-700 px-2 py-0.5 rounded">
-                          {getMethodLabel(integration.connection_method)}
-                        </span>
-                      </div>
-                      <h4 className="font-semibold text-gray-200 text-sm">
-                        {integration.store_name || 'Active Store'}
-                      </h4>
-                      {integration.store_url && (
-                        <a 
-                          href={integration.store_url} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="text-xs text-blue-400 hover:underline block truncate max-w-[200px]"
-                        >
-                          {integration.store_url}
-                        </a>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full">
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      <span>{integration.status}</span>
-                    </div>
-                  </div>
+      {/* Connected Stores Directory */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="border-b border-zinc-800 bg-black p-4 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">Connected Stores ({integrations.length})</h2>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchIntegrations}
+            className="bg-black border-zinc-800 text-zinc-300 hover:text-white text-xs font-mono"
+          >
+            Refresh List
+          </Button>
+        </div>
 
-                  <div className="border-t border-[#1F2937] pt-4 flex items-center justify-between text-xs text-gray-400">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-3.5 w-3.5 text-gray-500" />
-                      <span>
-                        {integration.last_event_at 
-                          ? `Last event: ${new Date(integration.last_event_at).toLocaleTimeString()}`
-                          : 'No events received yet'}
+        <div className="p-5">
+          {loading ? (
+            <div className="py-8 text-center text-zinc-500 font-mono text-xs">Fetching connected stores...</div>
+          ) : integrations.length === 0 ? (
+            <div className="py-8 text-center text-zinc-500 font-mono text-xs">
+              No store connections active. Connect your first store above.
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-800">
+              {integrations.map((item) => (
+                <div key={item.id} className="py-4 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-sm text-white">{item.store_name}</span>
+                      <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-black border border-zinc-800 text-zinc-300">
+                        {item.platform}
+                      </span>
+                      <span className="text-[10px] font-mono text-zinc-500">
+                        {getMethodLabel(item.connection_method)}
                       </span>
                     </div>
+                    {item.store_url && (
+                      <p className="text-xs font-mono text-zinc-500 mt-1">{item.store_url}</p>
+                    )}
+                  </div>
 
-                    <button 
-                      onClick={() => handleDisconnect(integration.id)}
-                      className="text-red-400 hover:text-red-300 font-medium flex items-center space-x-1"
+                  <div className="flex items-center space-x-4">
+                    <span className="text-[10px] font-mono uppercase text-white bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded">
+                      {item.status}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDisconnect(item.id)}
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-900 h-8 w-8 p-0"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      <span>Disconnect</span>
-                    </button>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

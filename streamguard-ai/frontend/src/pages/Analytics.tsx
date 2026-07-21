@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Activity, ShieldAlert, CheckCircle2, DollarSign } from 'lucide-react';
+import { Activity, ShieldAlert, DollarSign } from 'lucide-react';
 import api from '@/services/api';
 
 interface Stats {
@@ -28,8 +28,6 @@ const COUNTRY_COORDS: Record<string, { x: number; y: number; name: string }> = {
   'ZA': { x: 520, y: 390, name: 'South Africa' },
 };
 
-import { motion } from 'framer-motion';
-
 export default function Analytics() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,134 +48,85 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] font-body">
         <div className="text-center">
-            <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400 font-medium">Aggregating global intelligence...</p>
+            <div className="w-10 h-10 border-2 border-zinc-700 border-t-white rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-zinc-400 font-mono text-xs">Aggregating global intelligence...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto p-6 md:p-12 text-white">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="space-y-6 max-w-7xl mx-auto text-left font-body">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight">Intelligence Ledger</h1>
-          <p className="text-gray-400 mt-2 text-lg">Real-time fraud velocity and global risk telemetry.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Intelligence Ledger</h1>
+          <p className="text-zinc-400 text-xs mt-1">Real-time fraud velocity and global risk telemetry.</p>
         </div>
-        <div className="flex items-center space-x-2 text-xs font-mono bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-md border border-blue-500/20">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2" />
-            LIVE FEED ACTIVE
+        <div className="flex items-center space-x-2 text-[10px] font-mono bg-black text-zinc-300 px-3 py-1 rounded border border-zinc-800 uppercase tracking-wider">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            Live Feed Active
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Analyzed', value: stats?.total_analyzed, icon: Activity, color: 'text-blue-400' },
-          { label: 'Fraud Shielded', value: stats?.fraud_blocked, icon: ShieldAlert, color: 'text-red-400' },
-          { label: 'Protected Value', value: `$${(stats?.total_volume || 0).toLocaleString()}`, icon: DollarSign, color: 'text-emerald-400' },
-          { label: 'System Latency', value: `${stats?.avg_latency_ms.toFixed(1)}ms`, icon: Activity, color: 'text-purple-400' },
+          { label: 'Total Analyzed', value: stats?.total_analyzed, icon: Activity },
+          { label: 'Fraud Shielded', value: stats?.fraud_blocked, icon: ShieldAlert },
+          { label: 'Protected Value', value: `$${(stats?.total_volume || 0).toLocaleString()}`, icon: DollarSign },
+          { label: 'System Latency', value: `${stats?.avg_latency_ms.toFixed(1)}ms`, icon: Activity },
         ].map((item, i) => (
-          <Card key={i} className="bg-[#111827]/50 border-[#1F2937] backdrop-blur-sm group hover:border-blue-500/30 transition-colors">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{item.label}</CardTitle>
-              <item.icon className={`h-4 w-4 ${item.color}`} />
+          <Card key={i} className="bg-zinc-950 border-zinc-800 hover:border-zinc-700 transition-colors p-5 rounded-lg">
+            <CardHeader className="flex flex-row items-center justify-between p-0 pb-2">
+              <CardTitle className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider">{item.label}</CardTitle>
+              <item.icon className="h-4 w-4 text-white" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tighter">{item.value?.toLocaleString() || 0}</div>
+            <CardContent className="p-0">
+              <div className="text-3xl font-extrabold text-white tracking-tight">{item.value?.toLocaleString() || 0}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-[#111827]/50 border-[#1F2937] overflow-hidden relative group">
-          <CardHeader className="border-b border-[#1F2937]/50">
-            <CardTitle className="text-lg font-medium">Global Risk Heatmap</CardTitle>
+        <Card className="lg:col-span-2 bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
+          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
+            <CardTitle className="text-white text-sm font-bold">Global Risk Telemetry Map</CardTitle>
           </CardHeader>
-          <CardContent className="p-0 h-[450px] bg-[#0B0F1A] relative">
-            {/* Simple SVG World Map Outline Placeholder */}
-            <svg viewBox="0 0 1000 500" className="w-full h-full opacity-20 transition-opacity group-hover:opacity-30">
-                <path fill="currentColor" className="text-gray-600" d="M150,100 L250,100 L250,200 L150,200 Z M400,100 L600,100 L600,250 L400,250 Z M700,150 L850,150 L850,300 L700,300 Z M200,300 L350,300 L350,450 L200,450 Z" />
+          <CardContent className="p-0 h-[400px] bg-black relative flex items-center justify-center">
+            <svg className="w-full h-full opacity-30" viewBox="0 0 1000 500" fill="none">
+              {Object.entries(COUNTRY_COORDS).map(([code, coords]) => (
+                <g key={code}>
+                  <circle cx={coords.x} cy={coords.y} r="6" className="fill-zinc-700" />
+                  <circle cx={coords.x} cy={coords.y} r="3" className="fill-white" />
+                  <text x={coords.x + 10} y={coords.y + 4} fill="#A1A1AA" fontSize="10" fontFamily="monospace">{coords.name}</text>
+                </g>
+              ))}
             </svg>
-            
-            {/* Interactive Dots for Countries with Data */}
-            <div className="absolute inset-0">
-                {stats && Object.entries(stats.risk_by_country || {}).map(([code, count], index) => {
-                    const coord = COUNTRY_COORDS[code] || { x: Math.random() * 800 + 100, y: Math.random() * 300 + 100, name: code };
-                    const size = Math.min(60, 10 + count * 5);
-                    return (
-                        <motion.div
-                            key={code}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: index * 0.1, type: "spring" }}
-                            className="absolute cursor-help group/dot"
-                            style={{ left: `${(coord.x / 1000) * 100}%`, top: `${(coord.y / 500) * 100}%` }}
-                        >
-                            <div className="relative -translate-x-1/2 -translate-y-1/2">
-                                <div 
-                                    className="rounded-full bg-red-500/40 animate-ping absolute inset-0" 
-                                    style={{ width: size, height: size }} 
-                                />
-                                <div 
-                                    className="rounded-full bg-red-500/60 border border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center justify-center text-[10px] font-bold" 
-                                    style={{ width: size, height: size }}
-                                >
-                                    {count}
-                                </div>
-                                
-                                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-800 p-2 rounded shadow-2xl opacity-0 group-hover/dot:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                    <p className="font-bold text-white">{coord.name}</p>
-                                    <p className="text-red-400 text-xs">{count} blocked threats</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
           </CardContent>
-          <div className="absolute bottom-4 right-4 text-[10px] text-gray-500 font-mono">
-            COORDINATE MAPPING SYSTEM V2.4
-          </div>
         </Card>
 
-        <Card className="bg-[#111827]/50 border-[#1F2937] p-8">
-          <CardTitle className="text-xl font-bold mb-6 flex items-center">
-            <CheckCircle2 className="h-5 w-5 mr-2 text-blue-500" />
-            Risk Decomposition
-          </CardTitle>
-          <div className="space-y-6">
-            {[
-              { label: 'Geographic Mismatch', impact: '42%', color: 'bg-red-500' },
-              { label: 'Velocity Thresholds', impact: '28%', color: 'bg-orange-500' },
-              { label: 'Device Integrity', impact: '17%', color: 'bg-amber-500' },
-              { label: 'Digital Footprint', impact: '13%', color: 'bg-blue-500' },
-            ].map((factor, i) => (
-              <div key={i} className="group">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">{factor.label}</span>
-                  <span className="text-xs font-mono text-gray-500">{factor.impact}</span>
+        <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
+          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
+            <CardTitle className="text-white text-sm font-bold">Regional Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="p-5 space-y-4 font-mono text-xs">
+            {Object.entries(stats?.risk_by_country || {}).length === 0 ? (
+              <p className="text-zinc-500 text-center py-8">No regional data recorded yet.</p>
+            ) : (
+              Object.entries(stats?.risk_by_country || {}).map(([country, count]) => (
+                <div key={country} className="flex justify-between items-center border-b border-zinc-800 pb-2">
+                  <span className="text-zinc-300 font-bold">{COUNTRY_COORDS[country]?.name || country}</span>
+                  <span className="text-white bg-black border border-zinc-800 px-2 py-0.5 rounded text-[10px] font-bold">
+                    {count} events
+                  </span>
                 </div>
-                <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
-                    <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: factor.impact }}
-                        transition={{ duration: 1, delay: i * 0.2 }}
-                        className={`h-full ${factor.color}`}
-                    />
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-12 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-              <p className="text-xs text-blue-400 font-medium italic">"The Isolation Forest model is currently weighting cross-border IP deviations as the most critical risk vector for your organization."</p>
-          </div>
+              ))
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
