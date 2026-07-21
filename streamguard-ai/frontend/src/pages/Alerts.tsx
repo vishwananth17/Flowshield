@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { 
   ShieldAlert, 
-  Search, 
   Clock, 
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { AlertDrawer } from '@/components/AlertDrawer';
 import { toast } from 'sonner';
 
-export const AlertsPage: React.FC = () => {
+export function AlertsPage() {
   const { alerts, stats, fetchAlerts, fetchStats, bulkAction } = useAlertStore();
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('open');
@@ -201,4 +200,6 @@ export const AlertsPage: React.FC = () => {
       )}
     </div>
   );
-};
+}
+
+export default AlertsPage;
