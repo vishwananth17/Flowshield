@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import api_keys, auth, feed, transactions, billing, analytics, alerts, health, waitlist, legal, integrations_detect, shopify_oauth, disputes, dispute_webhooks, integrations
+from app.api.v1 import api_keys, auth, feed, transactions, billing, analytics, alerts, health, waitlist, legal, integrations_detect, shopify_oauth, disputes, dispute_webhooks, integrations, account_events, refund_events
 
 api_router = APIRouter()
 api_router.include_router(health.router, prefix="/health", tags=["Health"])
@@ -18,5 +18,7 @@ api_router.include_router(shopify_oauth.router)
 api_router.include_router(disputes.router)
 api_router.include_router(dispute_webhooks.router)
 api_router.include_router(integrations.router)
+api_router.include_router(account_events.router)
+api_router.include_router(refund_events.router)
 
 

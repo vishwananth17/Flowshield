@@ -8,6 +8,7 @@ env/
 .env.staging
 .env.production
 .pytest_cache/
+*.csv
 
 # Node
 node_modules/

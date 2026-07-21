@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 class FraudDatasetGenerator:
-    def __init__(self, n_normal=170000, n_edge=10000, n_fraud_per_pattern=180, seed=42):
+    def __init__(self, n_normal=200000, n_edge=20000, n_fraud_per_pattern=5000, seed=42):
         self.n_normal = n_normal
         self.n_edge = n_edge
         self.n_fraud_per_pattern = n_fraud_per_pattern
@@ -16,6 +16,7 @@ class FraudDatasetGenerator:
     def generate(self):
         # 1. Normal/Legitimate baseline
         df_normal = self._generate_base(self.n_normal, is_fraud=0, is_hard_edge_case=0, pattern="normal")
+        df_normal['fraud_type'] = 'legitimate'
         
         # 2. Safe Edge Cases (critical to reduce False Blocks)
         n_each_edge = self.n_edge // 5
@@ -25,30 +26,22 @@ class FraudDatasetGenerator:
         edge_4 = self._edge_b2b_wholesale(n_each_edge)
         edge_5 = self._edge_thin_credit(n_each_edge)
         
+        for edge_df in [edge_1, edge_2, edge_3, edge_4, edge_5]:
+            edge_df['fraud_type'] = 'legitimate'
+
         # 3. Fraud Patterns (E-commerce + SaaS)
-        f_patterns = [
-            ("triangulation_fraud", self._fraud_triangulation),
-            ("refund_return_abuse", self._fraud_refund_return_abuse),
-            ("promo_coupon_abuse", self._fraud_promo_coupon_abuse),
-            ("account_takeover_post_purchase", self._fraud_account_takeover),
-            ("card_testing", self._fraud_card_testing),
-            ("friendly_fraud", self._fraud_friendly_fraud),
-            ("marketplace_seller_fraud", self._fraud_marketplace_seller),
-            ("subscription_fraud", self._fraud_subscription_fraud),
-            ("gift_card_cashout_fraud", self._fraud_gift_card_cashout),
-            ("cross_border_digital_fraud", self._fraud_cross_border),
-            ("trial_abuse_rings", self._fraud_trial_abuse_rings),
-            ("stolen_card_subscription_stacking", self._fraud_subscription_stacking),
-            ("chargeback_prone_bin_ranges", self._fraud_bin_range_chargeback),
-            ("api_abuse_credential_stuffing", self._fraud_api_abuse)
-        ]
+        df_stolen = self._fraud_stolen_card(self.n_fraud_per_pattern)
+        df_chargeback = self._fraud_chargeback(self.n_fraud_per_pattern)
+        df_ato = self._fraud_account_takeover(self.n_fraud_per_pattern)
+        df_refund = self._fraud_refund(self.n_fraud_per_pattern)
+        df_promo = self._fraud_promo(self.n_fraud_per_pattern)
+        df_bot = self._fraud_bot(self.n_fraud_per_pattern)
         
-        frauds = []
-        for name, func in f_patterns:
-            frauds.append(func(self.n_fraud_per_pattern))
-            
         # Concatenate all
-        df = pd.concat([df_normal, edge_1, edge_2, edge_3, edge_4, edge_5] + frauds, ignore_index=True)
+        df = pd.concat([
+            df_normal, edge_1, edge_2, edge_3, edge_4, edge_5,
+            df_stolen, df_chargeback, df_ato, df_refund, df_promo, df_bot
+        ], ignore_index=True)
         
         # Shuffle
         df = df.sample(frac=1, random_state=self.seed).reset_index(drop=True)
@@ -147,6 +140,37 @@ class FraudDatasetGenerator:
             'approved_tx_count_lt': np.random.randint(5, 100, size=n),
             'fraud_alerts_lifetime': np.zeros(n, dtype=int),
             'declined_tx_ratio_30d': np.zeros(n),
+
+            # 6 Fraud Types features
+            'account_inactive_days': np.clip(np.random.poisson(2, size=n), 0, 30),
+            'geo_mismatch': np.random.binomial(1, 0.04, size=n),
+            'prior_dispute_count': np.random.choice([0, 1], size=n, p=[0.98, 0.02]),
+            'customer_dispute_rate': np.random.uniform(0.0, 0.02, size=n),
+            'dispute_prone_product': np.random.binomial(1, 0.05, size=n),
+            'is_disposable_email': np.random.binomial(1, 0.01, size=n),
+            'is_pre_holiday_order': np.random.binomial(1, 0.15, size=n),
+            'is_round_amount': np.random.binomial(1, 0.05, size=n),
+            'ato_new_device': np.random.binomial(1, 0.10, size=n),
+            'ato_impossible_travel': np.zeros(n, dtype=int),
+            'ato_password_reset': np.random.binomial(1, 0.01, size=n),
+            'ato_account_modified': np.random.binomial(1, 0.02, size=n),
+            'ato_failed_login_count': np.random.choice([0, 1, 2], size=n, p=[0.90, 0.08, 0.02]),
+            'ato_distance_km': np.zeros(n),
+            'customer_refund_rate': np.random.uniform(0.0, 0.05, size=n),
+            'customer_refund_count': np.random.choice([0, 1], size=n, p=[0.95, 0.05]),
+            'device_refund_count': np.random.choice([0, 1], size=n, p=[0.97, 0.03]),
+            'high_refund_category': np.random.binomial(1, 0.10, size=n),
+            'device_account_count': np.random.choice([1, 2], size=n, p=[0.98, 0.02]),
+            'ip_account_count': np.random.choice([1, 2], size=n, p=[0.95, 0.05]),
+            'card_account_count': np.random.choice([1, 2], size=n, p=[0.99, 0.01]),
+            'has_sequential_email': np.random.binomial(1, 0.02, size=n),
+            'is_new_account': np.random.binomial(1, 0.05, size=n),
+            'account_age_minutes': np.random.uniform(60, 100000, size=n),
+            'is_bot_attack': np.zeros(n, dtype=int),
+            'requests_per_minute': np.clip(np.random.poisson(3, size=n), 1, 15),
+            'identical_body_count': np.ones(n, dtype=int),
+            'interval_regularity': np.random.uniform(0.0, 0.2, size=n),
+            'missing_browser_headers': np.random.binomial(1, 0.02, size=n),
             
             # Ground truth targets
             'is_fraud': is_fraud,
@@ -199,117 +223,80 @@ class FraudDatasetGenerator:
         return df
 
     # ── FRAUD PATTERNS ─────────────────────────────────────────────────────────
-    def _fraud_triangulation(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="triangulation_fraud")
-        df['amount'] = np.random.uniform(45000, 95000, size=n) # High value goods
-        df['merchant_category'] = '6530' # High resale electronics
-        df['is_first_transaction'] = 1
-        df['shipping_billing_address_mismatch'] = 1
-        df['prior_order_count_with_recipient'] = 0
-        df['is_first_time_high_value'] = 1
+    def _fraud_stolen_card(self, n):
+        df = self._generate_base(n, is_fraud=1, pattern="stolen_card")
+        df['is_new_device'] = 1
+        df['geo_mismatch'] = 1
+        df['amount_vs_avg_ratio'] = np.random.uniform(3.1, 8.0, size=n)
+        df['amount'] = np.random.uniform(15000, 80000, size=n)
+        df['account_inactive_days'] = np.random.randint(15, 120, size=n)
+        df['fraud_type'] = 'stolen_card'
         return df
 
-    def _fraud_refund_return_abuse(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="refund_return_abuse")
-        df['historical_return_rate'] = np.random.uniform(0.7, 0.95, size=n)
-        df['amount'] = np.random.uniform(10000, 40000, size=n)
-        return df
-
-    def _fraud_promo_coupon_abuse(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="promo_coupon_abuse")
-        df['device_fingerprint_cluster_size'] = np.random.randint(6, 15, size=n)
-        df['account_age_days'] = 0
-        df['is_first_transaction'] = 1
-        df['transaction_to_signup_time_minutes'] = np.random.randint(0, 3, size=n)
+    def _fraud_chargeback(self, n):
+        df = self._generate_base(n, is_fraud=1, pattern="chargeback_fraud")
+        df['prior_dispute_count'] = np.random.randint(2, 6, size=n)
+        df['customer_dispute_rate'] = np.random.uniform(0.16, 0.50, size=n)
+        df['dispute_prone_product'] = 1
+        df['is_disposable_email'] = 1
+        df['is_pre_holiday_order'] = 1
+        df['is_round_amount'] = 1
+        df['amount'] = np.random.choice([5000, 10000, 15000, 20000], size=n)
+        df['fraud_type'] = 'chargeback_fraud'
         return df
 
     def _fraud_account_takeover(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="account_takeover_post_purchase")
-        df['account_age_days'] = np.random.randint(100, 500, size=n)
-        df['shipping_billing_address_mismatch'] = 1
-        df['prior_order_count_with_recipient'] = 0
-        df['amount'] = np.random.uniform(35000, 80000, size=n)
-        df['device_age_days'] = 0
+        df = self._generate_base(n, is_fraud=1, pattern="account_takeover")
+        df['ato_new_device'] = 1
         df['is_new_device'] = 1
+        df['ato_impossible_travel'] = 1
+        df['ato_password_reset'] = 1
+        df['ato_account_modified'] = 1
+        df['ato_failed_login_count'] = np.random.randint(3, 10, size=n)
+        df['ato_distance_km'] = np.random.uniform(1000, 8000, size=n)
+        df['fraud_type'] = 'account_takeover'
         return df
 
-    def _fraud_card_testing(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="card_testing")
-        df['amount'] = np.random.uniform(1, 49, size=n) # Tiny test purchases
-        df['unique_merchants_5min'] = np.random.randint(3, 8, size=n)
-        df['tx_count_last_1h'] = np.random.randint(5, 15, size=n)
+    def _fraud_refund(self, n):
+        df = self._generate_base(n, is_fraud=1, pattern="refund_fraud")
+        df['customer_refund_rate'] = np.random.uniform(0.31, 0.85, size=n)
+        df['device_refund_count'] = np.random.randint(3, 8, size=n)
+        df['customer_refund_count'] = np.random.randint(3, 12, size=n)
+        df['high_refund_category'] = 1
+        df['fraud_type'] = 'refund_fraud'
         return df
 
-    def _fraud_friendly_fraud(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="friendly_fraud")
-        df['historical_dispute_rate'] = np.random.uniform(0.15, 0.45, size=n)
-        df['amount'] = np.random.uniform(5000, 25000, size=n)
+    def _fraud_promo(self, n):
+        df = self._generate_base(n, is_fraud=1, pattern="promo_abuse")
+        df['device_account_count'] = np.random.randint(3, 12, size=n)
+        df['ip_account_count'] = np.random.randint(5, 20, size=n)
+        df['card_account_count'] = np.random.randint(2, 6, size=n)
+        df['is_new_account'] = 1
+        df['account_age_minutes'] = np.random.uniform(0.1, 45.0, size=n)
+        df['has_sequential_email'] = 1
+        df['fraud_type'] = 'promo_abuse'
         return df
 
-    def _fraud_marketplace_seller(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="marketplace_seller_fraud")
-        df['merchant_age_days'] = np.random.randint(0, 2, size=n)
-        df['tx_count_last_24h'] = np.random.randint(100, 500, size=n)
-        return df
-
-    def _fraud_subscription_fraud(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="subscription_fraud")
-        df['channel'] = 'web'
-        df['card_type'] = 'prepaid'
-        df['amount'] = np.random.uniform(499, 1999, size=n)
-        df['is_first_transaction'] = 1
-        return df
-
-    def _fraud_gift_card_cashout(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="gift_card_cashout_fraud")
-        df['merchant_category'] = '7995' # Crypto/Gaming/GC cashout
-        df['amount'] = np.random.uniform(10000, 50000, size=n)
-        df['is_first_transaction'] = 1
-        return df
-
-    def _fraud_cross_border(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="cross_border_digital_fraud")
-        df['is_vpn'] = 1
-        df['is_known_vpn_range'] = 1
-        df['ip_country_match'] = 0
-        df['card_country_match'] = 0
-        df['customer_country'] = 'US'
-        df['card_issuing_country'] = 'IN'
-        return df
-
-    def _fraud_trial_abuse_rings(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="trial_abuse_rings")
-        df['email_domain_is_disposable'] = 1
-        df['device_fingerprint_cluster_size'] = np.random.randint(8, 25, size=n)
-        df['customer_email'] = [f"bot_{uuid.uuid4().hex[:8]}@tempmail.com" for _ in range(n)]
-        return df
-
-    def _fraud_subscription_stacking(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="stolen_card_subscription_stacking")
-        df['unique_merchants_5min'] = np.random.randint(4, 10, size=n)
-        df['card_type'] = 'credit'
-        return df
-
-    def _fraud_bin_range_chargeback(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="chargeback_prone_bin_ranges")
-        df['bin_risk_category'] = 2 # high risk BIN
-        df['historical_dispute_rate'] = np.random.uniform(0.1, 0.35, size=n)
-        return df
-
-    def _fraud_api_abuse(self, n):
-        df = self._generate_base(n, is_fraud=1, is_hard_edge_case=0, pattern="api_abuse_credential_stuffing")
-        df['failed_attempts_10m'] = np.random.randint(5, 18, size=n)
-        df['channel'] = 'upi_collect'
+    def _fraud_bot(self, n):
+        df = self._generate_base(n, is_fraud=1, pattern="bot_attack")
+        df['is_bot_attack'] = 1
+        df['is_bot_user_agent'] = 1
+        df['requests_per_minute'] = np.random.randint(101, 500, size=n)
+        df['identical_body_count'] = np.random.randint(11, 80, size=n)
+        df['interval_regularity'] = np.random.uniform(0.96, 0.999, size=n)
+        df['missing_browser_headers'] = 1
+        df['fraud_type'] = 'bot_attack'
         return df
 
 
 if __name__ == "__main__":
-    # Generate ~170k normal + 10k hard edge case + 14 * 180 (2520) fraud = ~182,520 total rows
-    gen = FraudDatasetGenerator(n_normal=170000, n_edge=10000, n_fraud_per_pattern=180)
+    gen = FraudDatasetGenerator(n_normal=200000, n_edge=20000, n_fraud_per_pattern=5000)
     df = gen.generate()
     
     # Save CSV
-    df.to_csv('fraud_dataset.csv', index=False)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.join(script_dir, 'fraud_dataset.csv')
+    df.to_csv(dataset_path, index=False)
     
     # Metadata
     metadata = {
@@ -319,15 +306,15 @@ if __name__ == "__main__":
         "fraud_rate": float(df['is_fraud'].mean()),
         "feature_names": list(df.columns),
         "generation_date": datetime.now().isoformat(),
-        "patterns_breakdown": df['pattern_category'].value_counts().to_dict()
+        "patterns_breakdown": df['fraud_type'].value_counts().to_dict()
     }
     
-    with open('fraud_dataset_metadata.json', 'w') as f:
+    metadata_path = os.path.join(script_dir, 'fraud_dataset_metadata.json')
+    with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=4)
         
     print(f"Total samples: {len(df)}")
-    print(f"Normal: {metadata['n_normal']}")
-    print(f"Hard Edge Cases: {metadata['n_edge_cases']}")
+    print(f"Legitimate (safe): {metadata['n_normal'] + metadata['n_edge_cases']}")
     print(f"Fraud: {metadata['n_fraud']} ({metadata['fraud_rate']*100:.3f}%)")
     print(f"Features: {len(df.columns)-3}")
     print("\nPattern breakdown:")

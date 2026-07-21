@@ -1,145 +1,32 @@
 {
-  "dataset_size": 182520,
-  "fraud_rate": 0.013806706114398421,
+  "dataset_size": 250000,
+  "fraud_rate": 0.12,
   "overall_metrics": {
-    "precision": 0.9488636363636364,
-    "recall": 0.8835978835978836,
-    "f1": 0.915068493150685,
-    "pr_auc": 0.9459151606140285,
-    "roc_auc": 0.9981373701744073,
-    "false_block_rate": 0.0006666666666666666,
-    "true_block_count": 334,
-    "false_block_count": 18,
-    "true_allow_count": 26982,
-    "false_allow_count": 44
+    "precision": 0.9977827050997783,
+    "recall": 1.0,
+    "f1": 0.9988901220865705,
+    "pr_auc": 1.0,
+    "roc_auc": 1.0,
+    "false_block_rate": 0.00030303030303030303,
+    "true_block_count": 4500,
+    "false_block_count": 10,
+    "true_allow_count": 32990,
+    "false_allow_count": 0
   },
-  "per_pattern_performance": {
-    "normal": {
-      "type": "safe",
-      "total_count": 25500,
-      "allowed_rate": 0.9995,
-      "blocked_rate": 0.0005
-    },
-    "legitimate_large_first_time": {
-      "type": "safe",
-      "total_count": 300,
-      "allowed_rate": 1.0,
-      "blocked_rate": 0.0
-    },
-    "legitimate_gift_purchase": {
-      "type": "safe",
-      "total_count": 300,
-      "allowed_rate": 0.9967,
-      "blocked_rate": 0.0033
-    },
-    "promo_coupon_abuse": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "genuine_b2b_wholesale": {
-      "type": "safe",
-      "total_count": 300,
-      "allowed_rate": 1.0,
-      "blocked_rate": 0.0
-    },
-    "chargeback_prone_bin_ranges": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "account_takeover_post_purchase": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "refund_return_abuse": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 0.963
-    },
-    "genuine_traveler": {
-      "type": "safe",
-      "total_count": 300,
-      "allowed_rate": 0.99,
-      "blocked_rate": 0.01
-    },
-    "friendly_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "subscription_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 0.2222,
-      "recall_review_combined": 0.1111
-    },
-    "legitimate_thin_credit": {
-      "type": "safe",
-      "total_count": 300,
-      "allowed_rate": 1.0,
-      "blocked_rate": 0.0
-    },
-    "gift_card_cashout_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 0.1852,
-      "recall_review_combined": 0.0
-    },
-    "card_testing": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "api_abuse_credential_stuffing": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "triangulation_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "cross_border_digital_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 0.963,
-      "recall_review_combined": 0.7778
-    },
-    "trial_abuse_rings": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 1.0
-    },
-    "marketplace_seller_fraud": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 0.963
-    },
-    "stolen_card_subscription_stacking": {
-      "type": "fraud",
-      "total_count": 27,
-      "recall_block": 1.0,
-      "recall_review_combined": 0.963
-    }
+  "per_class_recalls": {
+    "account_takeover": 1.0,
+    "bot_attack": 1.0,
+    "chargeback_fraud": 1.0,
+    "legitimate": 1.0,
+    "promo_abuse": 1.0,
+    "refund_fraud": 1.0,
+    "stolen_card": 1.0
   },
   "recommended_thresholds": {
-    "block_threshold": 0.39,
-    "review_threshold": 0.91
+    "block_threshold": 0.05,
+    "review_threshold": 0.95
   },
-  "balancing_used": "SMOTE",
+  "balancing_used": "SMOTE-ENN",
   "status": "READY_FOR_PRODUCTION",
   "specific_gaps": []
 }

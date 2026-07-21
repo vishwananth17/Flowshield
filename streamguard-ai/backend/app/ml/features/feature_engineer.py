@@ -36,7 +36,15 @@ class UnifiedFeatureEngineer:
         'shipping_billing_address_mismatch', 'account_age_days', 'prior_order_count_with_recipient',
         'historical_return_rate', 'historical_dispute_rate', 'is_first_time_high_value',
         'unique_merchants_5min', 'email_domain_is_disposable', 'device_fingerprint_cluster_size',
-        'is_known_vpn_range', 'bin_risk_category', 'transaction_to_signup_time_minutes'
+        'is_known_vpn_range', 'bin_risk_category', 'transaction_to_signup_time_minutes',
+
+        # 6 Fraud Types Features
+        'account_inactive_days', 'geo_mismatch',
+        'prior_dispute_count', 'customer_dispute_rate', 'dispute_prone_product', 'is_disposable_email', 'is_pre_holiday_order',
+        'ato_new_device', 'ato_impossible_travel', 'ato_password_reset', 'ato_account_modified', 'ato_failed_login_count', 'ato_distance_km',
+        'customer_refund_rate', 'customer_refund_count', 'device_refund_count', 'high_refund_category',
+        'device_account_count', 'ip_account_count', 'card_account_count', 'has_sequential_email', 'is_new_account', 'account_age_minutes',
+        'is_bot_attack', 'requests_per_minute', 'identical_body_count', 'interval_regularity', 'missing_browser_headers'
     ]
 
     DISPOSABLE_DOMAINS = {"tempmail.com", "mailinator.com", "guerrillamail.com", "yopmail.com"}
@@ -605,6 +613,36 @@ class UnifiedFeatureEngineer:
         df['is_known_vpn_range'] = df.get('is_known_vpn_range', df['is_vpn_or_hosting'])
         df['bin_risk_category'] = df.get('bin_risk_category', 0)
         df['transaction_to_signup_time_minutes'] = df.get('transaction_to_signup_time_minutes', 1440)
+
+        # 6 Fraud Types features mapping
+        df['account_inactive_days'] = df.get('account_inactive_days', 0)
+        df['geo_mismatch'] = df.get('geo_mismatch', 0)
+        df['prior_dispute_count'] = df.get('prior_dispute_count', 0)
+        df['customer_dispute_rate'] = df.get('customer_dispute_rate', 0.0)
+        df['dispute_prone_product'] = df.get('dispute_prone_product', 0)
+        df['is_disposable_email'] = df.get('is_disposable_email', df['is_temp_email'])
+        df['is_pre_holiday_order'] = df.get('is_pre_holiday_order', 0)
+        df['ato_new_device'] = df.get('ato_new_device', df['is_new_device'])
+        df['ato_impossible_travel'] = df.get('ato_impossible_travel', 0)
+        df['ato_password_reset'] = df.get('ato_password_reset', df.get('ato_password_reset_before_purchase', 0))
+        df['ato_account_modified'] = df.get('ato_account_modified', 0)
+        df['ato_failed_login_count'] = df.get('ato_failed_login_count', 0)
+        df['ato_distance_km'] = df.get('ato_distance_km', 0.0)
+        df['customer_refund_rate'] = df.get('customer_refund_rate', 0.0)
+        df['customer_refund_count'] = df.get('customer_refund_count', 0)
+        df['device_refund_count'] = df.get('device_refund_count', 0)
+        df['high_refund_category'] = df.get('high_refund_category', 0)
+        df['device_account_count'] = df.get('device_account_count', 0)
+        df['ip_account_count'] = df.get('ip_account_count', 0)
+        df['card_account_count'] = df.get('card_account_count', 0)
+        df['has_sequential_email'] = df.get('has_sequential_email', 0)
+        df['is_new_account'] = df.get('is_new_account', 0)
+        df['account_age_minutes'] = df.get('account_age_minutes', 999.0)
+        df['is_bot_attack'] = df.get('is_bot_attack', 0)
+        df['requests_per_minute'] = df.get('requests_per_minute', 1)
+        df['identical_body_count'] = df.get('identical_body_count', 1)
+        df['interval_regularity'] = df.get('interval_regularity', 0.0)
+        df['missing_browser_headers'] = df.get('missing_browser_headers', 0)
         
         # Make sure no nan
         df[self.BASE_FEATURES] = df[self.BASE_FEATURES].fillna(0)

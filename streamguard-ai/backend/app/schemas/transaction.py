@@ -49,4 +49,7 @@ class TransactionAnalyzeResponse(BaseModel):
     reasons: list[str]
     model_version: str
     model_scores: dict[str, float] | None = None
+    fraud_type: str | None = None
+    fraud_type_confidence: float | None = None
+    fraud_signals: dict[str, Any] | None = None
     processed_at: datetime

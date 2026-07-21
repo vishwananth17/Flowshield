@@ -3,10 +3,12 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+from app.db.session import AsyncSessionLocal
 from app.core.config import get_settings
 from app.core.dependencies import CurrentUser, get_db
 from app.core.security import (
@@ -135,6 +137,15 @@ async def register(
     )
 
 
+async def update_last_login(user_id: uuid.UUID) -> None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if user:
+            user.last_login_at = datetime.now(UTC)
+            await session.commit()
+
+
 @router.post(
     "/login", 
     summary="User Authentication",
@@ -143,21 +154,25 @@ async def register(
 async def login(
     body: LoginRequest,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict[str, Any]:
-    result = await db.execute(select(User).where(User.email == str(body.email).lower().strip()))
+    result = await db.execute(
+        select(User)
+        .options(joinedload(User.organization))
+        .where(User.email == str(body.email).lower().strip())
+    )
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
-    user.last_login_at = datetime.now(UTC)
     access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)
     
-    org = await db.get(Organization, user.org_id)
-    await db.commit()
+    org = user.organization
+    background_tasks.add_task(update_last_login, user.id)
     
     return {
         "user": UserOut.model_validate(user),

@@ -1,10 +1,11 @@
 import asyncio
 import time
 import uuid
+import logging
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,8 @@ from app.models.organization import Organization
 from app.models.transaction import Transaction
 from app.schemas.transaction import TransactionAnalyzeRequest, TransactionAnalyzeResponse
 from app.services.fraud_detection_service import FraudDetectionService, transaction_row_from_request
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 _fraud = FraudDetectionService()
@@ -46,6 +49,7 @@ class TransactionListItem(BaseModel):
 )
 async def analyze_transaction(
     body: TransactionAnalyzeRequest,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     auth: AnalyzeAuthDep,
 ) -> TransactionAnalyzeResponse:
@@ -58,7 +62,7 @@ async def analyze_transaction(
         if body.transaction_id and body.transaction_id.startswith("BENCH_V1.3."):
             current_plan = "enterprise"
             
-        result = await _fraud.analyze(body, plan=current_plan, db=db, org_id=auth.org_id)
+        result = await _fraud.analyze(body, plan=current_plan, db=db, org_id=auth.org_id, request=request)
         
         # 3. Calculate latency
         latency_ms = int((time.perf_counter() - start_time) * 1000)
@@ -121,6 +125,9 @@ async def analyze_transaction(
             "reasons": result.reasons,
             "model_scores": result.model_scores,
             "model_version": result.model_version,
+            "fraud_type": result.fraud_type,
+            "fraud_type_confidence": result.fraud_type_confidence,
+            "fraud_signals": result.fraud_signals,
             "processed_at": datetime.now(UTC),
         }
     except Exception as e:

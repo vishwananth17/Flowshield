@@ -42,6 +42,15 @@ class Transaction(Base):
     model_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
     detection_latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_confirmed_fraud: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    device_fingerprint_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    device_first_seen: Mapped[bool | None] = mapped_column(Boolean, server_default="false", nullable=True)
+    customer_avg_amount_30d: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
+    amount_vs_avg_ratio: Mapped[Decimal | None] = mapped_column(Numeric(8, 4), nullable=True)
+    ip_geolocation_country: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    card_issuing_country: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    geo_mismatch: Mapped[bool | None] = mapped_column(Boolean, server_default="false", nullable=True)
+    account_inactive_days: Mapped[int | None] = mapped_column(Integer, server_default="0", nullable=True)
+    fraud_type_detected: Mapped[str | None] = mapped_column(String(50), nullable=True)
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )

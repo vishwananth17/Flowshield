@@ -5,60 +5,51 @@ interface LogoProps {
   size?: number;
   iconSize?: number;
   theme?: 'dark' | 'light' | 'auto';
+  showText?: boolean;
 }
 
 export const Logo: React.FC<LogoProps> = ({ 
   className = '', 
-  size = 40, 
-  iconSize = 24,
-  theme = 'auto' 
+  size = 32, 
+  iconSize = 18,
+  theme = 'auto',
+  showText = false
 }) => {
-  // Determine background and border styles based on the active theme
-  const bgClass = 
-    theme === 'dark' 
-      ? 'bg-black text-white border-slate-900' 
-      : theme === 'light' 
-        ? 'bg-white text-slate-900 border-slate-200' 
-        : 'bg-white dark:bg-black text-slate-900 dark:text-white border-slate-200 dark:border-slate-900';
+  const isDark = theme === 'dark';
+  const isLight = theme === 'light';
 
   return (
-    <div 
-      className={`rounded-xl border flex items-center justify-center shadow-inner transition-all duration-300 ${bgClass} ${className}`}
-      style={{ width: size, height: size }}
-    >
-      <svg
-        width={iconSize}
-        height={iconSize}
-        viewBox="0 0 400 400"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+    <div className={`flex items-center gap-3 ${className}`}>
+      {/* Stark Geometric Solid Block */}
+      <div 
+        className={`flex items-center justify-center font-bold text-sm tracking-tighter transition-all duration-200 ${
+          isLight 
+            ? 'bg-black text-white' 
+            : isDark 
+              ? 'bg-white text-black' 
+              : 'bg-black text-white dark:bg-white dark:text-black'
+        }`}
+        style={{ width: size, height: size, borderRadius: '4px' }}
       >
-        {/* Left Shield Plate */}
-        <path
-          d="M185 38 L60 85 V195 C60 285 185 355 185 355 V38 Z"
-          fill="currentColor"
-        />
-        {/* Right Shield Plate */}
-        <path
-          d="M215 38 L340 85 V195 C340 285 215 355 215 355 V38 Z"
-          fill="currentColor"
-          opacity="0.75"
-        />
-        {/* Interlocking Secure Center Ring / Lock */}
-        <circle
-          cx="200"
-          cy="190"
-          r="65"
-          className="fill-white dark:fill-black transition-colors duration-300"
+        <svg
+          width={iconSize}
+          height={iconSize}
+          viewBox="0 0 24 24"
+          fill="none"
           stroke="currentColor"
-          strokeWidth="24"
-        />
-        {/* Inner Lock Core / Shield Emblem */}
-        <path
-          d="M200 162 L228 178 V207 C228 223 200 234 200 234 C200 234 172 223 172 207 V178 L200 162 Z"
-          fill="currentColor"
-        />
-      </svg>
+          strokeWidth="3"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" />
+        </svg>
+      </div>
+
+      {showText && (
+        <span className="font-extrabold tracking-tight text-lg uppercase">
+          Flowshield<span className="font-light text-zinc-400">.AI</span>
+        </span>
+      )}
     </div>
   );
 };

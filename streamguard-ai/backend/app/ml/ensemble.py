@@ -1,4 +1,14 @@
 import os
+import sys
+
+# Ensure app/ml and its dependencies are importable (required for joblib unpickling)
+ML_DIR = os.path.dirname(os.path.abspath(__file__))
+if ML_DIR not in sys.path:
+    sys.path.insert(0, ML_DIR)
+backend_dir = os.path.dirname(os.path.dirname(ML_DIR))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 import numpy as np
 import pandas as pd
 import joblib
@@ -6,7 +16,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ML_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(ML_DIR, 'models')
 
 class FlowshieldEnsemble:
@@ -28,10 +37,13 @@ class FlowshieldEnsemble:
     def __init__(self):
         self.mviforest     = None
         self.xgboost       = None
+        self.multiclass_xgb = None
+        self.label_encoder = None
         self.shap_explainer = None
         self.feature_eng   = None
         self.scaler        = None
         self._xgb_available = False
+        self._multi_xgb_available = False
         self._mvi_available = False
         self._load_all()
 
@@ -68,7 +80,17 @@ class FlowshieldEnsemble:
         else:
             logger.warning("XGBoost not found — using MVIForest+Rules only")
 
-        logger.info(f"Ensemble ready: MVI={self._mvi_available}, XGB={self._xgb_available}")
+        # Load Multiclass XGBoost Model B + LabelEncoder
+        multi_xgb_path = os.path.join(MODELS_DIR, 'xgboost_multiclass_v1.joblib')
+        le_path = os.path.join(MODELS_DIR, 'label_encoder_v1.joblib')
+
+        if os.path.exists(multi_xgb_path) and os.path.exists(le_path):
+            self.multiclass_xgb = joblib.load(multi_xgb_path)
+            self.label_encoder = joblib.load(le_path)
+            self._multi_xgb_available = True
+            logger.info("XGBoost Multiclass Model B + LabelEncoder loaded")
+
+        logger.info(f"Ensemble ready: MVI={self._mvi_available}, XGB={self._xgb_available}, MultiXGB={self._multi_xgb_available}")
 
     def _apply_hard_rules(self, features: dict) -> tuple:
         """Hard rules that override ML — instant and deterministic"""
@@ -138,7 +160,7 @@ class FlowshieldEnsemble:
         try:
             from app.ml.features.feature_engineer import UnifiedFeatureEngineer
             feat_array = np.array([[
-                float(features.get(f, 0)) for f in UnifiedFeatureEngineer.BASE_FEATURES
+                float(features.get(f, 0)) for f in UnifiedFeatureEngineer.BASE_FEATURES[:59]
             ]])
             feat_scaled = self.scaler.transform(feat_array)
             score = float(self.mviforest.anomaly_score(feat_scaled)[0])
@@ -148,15 +170,12 @@ class FlowshieldEnsemble:
             return 0.5
 
     def _get_xgb_score(self, features: dict) -> tuple:
-        """Get XGBoost score + SHAP reasons"""
-        if not self._xgb_available:
+        """Get XGBoost supervised score [0-1] + SHAP reasons"""
+        if not self._xgb_available or self.feature_eng is None:
             return 0.5, []
 
         try:
-            from app.ml.features.feature_engineer import UnifiedFeatureEngineer
             feat_df = pd.DataFrame([features])
-
-            # Ensure all base features present
             for col in self.feature_eng.BASE_FEATURES:
                 if col not in feat_df.columns:
                     feat_df[col] = 0
@@ -166,6 +185,7 @@ class FlowshieldEnsemble:
 
             reasons = []
             if self.shap_explainer:
+                from app.ml.features.feature_engineer import UnifiedFeatureEngineer
                 shap_vals = self.shap_explainer.shap_values(feat_eng.values)[0]
                 reasons = UnifiedFeatureEngineer.generate_human_readable_reason(
                     shap_vals, self.feature_eng.BASE_FEATURES, features, top_n=3
@@ -176,6 +196,26 @@ class FlowshieldEnsemble:
         except Exception as e:
             logger.error(f"XGBoost error: {e}")
             return 0.5, []
+
+    def _get_multiclass_prediction(self, features: dict) -> dict:
+        if not self._multi_xgb_available or self.multiclass_xgb is None or self.feature_eng is None:
+            return {"fraud_type": "legitimate", "fraud_type_confidence": 1.0}
+        try:
+            feat_df = pd.DataFrame([features])
+            for col in self.feature_eng.BASE_FEATURES:
+                if col not in feat_df.columns:
+                    feat_df[col] = 0
+            feat_eng = self.feature_eng.build_training_matrix(feat_df.to_dict(orient='records'))
+            probs = self.multiclass_xgb.predict_proba(feat_eng.values)[0]
+            max_idx = np.argmax(probs)
+            pred_class = self.label_encoder.inverse_transform([max_idx])[0]
+            return {
+                "fraud_type": str(pred_class),
+                "fraud_type_confidence": round(float(probs[max_idx]), 4)
+            }
+        except Exception as e:
+            logger.error(f"Multiclass prediction error: {e}")
+            return {"fraud_type": "unknown_pattern", "fraud_type_confidence": 0.0}
 
     def predict(self, features: dict) -> dict:
         """Full ensemble prediction."""
@@ -205,7 +245,6 @@ class FlowshieldEnsemble:
         all_reasons.extend(rule_reasons)
         all_reasons.extend(xgb_reasons)
 
-
         if not all_reasons:
             if final > 0.70: all_reasons = ["ML ensemble detected anomalous pattern"]
             elif final > 0.30: all_reasons = ["Mildly unusual transaction — monitoring"]
@@ -218,6 +257,11 @@ class FlowshieldEnsemble:
 
         confidence = float(np.clip(1.0 - abs(final - 0.5) * 2, 0.5, 1.0))
         model_ver = "ensemble_v1.0" + ("_mvi+xgb+rules" if self._xgb_available else "_mvi+rules")
+
+        # Multiclass prediction (Model B) if final score is high or suspicious
+        fraud_type_res = {"fraud_type": "legitimate", "fraud_type_confidence": 1.0}
+        if final >= 0.15:
+            fraud_type_res = self._get_multiclass_prediction(features)
 
         return {
             "risk_score":   round(final, 4),
@@ -232,6 +276,8 @@ class FlowshieldEnsemble:
                 "final":     round(final, 4),
             },
             "model_version": model_ver,
+            "fraud_type": fraud_type_res["fraud_type"],
+            "fraud_type_confidence": fraud_type_res["fraud_type_confidence"]
         }
 
 # Module-level singleton

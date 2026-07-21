@@ -13,6 +13,12 @@ from app.models.model_drift import ModelDriftLog
 from app.models.model_comparison import ModelComparisonLog
 from app.models.dispute import Dispute, DisputeEvidence, DisputeTimeline, DisputeReminder
 from app.models.integration import Integration
+from app.models.customer_device_history import CustomerDeviceHistory
+from app.models.customer_dispute_history import CustomerDisputeHistory
+from app.models.customer_session import CustomerSession
+from app.models.account_event import AccountEvent
+from app.models.customer_refund_history import CustomerRefundHistory
+from app.models.promo_abuse_signal import PromoAbuseSignal
 
 __all__ = [
     "Alert",
@@ -34,6 +40,12 @@ __all__ = [
     "DisputeTimeline",
     "DisputeReminder",
     "Integration",
+    "CustomerDeviceHistory",
+    "CustomerDisputeHistory",
+    "CustomerSession",
+    "AccountEvent",
+    "CustomerRefundHistory",
+    "PromoAbuseSignal",
 ]
 
 
