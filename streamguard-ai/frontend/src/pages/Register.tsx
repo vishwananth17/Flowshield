@@ -56,136 +56,121 @@ export default function Register() {
     }
   };
 
-
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#0A0E1A] p-4 overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/20 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-
+    <div className="relative flex min-h-screen items-center justify-center bg-black text-white p-4 overflow-hidden font-body">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
         className="w-full max-w-md z-10"
       >
-        <Card className="w-full backdrop-blur-xl bg-[#111827]/80 border-[#1F2937]/80 shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
-          <CardHeader className="space-y-4 text-center">
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <div className="flex justify-center mb-8">
-                <div className="flex items-center space-x-3">
-                  <Logo size={40} iconSize={24} theme="dark" />
-                  <span className="text-3xl font-display font-bold text-white tracking-tight">Flowshield AI</span>
-                </div>
-              </div>
-            </motion.div>
+        <Card className="w-full bg-zinc-950 border border-zinc-800 rounded-xl shadow-sm overflow-hidden text-left">
+          <CardHeader className="space-y-3 text-center pt-8 pb-4">
+            <div className="flex justify-center mb-2">
+              <Link to="/">
+                <Logo size={40} iconSize={24} theme="dark" showText={true} />
+              </Link>
+            </div>
             <div>
-              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">Join Flowshield AI</CardTitle>
-              <CardDescription className="text-gray-400 mt-2">Start protecting your transactions instantly</CardDescription>
+              <CardTitle className="text-2xl font-extrabold text-white tracking-tight">Create Account</CardTitle>
+              <CardDescription className="text-zinc-400 text-xs mt-1">Get started with autonomous fraud defense</CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
+          <CardContent className="px-8 py-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 text-center"
-                >
+                <div className="rounded bg-zinc-900 border border-zinc-700 p-3 text-xs text-red-400 text-center font-mono">
                   {error}
-                </motion.div>
+                </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Organization Name</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Organization</label>
                   <Input
                     type="text"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                     placeholder="Acme Corp"
                     required
-                    className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-emerald-500/50 h-11"
+                    className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Full Name</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Full Name</label>
                   <Input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Jane Doe"
                     required
-                    className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-emerald-500/50 h-11"
+                    className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Work Email</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Work Email</label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jane@company.com"
                   required
-                  className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-emerald-500/50 h-11"
+                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Password</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Password</label>
                 <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-emerald-500/50 h-11"
+                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                 />
               </div>
-                {/* Legal checkboxes */}
-                <div className="space-y-3 mt-4">
-                  <div className="flex items-center">
-                    <input
-                      id="tos"
-                      type="checkbox"
-                      checked={acceptedToS}
-                      onChange={(e) => setAcceptedToS(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    <label htmlFor="tos" className="ml-2 text-sm text-gray-300">
-                      I have read and agree to the <Link to="/terms" className="text-emerald-400 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-emerald-400 hover:underline">Privacy Policy</Link>.
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      id="dpa"
-                      type="checkbox"
-                      checked={acceptedDPA}
-                      onChange={(e) => setAcceptedDPA(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    <label htmlFor="dpa" className="ml-2 text-sm text-gray-300">
-                      I accept the <Link to="/dpa" className="text-emerald-400 hover:underline">Data Processing Agreement</Link>.
-                    </label>
-                  </div>
+              
+              {/* Legal checkboxes */}
+              <div className="space-y-2.5 pt-2">
+                <div className="flex items-center">
+                  <input
+                    id="tos"
+                    type="checkbox"
+                    checked={acceptedToS}
+                    onChange={(e) => setAcceptedToS(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-zinc-700 bg-black text-white focus:ring-white"
+                  />
+                  <label htmlFor="tos" className="ml-2 text-xs text-zinc-400">
+                    I agree to the <Link to="/terms" className="text-white underline font-semibold">Terms of Service</Link> & <Link to="/privacy" className="text-white underline font-semibold">Privacy Policy</Link>.
+                  </label>
                 </div>
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-medium tracking-wide transition-all duration-200"
-                >
-                {loading ? 'Creating account...' : 'Create account'}
+                <div className="flex items-center">
+                  <input
+                    id="dpa"
+                    type="checkbox"
+                    checked={acceptedDPA}
+                    onChange={(e) => setAcceptedDPA(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-zinc-700 bg-black text-white focus:ring-white"
+                  />
+                  <label htmlFor="dpa" className="ml-2 text-xs text-zinc-400">
+                    I accept the <Link to="/dpa" className="text-white underline font-semibold">Data Processing Agreement</Link>.
+                  </label>
+                </div>
+              </div>
+              
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full h-11 bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-wider rounded transition-colors mt-2"
+              >
+                {loading ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-[#1F2937]/50 pt-6 pb-6 bg-[#0A0E1A]/30">
-            <p className="text-sm text-gray-400">
+          <CardFooter className="flex justify-center border-t border-zinc-900 py-6 bg-black">
+            <p className="text-xs text-zinc-400">
               Already have an account?{' '}
-              <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">Sign in</Link>
+              <Link to="/login" className="text-white font-bold hover:underline">Sign in</Link>
             </p>
           </CardFooter>
         </Card>
@@ -193,4 +178,3 @@ export default function Register() {
     </div>
   );
 }
-

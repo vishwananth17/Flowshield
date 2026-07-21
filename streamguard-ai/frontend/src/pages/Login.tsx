@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
 
@@ -42,49 +41,34 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#0A0E1A] p-4 overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
-
+    <div className="relative flex min-h-screen items-center justify-center bg-black text-white p-4 overflow-hidden font-body">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ duration: 0.4 }}
         className="w-full max-w-md z-10"
       >
-        <Card className="w-full backdrop-blur-xl bg-[#111827]/80 border-[#1F2937]/80 shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-          <CardHeader className="space-y-4 text-center">
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="flex justify-center"
-            >
-              <div className="relative">
-                <Logo size={64} iconSize={32} theme="dark" />
-                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-purple-400 animate-pulse" />
-              </div>
-            </motion.div>
+        <Card className="w-full bg-zinc-950 border border-zinc-800 rounded-xl shadow-sm overflow-hidden text-left">
+          <CardHeader className="space-y-3 text-center pt-8 pb-4">
+            <div className="flex justify-center mb-2">
+              <Link to="/">
+                <Logo size={40} iconSize={24} theme="dark" showText={true} />
+              </Link>
+            </div>
             <div>
-              <CardTitle className="text-3xl font-display font-bold text-white tracking-tight">Flowshield AI</CardTitle>
-              <CardDescription className="text-gray-400 mt-2">Sign in to your protective shield</CardDescription>
+              <CardTitle className="text-2xl font-extrabold text-white tracking-tight">Sign In</CardTitle>
+              <CardDescription className="text-zinc-400 text-xs mt-1">Enter your credentials to access the console</CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
+          <CardContent className="px-8 py-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 text-center"
-                >
+                <div className="rounded bg-zinc-900 border border-zinc-700 p-3 text-xs text-red-400 text-center font-mono">
                   {error}
-                </motion.div>
+                </div>
               )}
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">Email address</label>
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Email address</label>
                 <Input
                   id="email"
                   type="email"
@@ -92,13 +76,13 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   required
-                  className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-blue-500/50 h-11"
+                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium text-gray-300">Password</label>
-                  <Link to="#" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</Link>
+                  <label htmlFor="password" className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Password</label>
+                  <Link to="#" className="text-xs text-zinc-400 hover:text-white transition-colors">Forgot password?</Link>
                 </div>
                 <Input
                   id="password"
@@ -107,22 +91,22 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="bg-[#0f172a] border-[#1F2937] text-white focus-visible:ring-blue-500/50 h-11"
+                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
                 />
               </div>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-medium tracking-wide transition-all duration-200"
+                className="w-full h-11 bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-wider rounded transition-colors"
               >
                 {isLoading ? 'Authenticating...' : 'Sign in to Dashboard'}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-[#1F2937]/50 pt-6 pb-6 bg-[#0A0E1A]/30">
-            <p className="text-sm text-gray-400">
+          <CardFooter className="flex justify-center border-t border-zinc-900 py-6 bg-black">
+            <p className="text-xs text-zinc-400">
               New to Flowshield?{' '}
-              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Request access</Link>
+              <Link to="/register" className="text-white font-bold hover:underline">Request access</Link>
             </p>
           </CardFooter>
         </Card>
@@ -130,4 +114,3 @@ export default function Login() {
     </div>
   );
 }
-
