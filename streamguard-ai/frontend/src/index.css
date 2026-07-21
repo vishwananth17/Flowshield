@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -31,9 +31,10 @@
     --status-suspicious: #F59E0B;
     --status-fraud: #EF4444;
 
-    --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Bold Professional Inter & Space Grotesk Typography */
+    --font-display: 'Inter', 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
     /* Shadcn defaults - Stark Dark Theme */
     --background: 0 0% 0%;
@@ -67,9 +68,15 @@
     @apply bg-black text-white font-body antialiased selection:bg-white selection:text-black;
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    font-family: var(--font-body);
+    letter-spacing: -0.015em;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-white font-bold;
+    @apply font-display text-white font-extrabold;
+    letter-spacing: -0.03em;
+  }
+  button, input, select, textarea {
+    font-family: var(--font-body);
   }
 }
 
