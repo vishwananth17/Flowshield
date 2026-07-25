@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import React from 'react';
 import { 
   X, 
   MapPin, 
@@ -14,24 +15,25 @@ import { Button } from '@/components/ui/Button';
 import { Heading3, Label, Caption } from '@/components/ui/Typography';
 
 interface TransactionDrawerProps {
-  txId: string | null;
+  transactionId: string | null;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
-export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onClose }) => {
+export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ transactionId, onClose }) => {
   const [tx, setTx] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (txId) {
+    if (transactionId) {
       fetchDetail();
     }
-  }, [txId]);
+  }, [transactionId]);
 
   const fetchDetail = async () => {
     setLoading(true);
     try {
-      const resp = await api.get(`/transactions/${txId}`);
+      const resp = await api.get(`/transactions/${transactionId}`);
       setTx(resp.data);
     } catch (err) {
       console.error('Failed to fetch transaction details', err);
@@ -40,7 +42,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
     }
   };
 
-  if (!txId) return null;
+  if (!transactionId) return null;
 
   return (
     <div className="fixed inset-y-0 right-0 w-[460px] bg-[var(--bg-surface)] border-l border-[var(--border-default)] shadow-[var(--shadow-xl)] z-50 slide-in transition-all duration-300 ease-out font-body text-left">
