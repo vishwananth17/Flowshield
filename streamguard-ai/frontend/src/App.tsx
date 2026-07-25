@@ -29,53 +29,56 @@ import SecurityPolicy from '@/pages/legal/SecurityPolicy';
 import CookieConsent from '@/components/CookieConsent';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import NotFound from '@/pages/NotFound';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 function App() {
   useAutoLogout();
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <Toaster position="top-right" richColors closeButton />
-        <CookieConsent />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/developers" element={<DevPortal />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/dpa" element={<DataProcessingAgreement />} />
-          <Route path="/sla" element={<ServiceLevelAgreement />} />
-          <Route path="/cookies" element={<CookiePolicy />} />
-          <Route path="/security" element={<SecurityPolicy />} />
-          {/* Legacy Decommissioned Routes */}
-          <Route path="/demo" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<NotFound />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <Toaster position="top-right" richColors closeButton />
+          <CookieConsent />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/developers" element={<DevPortal />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/dpa" element={<DataProcessingAgreement />} />
+            <Route path="/sla" element={<ServiceLevelAgreement />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/security" element={<SecurityPolicy />} />
+            {/* Legacy Decommissioned Routes */}
+            <Route path="/demo" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
 
-          
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="api-keys" element={<ApiKeys />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="disputes" element={<Disputes />} />
-              <Route path="disputes/:disputeId" element={<DisputeDetail />} />
-              <Route path="alerts" element={<Alerts />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="integrations" element={<Integrations />} />
-              <Route path="team" element={<Team />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="docs" element={<Docs />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="api-keys" element={<ApiKeys />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="disputes" element={<Disputes />} />
+                <Route path="disputes/:disputeId" element={<DisputeDetail />} />
+                <Route path="alerts" element={<Alerts />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="integrations" element={<Integrations />} />
+                <Route path="team" element={<Team />} />
+                <Route path="billing" element={<Billing />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="docs" element={<Docs />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </ErrorBoundary>
-    </BrowserRouter>
+          </Routes>
+        </ErrorBoundary>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
 export default App;
+
 

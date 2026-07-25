@@ -251,11 +251,11 @@ export default function PrivacyPolicy() {
         <p>
           If you have questions, complaints, or grievance requests under the DPDP Act 2023, you can contact our Data Grievance Officer:
         </p>
-        <div className="bg-[#1F2937]/50 rounded-xl p-4 mt-2 font-mono text-xs space-y-1.5 border border-[#1F2937]">
-          <p><span className="text-blue-500">Name:</span> Vishwanath B</p>
-          <p><span className="text-blue-500">Email:</span> legal@flowshieldai.com</p>
-          <p><span className="text-blue-500">Address:</span> Kings Engineering College, Chennai, Tamil Nadu, India</p>
-          <p><span className="text-blue-500">Response time:</span> Within 30 days of receipt</p>
+        <div className="bg-[var(--bg-inset)] rounded-[var(--radius-md)] p-4 mt-2 font-mono text-xs space-y-1.5 border border-[var(--border-default)]">
+          <p><span className="text-[var(--text-gold)]">Name:</span> Vishwanath B</p>
+          <p><span className="text-[var(--text-gold)]">Email:</span> legal@flowshieldai.com</p>
+          <p><span className="text-[var(--text-gold)]">Address:</span> Kings Engineering College, Chennai, Tamil Nadu, India</p>
+          <p><span className="text-[var(--text-gold)]">Response time:</span> Within 30 days of receipt</p>
         </div>
       </LegalSection>
     </LegalLayout>

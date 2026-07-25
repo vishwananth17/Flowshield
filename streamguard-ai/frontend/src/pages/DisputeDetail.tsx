@@ -3,25 +3,22 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
-  Calendar,
   FileText,
   ShieldCheck,
   Upload,
-  User,
-  Activity,
-  AlertCircle,
   Plus,
   Trash2,
   Download,
-  CheckCircle,
   Clock,
   ChevronRight,
   Info,
-  Loader2,
-  FileCode,
-  Globe
+  Loader2
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Heading1, Heading2, Heading3, Label, Caption } from '@/components/ui/Typography';
 import { toast } from 'sonner';
 import api, { API_BASE_URL } from '@/services/api';
 
@@ -161,15 +158,14 @@ export default function DisputeDetail() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-        <p className="text-gray-400 mt-4 font-bold text-sm">Compiling case dossier...</p>
+        <Loader2 className="h-10 w-10 text-[var(--color-primary)] animate-spin" />
+        <p className="text-[var(--text-muted)] mt-4 font-mono font-bold text-sm">Compiling case dossier...</p>
       </div>
     );
   }
 
   if (!dispute) return null;
 
-  // Helpers
   const canModify = dispute.status === 'open' || dispute.status === 'evidence_gathering' || dispute.status === 'response_submitted';
   const displayScore = dispute.evidence_strength_score;
   const daysVal = dispute.days_remaining;
@@ -178,14 +174,13 @@ export default function DisputeDetail() {
   const deadlineColor = dispute.urgency === 'expired' ? 'text-gray-500 border-gray-700 bg-gray-800/50' : (dispute.urgency === 'critical' ? 'text-red-500 border-red-500/30 bg-red-500/5 animate-pulse' : (dispute.urgency === 'warning' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/5'));
 
   return (
-    <div className="space-y-6 relative">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
+    <div className="space-y-6 relative text-left font-body">
       
       {/* Back Header */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/dashboard/disputes')}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors text-xs font-bold"
+          className="flex items-center space-x-2 text-[var(--text-muted)] hover:text-white transition-colors text-xs font-mono font-bold"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Dispute Center</span>
@@ -193,59 +188,60 @@ export default function DisputeDetail() {
 
         <div className="flex items-center space-x-3">
           {canModify && (
-            <button
+            <Button
               onClick={handleAcceptDispute}
-              className="bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold transition-all"
+              variant="danger"
+              size="md"
             >
               Accept Liability
-            </button>
+            </Button>
           )}
 
-          <button
+          <Button
             onClick={handleGeneratePdf}
             disabled={generatingPdf || !canModify}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shadow-lg shadow-blue-900/20"
+            variant="gold"
+            size="md"
           >
-            {generatingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            {generatingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Plus className="h-3.5 w-3.5 mr-2" />}
             <span>Compile Defense Package</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Overview Block */}
-      <div className="bg-[#111827]/60 border border-[#1F2937]/80 rounded-2xl p-6 backdrop-blur-xl grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <Card variant="gold" className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-6">
         <div className="lg:col-span-3 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-white tracking-tight">{dispute.dispute_reference}</h1>
-            <span className="bg-[#1F2937]/80 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-700 uppercase">{dispute.payment_gateway}</span>
-            <span className={`border px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${deadlineColor}`}>
+            <Badge variant="outline">{dispute.payment_gateway.toUpperCase()}</Badge>
+            <span className={`border px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black uppercase ${deadlineColor}`}>
               {dispute.urgency === 'expired' ? 'Expired' : `${daysVal} Days Remaining`}
             </span>
           </div>
 
-          <p className="text-gray-400 text-sm">
+          <p className="text-[var(--text-secondary)] text-sm">
             Disputed Charge of <b className="text-white">INR {dispute.dispute_amount.toLocaleString('en-IN')}</b> for customer <b>{dispute.customer_name || 'N/A'}</b> ({dispute.customer_email || 'No email'}).
           </p>
 
-          <div className="bg-[#1e293b]/40 border border-blue-500/10 p-4 rounded-xl flex items-start space-x-3">
-            <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+          <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] p-4 rounded-[var(--radius-lg)] flex items-start space-x-3">
+            <Info className="h-5 w-5 text-[var(--text-gold)] shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Recommended Strategy</h4>
-              <p className="text-gray-300 text-xs mt-1 leading-relaxed">{dispute.recommended_action}</p>
+              <Label className="text-[var(--text-gold)]">Recommended Strategy</Label>
+              <p className="text-[var(--text-secondary)] text-xs mt-1 leading-relaxed">{dispute.recommended_action}</p>
             </div>
           </div>
         </div>
 
         {/* Evidence Score Ring */}
-        <div className="flex flex-col items-center justify-center p-4 border-l border-[#1F2937] lg:border-l-1 lg:border-t-0 border-t pt-6 lg:pt-4">
+        <div className="flex flex-col items-center justify-center p-4 border-l border-[var(--border-subtle)] lg:border-l-1 lg:border-t-0 border-t pt-6 lg:pt-4">
           <div className="relative w-28 h-28 flex items-center justify-center">
-            {/* SVG circle meter */}
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               <circle
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="#1F2937"
+                stroke="var(--border-subtle)"
                 strokeWidth="8"
                 fill="transparent"
               />
@@ -253,7 +249,7 @@ export default function DisputeDetail() {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke={displayScore >= 70 ? "#10b981" : (displayScore >= 40 ? "#f59e0b" : "#ef4444")}
+                stroke={displayScore >= 70 ? "#22c55e" : (displayScore >= 40 ? "#f59e0b" : "#ef4444")}
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray="251.2"
@@ -268,218 +264,170 @@ export default function DisputeDetail() {
             </div>
           </div>
           <span className={`mt-3 text-xs font-bold px-2 py-0.5 rounded border ${scoreColor}`}>
-            {displayScore >= 70 ? 'Strong Case' : (displayScore >= 40 ? 'Moderate case' : 'Weak Case')}
+            {displayScore >= 70 ? 'Strong Case' : (displayScore >= 40 ? 'Moderate Case' : 'Weak Case')}
           </span>
         </div>
-      </div>
+      </Card>
 
       {/* Main Workspace split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left: Checklist & Evidence documents */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-            <CardHeader className="border-b border-[#1F2937]/50 pb-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-white text-md font-medium flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-blue-400" />
+          <Card variant="default">
+            <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6 flex items-center justify-between">
+              <Heading3 className="text-white flex items-center">
+                <FileText className="h-5 w-5 mr-2 text-[var(--text-gold)]" />
                 Case Evidence Packages
-              </CardTitle>
+              </Heading3>
               {canModify && (
                 <button
                   onClick={() => setShowUploadModal(true)}
-                  className="flex items-center space-x-1 text-xs text-blue-400 hover:text-blue-300 font-bold"
+                  className="flex items-center space-x-1 text-xs text-[var(--text-gold)] hover:text-white font-mono font-bold"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Add Document</span>
                 </button>
               )}
-            </CardHeader>
-            <CardContent className="p-0">
-              {dispute.evidence.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 text-xs">
-                  No evidence gathered. Log details or upload manual files.
-                </div>
-              ) : (
-                <div className="divide-y divide-[#1F2937]/40">
-                  {dispute.evidence.map((ev: any) => (
-                    <div key={ev.id} className="p-4 hover:bg-[#1F2937]/10 transition-colors flex items-start justify-between gap-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 mt-0.5">
-                          <FileText className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-sm uppercase">{ev.evidence_type.replace('_', ' ')}</div>
-                          <div className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider font-semibold">Source: {ev.evidence_source}</div>
-                          {ev.content_text && (
-                            <div className="text-gray-400 text-xs mt-1.5 line-clamp-2 max-w-lg bg-[#1F2937]/20 p-2 rounded-lg font-mono">
-                              {ev.content_text}
-                            </div>
-                          )}
-                          {ev.file_url && (
-                            <a
-                              href={`${API_BASE_URL.replace('/api/v1', '')}${ev.file_url}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-blue-400 hover:text-blue-300 font-bold inline-flex items-center mt-2"
-                            >
-                              <Download className="h-3 w-3 mr-1" /> View Uploaded Document
-                            </a>
-                          )}
-                        </div>
+            </div>
+
+            {dispute.evidence.length === 0 ? (
+              <div className="py-8 text-center text-[var(--text-muted)] text-xs font-mono">
+                No evidence gathered. Log details or upload manual files.
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--border-subtle)]">
+                {dispute.evidence.map((ev: any) => (
+                  <div key={ev.id} className="py-4 hover:bg-[var(--bg-highlight)] transition-colors flex items-start justify-between gap-4 -mx-6 px-6">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 rounded bg-[var(--bg-inset)] border border-[var(--border-default)] text-[var(--text-gold)] mt-0.5">
+                        <FileText className="h-5 w-5" />
                       </div>
-
-                      <div className="flex items-center space-x-4">
-                        {/* Include switch */}
-                        <div className="flex items-center space-x-2">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">Include</span>
-                          <button
-                            type="button"
-                            disabled={!canModify}
-                            onClick={() => handleToggleEvidence(ev.id, ev.is_included_in_response)}
-                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                              ev.is_included_in_response ? 'bg-blue-600' : 'bg-gray-800'
-                            }`}
+                      <div>
+                        <div className="font-bold text-white text-sm uppercase">{ev.evidence_type.replace('_', ' ')}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] mt-0.5 uppercase tracking-wider font-semibold">Source: {ev.evidence_source}</div>
+                        {ev.content_text && (
+                          <div className="text-[var(--text-secondary)] text-xs mt-1.5 line-clamp-2 max-w-lg bg-[var(--bg-inset)] border border-[var(--border-default)] p-2 rounded-lg font-mono">
+                            {ev.content_text}
+                          </div>
+                        )}
+                        {ev.file_url && (
+                          <a
+                            href={`${API_BASE_URL.replace('/api/v1', '')}${ev.file_url}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-[var(--text-gold)] hover:underline font-bold inline-flex items-center mt-2"
                           >
-                            <span
-                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                ev.is_included_in_response ? 'translate-x-4' : 'translate-x-0'
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        {/* Discard */}
-                        {canModify && ev.evidence_source === 'merchant_uploaded' && (
-                          <button
-                            onClick={() => handleDeleteEvidence(ev.id)}
-                            className="text-gray-500 hover:text-red-400 transition-colors p-1"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                            <Download className="h-3 w-3 mr-1" /> View Uploaded Document
+                          </a>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
+
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">Include</span>
+                        <button
+                          type="button"
+                          disabled={!canModify}
+                          onClick={() => handleToggleEvidence(ev.id, ev.is_included_in_response)}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            ev.is_included_in_response ? 'bg-[var(--color-primary)]' : 'bg-[var(--bg-inset)] border border-[var(--border-default)]'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              ev.is_included_in_response ? 'translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {canModify && ev.evidence_source === 'merchant_uploaded' && (
+                        <button
+                          onClick={() => handleDeleteEvidence(ev.id)}
+                          className="text-[var(--text-muted)] hover:text-red-400 transition-colors p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Defense Document compilation widget */}
           {dispute.response_document_url && (
-            <Card className="backdrop-blur-xl bg-blue-600/5 border-blue-500/20">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-blue-600/10 text-blue-400 rounded-xl">
-                    <ShieldCheck className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-sm">Response Package Compiled</h3>
-                    <p className="text-gray-400 text-xs mt-0.5">Ready for submission to the payment gateway portal.</p>
-                  </div>
+            <Card variant="gold" className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-[var(--color-primary-muted)] text-[var(--text-gold)] rounded-xl border border-[var(--color-primary-border)]">
+                  <ShieldCheck className="h-6 w-6" />
                 </div>
-
-                <a
-                  href={`${API_BASE_URL}/disputes/${dispute.id}/response-document`}
-                  download
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-blue-900/20 transition-all w-full md:w-auto justify-center"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>Download Response PDF</span>
-                </a>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Premium ML scoring profile if matched transaction */}
-          {dispute.ml_risk_score !== null && (
-            <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-              <CardHeader className="border-b border-[#1F2937]/50 pb-4">
-                <CardTitle className="text-white text-md font-medium flex items-center">
-                  <Activity className="h-5 w-5 mr-2 text-purple-400" />
-                  Premium ML Fraud Evaluation Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Evaluation Risk Score</span>
-                    <p className="text-3xl font-black text-white mt-1">{(dispute.ml_risk_score * 100).toFixed(1)}%</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    dispute.ml_risk_score < 0.15 ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' : 'text-red-400 border-red-500/20 bg-red-500/5'
-                  }`}>
-                    {dispute.ml_risk_score < 0.15 ? 'LOW RISK' : 'RISKY TRANSACTION'}
-                  </span>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Response Package Compiled</h3>
+                  <Caption className="mt-0.5 block">Ready for submission to the payment gateway portal.</Caption>
                 </div>
+              </div>
 
-                {dispute.ml_fraud_signals && dispute.ml_fraud_signals.length > 0 ? (
-                  <div>
-                    <span className="text-gray-400 text-xs font-bold uppercase tracking-wider block mb-2">Signal Explanations:</span>
-                    <ul className="space-y-1.5 text-xs text-gray-300">
-                      {dispute.ml_fraud_signals.map((sig: string, idx: number) => (
-                        <li key={idx} className="flex items-center space-x-2">
-                          <ChevronRight className="h-3 w-3 text-purple-400" />
-                          <span>{sig}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-xs">No anomalies flagged. Payment satisfies validation rules.</p>
-                )}
-              </CardContent>
+              <a
+                href={`${API_BASE_URL}/disputes/${dispute.id}/response-document`}
+                download
+                className="flex items-center space-x-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[var(--text-inverse)] px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all w-full md:w-auto justify-center"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download Response PDF</span>
+              </a>
             </Card>
           )}
 
           {/* Merchant Case Notes */}
-          <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-md font-medium">Merchant Dossier Notes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <Card variant="default">
+            <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+              <Heading3 className="text-white">Merchant Dossier Notes</Heading3>
+            </div>
+            <div className="space-y-3">
               <textarea
                 rows={4}
                 placeholder="Log notes, tracking codes, or gateway submission audit history here..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="bg-[#111827] border border-[#1F2937] text-white p-3 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-white p-3 rounded-[var(--radius-md)] text-xs w-full focus:outline-none focus:border-[var(--color-primary)]"
               />
-              <button
+              <Button
                 onClick={handleSaveNotes}
                 disabled={savingNotes}
-                className="bg-[#1F2937] hover:bg-[#374151] text-gray-300 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2"
+                variant="ghost"
+                size="sm"
               >
                 {savingNotes && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
                 <span>Save Notes</span>
-              </button>
-            </CardContent>
+              </Button>
+            </div>
           </Card>
         </div>
 
         {/* Right: History Timeline */}
         <div className="space-y-6">
-          <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-            <CardHeader className="border-b border-[#1F2937]/50 pb-4">
-              <CardTitle className="text-white text-md font-medium flex items-center">
-                <Clock className="h-5 w-5 mr-2 text-blue-400" />
+          <Card variant="default">
+            <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+              <Heading3 className="text-white flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-[var(--text-gold)]" />
                 Dossier Audit Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="relative border-l border-gray-800 ml-3 space-y-6">
-                {dispute.timeline.map((item: any) => (
-                  <div key={item.id} className="relative pl-6">
-                    {/* Circle bullet */}
-                    <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-blue-600 border border-[#111827]" />
-                    <div className="text-xs font-mono text-gray-500">{new Date(item.created_at).toLocaleString('en-IN')}</div>
-                    <div className="text-sm font-bold text-white mt-1 uppercase text-xs">{item.event_type.replace('_', ' ')}</div>
-                    <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">{item.event_description}</p>
-                    <div className="text-[9px] text-gray-600 mt-1 uppercase tracking-wider font-semibold">Triggered by: {item.triggered_by}</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+              </Heading3>
+            </div>
+            <div className="relative border-l border-[var(--border-default)] ml-3 space-y-6">
+              {dispute.timeline.map((item: any) => (
+                <div key={item.id} className="relative pl-6">
+                  <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[var(--color-primary)] border border-[#111827]" />
+                  <div className="text-[10px] font-mono text-[var(--text-muted)]">{new Date(item.created_at).toLocaleString('en-IN')}</div>
+                  <div className="text-sm font-bold text-white mt-1 uppercase text-xs">{item.event_type.replace('_', ' ')}</div>
+                  <p className="text-[var(--text-secondary)] text-xs mt-0.5 leading-relaxed">{item.event_description}</p>
+                  <div className="text-[9px] text-[var(--text-muted)] mt-1 uppercase tracking-wider font-semibold">Triggered by: {item.triggered_by}</div>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 
@@ -487,24 +435,20 @@ export default function DisputeDetail() {
 
       {/* Manual Upload Document Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#111827] border border-[#1F2937] rounded-2xl w-full max-w-md shadow-2xl p-6"
-          >
-            <div className="flex justify-between items-center pb-4 border-b border-[#1F2937]">
-              <h2 className="text-lg font-bold text-white flex items-center"><Upload className="h-5 w-5 mr-2 text-blue-400" /> Index Custom Evidence</h2>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-6 space-y-4 shadow-[var(--shadow-xl)] border border-[var(--border-default)]">
+            <div className="flex justify-between items-center pb-4 border-b border-[var(--border-default)]">
+              <Heading3 className="flex items-center"><Upload className="h-5 w-5 mr-2 text-[var(--text-gold)]" /> Index Custom Evidence</Heading3>
               <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-white text-lg">&times;</button>
             </div>
 
-            <form onSubmit={handleUploadEvidence} className="py-4 space-y-4">
+            <form onSubmit={handleUploadEvidence} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Evidence Type Tag</label>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Evidence Type Tag</label>
                 <select
                   value={uploadType}
                   onChange={(e) => setUploadType(e.target.value)}
-                  className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500 font-bold"
+                  className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-[var(--color-primary)] font-bold"
                 >
                   <option value="shipping_receipt">Shipping/Courier Receipt</option>
                   <option value="delivery_proof">Proof of Delivery Confirmation</option>
@@ -515,44 +459,42 @@ export default function DisputeDetail() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Supporting Content Text</label>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Supporting Content Text</label>
                 <textarea
                   rows={3}
                   placeholder="Paste chat message transcript, tracking log snippets, or verification emails..."
                   value={uploadText}
                   onChange={(e) => setUploadText(e.target.value)}
-                  className="bg-[#111827] border border-[#1F2937] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                  className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-white p-2.5 rounded-xl text-xs w-full focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Attachment File (PDF, PNG, JPG - max 10MB)</label>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Attachment File (PDF, PNG, JPG - max 10MB)</label>
                 <input
                   type="file"
                   onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
-                  className="bg-[#111827] border border-[#1F2937] text-gray-300 p-2 rounded-xl text-xs w-full focus:outline-none focus:border-blue-500"
+                  className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-gray-300 p-2 rounded-xl text-xs w-full focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>
 
-              <div className="flex items-center space-x-3 justify-end pt-4 border-t border-[#1F2937]">
-                <button
-                  type="button"
+              <div className="flex items-center space-x-3 justify-end pt-4 border-t border-[var(--border-default)]">
+                <Button
                   onClick={() => setShowUploadModal(false)}
-                  className="bg-transparent border border-[#1F2937] hover:border-gray-500 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  variant="ghost"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={uploading}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2"
+                  variant="gold"
                 >
-                  {uploading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
-                  <span>Add Document</span>
-                </button>
+                  {uploading ? 'Adding...' : 'Add Document'}
+                </Button>
               </div>
             </form>
-          </motion.div>
+          </Card>
         </div>
       )}
     </div>

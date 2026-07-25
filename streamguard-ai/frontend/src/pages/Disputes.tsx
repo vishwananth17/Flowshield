@@ -9,7 +9,12 @@ import {
   CheckCircle,
   X
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Table } from '@/components/ui/Table';
+import { Badge } from '@/components/ui/Badge';
+import { Heading1, Heading3, Label, Caption } from '@/components/ui/Typography';
 import { toast } from 'sonner';
 import api from '@/services/api';
 
@@ -132,24 +137,24 @@ export default function Disputes() {
     const deadline = new Date(deadlineStr);
     const label = deadline.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
     return (
-      <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase">
+      <Badge variant="outline">
         Deadline: {label}
-      </span>
+      </Badge>
     );
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'won':
-        return <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">WON</span>;
+        return <Badge variant="success" dot>WON</Badge>;
       case 'lost':
-        return <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">LOST</span>;
+        return <Badge variant="danger" dot>LOST</Badge>;
       case 'submitted':
-        return <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">SUBMITTED</span>;
+        return <Badge variant="info" dot>SUBMITTED</Badge>;
       case 'evidence_gathering':
-        return <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">GATHERING</span>;
+        return <Badge variant="warning" dot pulse>GATHERING</Badge>;
       default:
-        return <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">{status}</span>;
+        return <Badge variant="default">{status}</Badge>;
     }
   };
 
@@ -167,88 +172,136 @@ export default function Disputes() {
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedDisputes = filteredDisputes.slice(startIndex, startIndex + itemsPerPage);
 
+  const columns = [
+    {
+      key: 'dispute_reference',
+      header: 'Reference / Gateway',
+      render: (row: any) => (
+        <div>
+          <div className="font-mono font-bold text-white">{row.dispute_reference}</div>
+          <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase mt-0.5">{row.payment_gateway}</div>
+        </div>
+      )
+    },
+    {
+      key: 'customer_name',
+      header: 'Customer / Order',
+      render: (row: any) => (
+        <div>
+          <div className="text-[var(--text-primary)] font-medium">{row.customer_name || 'N/A'}</div>
+          <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">{row.order_id || 'No Order ID'}</div>
+        </div>
+      )
+    },
+    {
+      key: 'dispute_reason',
+      header: 'Reason',
+      render: (row: any) => <span className="text-[var(--text-secondary)]">{row.dispute_reason}</span>
+    },
+    {
+      key: 'dispute_amount',
+      header: 'Amount',
+      render: (row: any) => <span className="font-mono font-bold text-[var(--text-primary)]">₹{row.dispute_amount?.toLocaleString()}</span>
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row: any) => getStatusBadge(row.status)
+    },
+    {
+      key: 'deadline',
+      header: 'Deadline',
+      render: (row: any) => getUrgencyBadge(row.urgency, row.response_deadline)
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      align: 'right' as const,
+      render: (row: any) => (
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={() => navigate(`/dashboard/disputes/${row.id}`)}
+        >
+          Review Evidence
+        </Button>
+      )
+    }
+  ];
+
   return (
     <div className="space-y-6 text-left font-body">
       {/* Top Header & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Chargeback & Dispute Manager</h1>
-          <p className="text-zinc-400 text-xs mt-1">Automated evidence compilation and payment gateway dispute representation.</p>
+          <Heading1>Chargeback & Dispute Manager</Heading1>
+          <Caption className="mt-1 block">Automated evidence compilation and payment gateway dispute representation.</Caption>
         </div>
-        <button
+        <Button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 bg-[#6366F1] text-white hover:bg-[#4F46E5] font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
+          variant="gold"
+          size="md"
+          icon={<Plus className="h-4 w-4" />}
         >
-          <Plus className="h-4 w-4" />
-          <span>Log Dispute</span>
-        </button>
+          Log Dispute
+        </Button>
       </div>
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
-          <CardContent className="p-0">
-            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>Win Rate</span>
-              <TrendingUp className="h-4 w-4 text-emerald-400" />
-            </div>
-            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
-              {stats?.win_rate_percent !== undefined ? `${stats.win_rate_percent}%` : '0%'}
-            </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Based on resolved disputes</div>
-          </CardContent>
+        <Card className="p-5">
+          <div className="flex justify-between items-center">
+            <Label>Win Rate</Label>
+            <TrendingUp className="h-4 w-4 text-[var(--color-success)]" />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+            {stats?.win_rate_percent !== undefined ? `${stats.win_rate_percent}%` : '0%'}
+          </div>
+          <Caption className="mt-1 block">Based on resolved disputes</Caption>
         </Card>
 
-        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
-          <CardContent className="p-0">
-            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>Open Disputes</span>
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-            </div>
-            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
-              {stats?.open_disputes || 0}
-            </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Requires evidence submission</div>
-          </CardContent>
+        <Card className="p-5">
+          <div className="flex justify-between items-center">
+            <Label>Open Disputes</Label>
+            <AlertTriangle className="h-4 w-4 text-[var(--color-warning)]" />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+            {stats?.open_disputes || 0}
+          </div>
+          <Caption className="mt-1 block">Requires evidence submission</Caption>
         </Card>
 
-        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
-          <CardContent className="p-0">
-            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>Disputed Volume</span>
-              <Clock className="h-4 w-4 text-indigo-400" />
-            </div>
-            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
-              ₹{(stats?.total_at_risk_amount || 0).toLocaleString()}
-            </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Pending gateway review</div>
-          </CardContent>
+        <Card className="p-5">
+          <div className="flex justify-between items-center">
+            <Label>Disputed Volume</Label>
+            <Clock className="h-4 w-4 text-[var(--color-info)]" />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+            ₹{(stats?.total_at_risk_amount || 0).toLocaleString()}
+          </div>
+          <Caption className="mt-1 block">Pending gateway review</Caption>
         </Card>
 
-        <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
-          <CardContent className="p-0">
-            <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>Recovered Revenue</span>
-              <CheckCircle className="h-4 w-4 text-emerald-400" />
-            </div>
-            <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
-              ₹{(stats?.total_won_amount || 0).toLocaleString()}
-            </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Funds recovered successfully</div>
-          </CardContent>
+        <Card className="p-5">
+          <div className="flex justify-between items-center">
+            <Label>Recovered Revenue</Label>
+            <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
+            ₹{(stats?.total_won_amount || 0).toLocaleString()}
+          </div>
+          <Caption className="mt-1 block">Funds recovered successfully</Caption>
         </Card>
       </div>
 
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center bg-black border border-zinc-800 rounded px-3.5 py-2 w-full sm:w-80 focus-within:border-white transition-colors">
-          <Search className="h-3.5 w-3.5 text-zinc-500 mr-2.5" />
-          <input
-            type="text"
-            placeholder="Search reference, customer, order..."
+        <div className="w-full sm:w-80">
+          <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-600 font-mono"
+            placeholder="Search reference, customer, order..."
+            prefix={<Search className="h-3.5 w-3.5" />}
           />
         </div>
 
@@ -256,7 +309,7 @@ export default function Disputes() {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="bg-black border border-zinc-800 rounded px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+            className="bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-md)] px-3 py-2 text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors h-11"
           >
             <option value="">All Statuses</option>
             <option value="open">Open</option>
@@ -269,7 +322,7 @@ export default function Disputes() {
           <select
             value={gatewayFilter}
             onChange={e => setGatewayFilter(e.target.value)}
-            className="bg-black border border-zinc-800 rounded px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
+            className="bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-md)] px-3 py-2 text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors h-11"
           >
             <option value="">All Gateways</option>
             <option value="razorpay">Razorpay</option>
@@ -281,146 +334,85 @@ export default function Disputes() {
       </div>
 
       {/* Disputes Table */}
-      <Card className="bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="text-[10px] font-mono text-zinc-400 uppercase bg-black border-b border-zinc-800">
-                <tr>
-                  <th className="px-5 py-3.5">Reference / Gateway</th>
-                  <th className="px-5 py-3.5">Customer / Order</th>
-                  <th className="px-5 py-3.5">Reason</th>
-                  <th className="px-5 py-3.5">Amount</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5">Time</th>
-                  <th className="px-5 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800">
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
-                      Loading dispute records...
-                    </td>
-                  </tr>
-                ) : paginatedDisputes.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
-                      No disputes matching criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedDisputes.map(d => (
-                    <tr key={d.id} className="hover:bg-zinc-900 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="font-mono font-bold text-white">{d.dispute_reference}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono uppercase mt-0.5">{d.payment_gateway}</div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="text-white font-medium">{d.customer_name || 'N/A'}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{d.order_id || 'No Order ID'}</div>
-                      </td>
-                      <td className="px-5 py-3.5 text-zinc-400">
-                        {d.dispute_reason}
-                      </td>
-                      <td className="px-5 py-3.5 font-mono font-bold text-white">
-                        ₹{d.dispute_amount?.toLocaleString()}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {getStatusBadge(d.status)}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {getUrgencyBadge(d.urgency, d.response_deadline)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => navigate(`/dashboard/disputes/${d.id}`)}
-                          className="text-xs text-[#6366F1] hover:text-[#4F46E5] font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors"
-                        >
-                          Review Evidence
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      <Table 
+        columns={columns}
+        data={paginatedDisputes}
+        loading={loading}
+        keyExtractor={d => d.id}
+        emptyState={
+          <div className="text-center">
+            <Caption>No disputes matching criteria.</Caption>
           </div>
-        </CardContent>
-      </Card>
+        }
+      />
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-zinc-800 pt-4 text-xs font-mono">
-          <span className="text-zinc-500">
+        <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-4 text-xs font-mono">
+          <span className="text-[var(--text-muted)]">
             Showing {startIndex + 1}-{endIndex} of {totalItems} disputes
           </span>
           <div className="flex items-center space-x-2">
-            <button
+            <Button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(p => p - 1)}
-              className="bg-black border border-zinc-800 text-white px-3 py-1.5 rounded hover:bg-zinc-900 disabled:opacity-40"
+              variant="ghost"
+              size="sm"
             >
               Previous
-            </button>
-            <span className="text-zinc-400 font-bold px-2">
+            </Button>
+            <span className="text-[var(--text-secondary)] font-bold px-2">
               Page {currentPage} of {totalPages}
             </span>
-            <button
+            <Button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(p => p + 1)}
-              className="bg-black border border-zinc-800 text-white px-3 py-1.5 rounded hover:bg-zinc-900 disabled:opacity-40"
+              variant="ghost"
+              size="sm"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Manual Dispute Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <h3 className="text-lg font-bold text-white">Log Dispute Reference</h3>
-              <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fade-in">
+          <Card className="max-w-lg w-full p-6 space-y-4 shadow-[var(--shadow-xl)] border border-[var(--border-default)]">
+            <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+              <Heading3>Log Dispute Reference</Heading3>
+              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-white">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateDispute} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase text-zinc-400">Reference #</label>
-                  <input
-                    required
-                    type="text"
-                    value={formRef}
-                    onChange={e => setFormRef(e.target.value)}
-                    placeholder="disp_991823"
-                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase text-zinc-400">Amount (INR)</label>
-                  <input
-                    required
-                    type="number"
-                    value={formAmount}
-                    onChange={e => setFormAmount(e.target.value)}
-                    placeholder="4500"
-                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
-                  />
-                </div>
+                <Input
+                  required
+                  label="Reference #"
+                  value={formRef}
+                  onChange={e => setFormRef(e.target.value)}
+                  placeholder="disp_991823"
+                />
+                <Input
+                  required
+                  type="number"
+                  label="Amount (INR)"
+                  value={formAmount}
+                  onChange={e => setFormAmount(e.target.value)}
+                  placeholder="4500"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase text-zinc-400">Gateway</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">Gateway</label>
                   <select
                     value={formGateway}
                     onChange={e => setFormGateway(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
+                    className="w-full h-11 bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-md)] text-sm text-[var(--text-primary)] px-3 py-2 outline-none focus:border-[var(--color-primary)] transition-colors font-body"
                   >
                     <option value="razorpay">Razorpay</option>
                     <option value="cashfree">Cashfree</option>
@@ -428,47 +420,40 @@ export default function Disputes() {
                     <option value="manual">Manual Log</option>
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase text-zinc-400">Deadline</label>
-                  <input
-                    required
-                    type="date"
-                    value={formDeadline}
-                    onChange={e => setFormDeadline(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-mono uppercase text-zinc-400">Customer Email</label>
-                <input
-                  type="email"
-                  value={formCustEmail}
-                  onChange={e => setFormCustEmail(e.target.value)}
-                  placeholder="customer@email.com"
-                  className="w-full bg-black border border-zinc-800 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-white font-mono"
+                <Input
+                  required
+                  type="date"
+                  label="Deadline"
+                  value={formDeadline}
+                  onChange={e => setFormDeadline(e.target.value)}
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 pt-2 border-t border-zinc-800">
-                <button
-                  type="button"
+              <Input
+                type="email"
+                label="Customer Email"
+                value={formCustEmail}
+                onChange={e => setFormCustEmail(e.target.value)}
+                placeholder="customer@email.com"
+              />
+
+              <div className="flex justify-end space-x-3 pt-2 border-t border-[var(--border-default)]">
+                <Button
+                  variant="ghost"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white uppercase"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-[#6366F1] text-white font-bold text-xs uppercase tracking-wider rounded hover:bg-[#4F46E5]"
+                  variant="gold"
                 >
                   {submitting ? 'Submitting...' : 'Create Record'}
-                </button>
+                </Button>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       )}
     </div>

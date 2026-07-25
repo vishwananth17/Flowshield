@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/Card';
+import { Heading1, Caption, Label } from '@/components/ui/Typography';
 import { Activity, ShieldAlert, DollarSign } from 'lucide-react';
 import api from '@/services/api';
 
@@ -50,8 +51,8 @@ export default function Analytics() {
     return (
       <div className="flex items-center justify-center min-h-[60vh] font-body">
         <div className="text-center">
-            <div className="w-10 h-10 border-2 border-zinc-700 border-t-white rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-zinc-400 font-mono text-xs">Aggregating global intelligence...</p>
+          <div className="w-10 h-10 border-2 border-[var(--border-default)] border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-3" />
+          <Caption className="font-mono font-bold">Aggregating global intelligence...</Caption>
         </div>
       </div>
     );
@@ -59,14 +60,14 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto text-left font-body">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Intelligence Ledger</h1>
-          <p className="text-zinc-400 text-xs mt-1">Real-time fraud velocity and global risk telemetry.</p>
+          <Heading1>Intelligence Ledger</Heading1>
+          <Caption className="mt-1 block">Real-time fraud velocity and global risk telemetry.</Caption>
         </div>
-        <div className="flex items-center space-x-2 text-[10px] font-mono bg-black text-zinc-300 px-3 py-1 rounded border border-zinc-800 uppercase tracking-wider">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            Live Feed Active
+        <div className="flex items-center space-x-2 text-[10px] font-mono bg-[var(--bg-inset)] text-[var(--text-secondary)] px-3 py-1 rounded border border-[var(--border-default)] uppercase tracking-wider">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          Live Feed Active
         </div>
       </div>
 
@@ -77,54 +78,54 @@ export default function Analytics() {
           { label: 'Protected Value', value: `$${(stats?.total_volume || 0).toLocaleString()}`, icon: DollarSign },
           { label: 'System Latency', value: `${stats?.avg_latency_ms.toFixed(1)}ms`, icon: Activity },
         ].map((item, i) => (
-          <Card key={i} className="bg-zinc-950 border-zinc-800 hover:border-zinc-700 transition-colors p-5 rounded-lg">
-            <CardHeader className="flex flex-row items-center justify-between p-0 pb-2">
-              <CardTitle className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider">{item.label}</CardTitle>
-              <item.icon className="h-4 w-4 text-white" />
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="text-3xl font-extrabold text-white tracking-tight">{item.value?.toLocaleString() || 0}</div>
-            </CardContent>
+          <Card key={i} className="hover:border-[var(--border-gold)] transition-colors p-5">
+            <div className="flex items-center justify-between pb-2">
+              <Label className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{item.label}</Label>
+              <item.icon className="h-4 w-4 text-[var(--text-gold)]" />
+            </div>
+            <div className="text-3xl font-extrabold text-white tracking-tight">
+              {typeof item.value === 'number' ? item.value.toLocaleString() : item.value || '0'}
+            </div>
           </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
-          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
-            <CardTitle className="text-white text-sm font-bold">Global Risk Telemetry Map</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 h-[400px] bg-black relative flex items-center justify-center">
-            <svg className="w-full h-full opacity-30" viewBox="0 0 1000 500" fill="none">
+        <Card variant="default" className="lg:col-span-2 overflow-hidden">
+          <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+            <span className="text-white text-sm font-bold">Global Risk Telemetry Map</span>
+          </div>
+          <div className="h-[400px] relative flex items-center justify-center -mx-6 -mb-6 bg-[var(--bg-inset)]">
+            <svg className="w-full h-full opacity-35" viewBox="0 0 1000 500" fill="none">
               {Object.entries(COUNTRY_COORDS).map(([code, coords]) => (
                 <g key={code}>
-                  <circle cx={coords.x} cy={coords.y} r="6" className="fill-zinc-700" />
+                  <circle cx={coords.x} cy={coords.y} r="6" className="fill-[var(--border-strong)]" />
                   <circle cx={coords.x} cy={coords.y} r="3" className="fill-white" />
-                  <text x={coords.x + 10} y={coords.y + 4} fill="#A1A1AA" fontSize="10" fontFamily="monospace">{coords.name}</text>
+                  <text x={coords.x + 10} y={coords.y + 4} fill="var(--text-muted)" fontSize="10" fontFamily="monospace">{coords.name}</text>
                 </g>
               ))}
             </svg>
-          </CardContent>
+          </div>
         </Card>
 
-        <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
-          <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
-            <CardTitle className="text-white text-sm font-bold">Regional Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 space-y-4 font-mono text-xs">
+        <Card variant="default" className="flex flex-col">
+          <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+            <span className="text-white text-sm font-bold">Regional Distribution</span>
+          </div>
+          <div className="space-y-4 font-mono text-xs flex-1">
             {Object.entries(stats?.risk_by_country || {}).length === 0 ? (
-              <p className="text-zinc-500 text-center py-8">No regional data recorded yet.</p>
+              <p className="text-[var(--text-muted)] text-center py-8">No regional data recorded yet.</p>
             ) : (
               Object.entries(stats?.risk_by_country || {}).map(([country, count]) => (
-                <div key={country} className="flex justify-between items-center border-b border-zinc-800 pb-2">
-                  <span className="text-zinc-300 font-bold">{COUNTRY_COORDS[country]?.name || country}</span>
-                  <span className="text-white bg-black border border-zinc-800 px-2 py-0.5 rounded text-[10px] font-bold">
+                <div key={country} className="flex justify-between items-center border-b border-[var(--border-subtle)] pb-2">
+                  <span className="text-[var(--text-secondary)] font-bold">{COUNTRY_COORDS[country]?.name || country}</span>
+                  <span className="text-white bg-[var(--bg-inset)] border border-[var(--border-default)] px-2 py-0.5 rounded text-[10px] font-bold">
                     {count} events
                   </span>
                 </div>
               ))
             )}
-          </CardContent>
+          </div>
         </Card>
       </div>
     </div>

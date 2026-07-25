@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { Heading1, Heading3, Label, Caption } from '@/components/ui/Typography';
 import { Key, Copy } from 'lucide-react';
 import api from '@/services/api';
 import { toast } from 'sonner';
@@ -69,119 +71,111 @@ export default function ApiKeys() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto text-left font-body">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+      <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">API Keys</h1>
-          <p className="text-zinc-400 text-xs mt-1">Manage secret keys for authenticating with the Flowshield AI API</p>
+          <Heading1>API Credentials</Heading1>
+          <Caption className="mt-1 block">Manage secret keys for authenticating with the Flowshield AI API.</Caption>
         </div>
       </div>
 
       {createdKey && (
-        <div className="bg-zinc-950 border border-white text-white p-5 rounded-lg flex flex-col space-y-3">
-          <strong className="text-sm font-bold uppercase tracking-wider">Key Generated Successfully</strong>
-          <p className="text-xs text-zinc-400 font-mono">Please copy this key now. You will not be able to view it again.</p>
-          <div className="flex items-center space-x-2">
-            <code className="bg-black border border-zinc-800 px-3 py-2 rounded text-xs select-all font-mono flex-1 text-white">
+        <Card variant="gold" className="space-y-4">
+          <Heading3 className="text-white">Key Generated Successfully</Heading3>
+          <Caption className="font-mono text-[var(--text-gold)] block">Please copy this key now. You will not be able to view it again.</Caption>
+          <div className="flex items-center space-x-3">
+            <code className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-3 py-2.5 rounded text-xs select-all font-mono flex-1 text-white">
               {createdKey}
             </code>
             <Button 
-              variant="outline" 
-              className="bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase"
+              variant="primary" 
               onClick={() => {
                 navigator.clipboard.writeText(createdKey);
                 toast.success('API Key copied to clipboard');
               }}
             >
-              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
+              <Copy className="h-3.5 w-3.5 mr-2" /> Copy
             </Button>
           </div>
-          <Button variant="outline" className="w-fit mt-1 border-zinc-800 text-zinc-400 hover:text-white text-xs" onClick={() => setCreatedKey(null)}>
+          <Button variant="ghost" size="sm" onClick={() => setCreatedKey(null)}>
             I have saved the key securely
           </Button>
-        </div>
+        </Card>
       )}
 
-      <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
-        <CardHeader className="border-b border-zinc-800 bg-black py-3.5 px-5">
-          <CardTitle className="text-white text-sm font-bold">Generate New Key</CardTitle>
-          <CardDescription className="text-zinc-500 text-xs">Create an API key scoped to a specific environment</CardDescription>
-        </CardHeader>
-        <CardContent className="p-5">
-          <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="flex-1 space-y-1.5 w-full">
-              <label className="text-[10px] font-mono uppercase text-zinc-400">Key Name</label>
-              <Input
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                placeholder="e.g. Production Web Backend"
-                required
-                className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 text-xs h-10 rounded"
-              />
-            </div>
-            <div className="w-full sm:w-44 space-y-1.5">
-              <label className="text-[10px] font-mono uppercase text-zinc-400">Environment</label>
-              <select 
-                value={newEnv} 
-                onChange={(e) => setNewEnv(e.target.value)}
-                className="flex h-10 w-full rounded border border-zinc-800 bg-black px-3 py-2 text-xs text-white focus:outline-none focus:border-white font-mono"
-              >
-                <option value="live">Live</option>
-                <option value="test">Test</option>
-              </select>
-            </div>
-            <Button type="submit" className="w-full sm:w-auto bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-wider h-10 rounded">
-              Generate Key
-            </Button>
-          </form>
-        </CardContent>
+      <Card variant="default">
+        <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+          <span className="text-white text-sm font-bold">Generate New Key</span>
+        </div>
+        <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex-grow w-full">
+            <Input
+              label="Key Name"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              placeholder="e.g. Production Web Backend"
+              required
+            />
+          </div>
+          <div className="w-full sm:w-44 flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[var(--text-secondary)]">Environment</label>
+            <select 
+              value={newEnv} 
+              onChange={(e) => setNewEnv(e.target.value)}
+              className="w-full h-11 bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-md)] text-sm text-[var(--text-primary)] px-3 py-2 outline-none focus:border-[var(--color-primary)] transition-colors font-mono"
+            >
+              <option value="live">Live</option>
+              <option value="test">Test</option>
+            </select>
+          </div>
+          <Button type="submit" variant="gold" size="lg" className="w-full sm:w-auto">
+            Generate Key
+          </Button>
+        </form>
       </Card>
 
-      <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
-        <CardHeader className="border-b border-zinc-800 bg-black py-3.5 px-5">
-          <CardTitle className="text-white text-sm font-bold">Active API Keys</CardTitle>
-        </CardHeader>
-        <CardContent className="p-5">
-          {loading ? (
-            <div className="py-8 text-center text-zinc-500 font-mono text-xs">Loading key registry...</div>
-          ) : keys.length === 0 ? (
-            <div className="py-8 text-center text-zinc-500 font-mono text-xs">No active keys found. Generate one above.</div>
-          ) : (
-            <div className="space-y-3">
-              {keys.map((key) => (
-                <div key={key.id} className="flex items-center justify-between p-4 rounded bg-black border border-zinc-800">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-zinc-900 border border-zinc-800 rounded">
-                      <Key className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <p className="font-bold text-xs text-white">{key.name}</p>
-                        <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          {key.environment}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-500 font-mono mt-1">{key.key_prefix}</p>
-                    </div>
+      <Card variant="default">
+        <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-5 -mx-6 -mt-6 mb-6">
+          <span className="text-white text-sm font-bold">Active API Keys</span>
+        </div>
+        {loading ? (
+          <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">Loading key registry...</div>
+        ) : keys.length === 0 ? (
+          <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">No active keys found. Generate one above.</div>
+        ) : (
+          <div className="space-y-3">
+            {keys.map((key) => (
+              <div key={key.id} className="flex items-center justify-between p-4 rounded bg-[var(--bg-inset)] border border-[var(--border-default)]">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded">
+                    <Key className="h-4 w-4 text-[var(--text-gold)]" />
                   </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-right font-mono">
-                      <p className="text-[10px] text-zinc-500 uppercase">Last Used</p>
-                      <p className="text-xs text-zinc-300">{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : 'Never'}</p>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-bold text-xs text-white">{key.name}</p>
+                      <Badge variant="outline">
+                        {key.environment.toUpperCase()}
+                      </Badge>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleRevoke(key.id)}
-                      className="bg-black border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 text-xs font-mono font-bold uppercase"
-                    >
-                      Revoke
-                    </Button>
+                    <p className="text-xs text-[var(--text-muted)] font-mono mt-1">{key.key_prefix}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+                <div className="flex items-center space-x-6">
+                  <div className="text-right font-mono">
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase">Last Used</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : 'Never'}</p>
+                  </div>
+                  <Button 
+                    variant="danger" 
+                    size="sm"
+                    onClick={() => handleRevoke(key.id)}
+                  >
+                    Revoke
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

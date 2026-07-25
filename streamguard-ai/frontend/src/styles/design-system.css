@@ -1,0 +1,213 @@
+:root {
+  /* ── TYPOGRAPHY ─────────────────────────────── */
+  --font-display: 'Inter', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.875rem;  /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:   1.125rem;  /* 18px */
+  --text-xl:   1.25rem;   /* 20px */
+  --text-2xl:  1.5rem;    /* 24px */
+  --text-3xl:  1.875rem;  /* 30px */
+  --text-4xl:  2.25rem;   /* 36px */
+  --text-5xl:  3rem;      /* 48px */
+
+  --leading-tight:  1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.05em;
+  --tracking-widest:  0.15em;
+
+  /* ── SPACING SCALE ──────────────────────────── */
+  --space-1:  0.25rem;   /* 4px  */
+  --space-2:  0.5rem;    /* 8px  */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+
+  /* ── BORDER RADIUS ──────────────────────────── */
+  --radius-sm:   0.375rem;  /* 6px  — buttons, badges */
+  --radius-md:   0.625rem;  /* 10px — inputs, small cards */
+  --radius-lg:   0.875rem;  /* 14px — cards */
+  --radius-xl:   1.25rem;   /* 20px — modal, large cards */
+  --radius-2xl:  1.75rem;   /* 28px — hero sections */
+  --radius-full: 9999px;    /* pills, avatars */
+
+  /* ── SHADOWS ────────────────────────────────── */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.12);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.18);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.22);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.26);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.35);
+  --shadow-gold: 0 4px 24px rgba(37,99,235,0.15);
+  --shadow-navy: 0 4px 24px rgba(11,18,32,0.50);
+
+  /* ── TRANSITIONS ─────────────────────────────── */
+  --transition-fast:   150ms cubic-bezier(0.4,0,0.2,1);
+  --transition-normal: 250ms cubic-bezier(0.4,0,0.2,1);
+  --transition-slow:   400ms cubic-bezier(0.4,0,0.2,1);
+  --transition-spring: 500ms cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ══════════════════════════════════════════════
+   DARK MODE (DEFAULT)
+   ══════════════════════════════════════════════ */
+:root, [data-theme="dark"] {
+
+  /* Backgrounds — Stripe/Vercel styling levels */
+  --bg-base:      #0B1220;  /* deepest background */
+  --bg-surface:   #111827;  /* cards, sidebar background */
+  --bg-elevated:  #1F2937;  /* hover state, border */
+  --bg-overlay:   #182235;  /* modals, dropdowns */
+  --bg-inset:     #070C16;  /* input backgrounds, code blocks */
+  --bg-highlight: #1E293B;  /* active states, selected rows */
+
+  /* Primary Blue Accents */
+  --color-primary:        #2563EB;  /* Stripe Blue */
+  --color-primary-hover:  #3B82F6;
+  --color-primary-muted:  rgba(37,99,235,0.10);
+  --color-primary-border: rgba(37,99,235,0.20);
+
+  --color-secondary:       #4B5563;  /* neutral gray */
+  --color-secondary-hover: #6B7280;
+  --color-secondary-muted: rgba(75,85,99,0.15);
+
+  /* Status colors */
+  --color-success:       #22C55E;
+  --color-success-muted: rgba(34,197,94,0.08);
+  --color-success-border:rgba(34,197,94,0.15);
+
+  --color-warning:       #F59E0B;
+  --color-warning-muted: rgba(245,158,11,0.08);
+  --color-warning-border:rgba(245,158,11,0.15);
+
+  --color-danger:        #EF4444;
+  --color-danger-muted:  rgba(239,68,68,0.08);
+  --color-danger-border: rgba(239,68,68,0.15);
+
+  --color-info:          #3B82F6;
+  --color-info-muted:    rgba(59,130,246,0.08);
+  --color-info-border:   rgba(59,130,246,0.15);
+
+  /* Text colors */
+  --text-primary:   #FFFFFF;  /* body text — pure white */
+  --text-secondary: #9CA3AF;  /* secondary gray text */
+  --text-muted:     #6B7280;  /* disabled/placeholder */
+  --text-inverse:   #FFFFFF;  /* text on active elements */
+  --text-gold:      #2563EB;  /* map legacy text-gold variable to Stripe Blue */
+  --text-link:      #2563EB;
+  --text-link-hover:#3B82F6;
+
+  /* Border colors */
+  --border-subtle:  rgba(255,255,255,0.03);
+  --border-default: #1F2937;  /* border default */
+  --border-strong:  rgba(255,255,255,0.15);
+  --border-gold:    #2563EB;
+
+  /* Special gradients */
+  --gradient-primary: linear-gradient(
+    135deg, #2563EB 0%, #3B82F6 50%, #2563EB 100%
+  );
+  --gradient-navy: linear-gradient(
+    135deg, #111827 0%, #1F2937 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    rgba(37,99,235,0.04) 0%,
+    rgba(75,85,99,0.02) 100%
+  );
+  --gradient-hero: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(37,99,235,0.12) 0%,
+    transparent 70%
+  );
+  --gradient-glow: radial-gradient(
+    circle at center,
+    rgba(37,99,235,0.10) 0%,
+    transparent 70%
+  );
+}
+
+/* ══════════════════════════════════════════════
+   LIGHT MODE
+   ══════════════════════════════════════════════ */
+[data-theme="light"] {
+
+  /* Backgrounds */
+  --bg-base:      #F3F4F6;
+  --bg-surface:   #FFFFFF;
+  --bg-elevated:  #E5E7EB;
+  --bg-overlay:   #FFFFFF;
+  --bg-inset:     #F9FAFB;
+  --bg-highlight: #F3F4F6;
+
+  /* Semantic colors */
+  --color-primary:        #2563EB;
+  --color-primary-hover:  #1D4ED8;
+  --color-primary-muted:  rgba(37,99,235,0.08);
+  --color-primary-border: rgba(37,99,235,0.20);
+
+  --color-secondary:       #4B5563;
+  --color-secondary-hover: #374151;
+  --color-secondary-muted: rgba(75,85,99,0.08);
+
+  /* Status colors */
+  --color-success:       #16A34A;
+  --color-success-muted: rgba(22,163,74,0.08);
+  --color-warning:       #D97706;
+  --color-warning-muted: rgba(217,119,6,0.08);
+  --color-danger:        #DC2626;
+  --color-danger-muted:  rgba(220,38,38,0.08);
+  --color-info:          #2563EB;
+  --color-info-muted:    rgba(37,99,235,0.08);
+
+  /* Text */
+  --text-primary:   #111827;
+  --text-secondary: #4B5563;
+  --text-muted:     #9CA3AF;
+  --text-inverse:   #FFFFFF;
+  --text-gold:      #2563EB;
+  --text-link:      #2563EB;
+  --text-link-hover:#1D4ED8;
+
+  /* Borders */
+  --border-subtle:  rgba(75,85,99,0.06);
+  --border-default: #E5E7EB;
+  --border-strong:  #D1D5DB;
+  --border-gold:    #2563EB;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(
+    135deg, #2563EB 0%, #1D4ED8 50%, #2563EB 100%
+  );
+  --gradient-navy: linear-gradient(
+    135deg, #F3F4F6 0%, #E5E7EB 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    rgba(37,99,235,0.04) 0%,
+    rgba(75,85,99,0.02) 100%
+  );
+  --gradient-hero: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(37,99,235,0.08) 0%,
+    transparent 70%
+  );
+  --shadow-xs:  0 1px 2px rgba(15,23,42,0.05);
+  --shadow-sm:  0 2px 8px rgba(15,23,42,0.08);
+  --shadow-md:  0 4px 16px rgba(15,23,42,0.10);
+  --shadow-lg:  0 8px 32px rgba(15,23,42,0.12);
+  --shadow-xl:  0 16px 48px rgba(15,23,42,0.16);
+  --shadow-gold: 0 4px 24px rgba(37,99,235,0.12);
+}

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Zap, 
   BarChart3, 
-  CheckCircle2,
   ArrowRight,
   Globe,
   X,
@@ -13,10 +11,14 @@ import {
   MessageSquare,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Display, Heading1, Heading2, Heading3, Label, Body, Caption, Mono } from '@/components/ui/Typography';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
@@ -30,7 +32,14 @@ export default function Landing() {
   const [isJoined, setIsJoined] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
   const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleWaitlistManual = async () => {
     if (!email) {
@@ -60,7 +69,7 @@ export default function Landing() {
       features: ['3 dispute submissions / mo', 'Manual document uploads', 'Basic tracking'],
       missing: ['Automated gateway gathering', 'Order matching validation', 'Real-time risk scoring'],
       cta: 'Start Free',
-      badge: null
+      variant: 'default' as const
     },
     {
       name: 'Starter',
@@ -71,7 +80,7 @@ export default function Landing() {
       features: ['10 disputes / mo', 'Automated Razorpay gathering', 'Evidence templates'],
       missing: ['Order matching validation', 'Real-time risk scoring'],
       cta: 'Start Starter',
-      badge: null
+      variant: 'default' as const
     },
     {
       name: 'Growth',
@@ -83,6 +92,7 @@ export default function Landing() {
       features: ['50 disputes / mo', 'Shopify order matching', 'Courier tracking validation'],
       missing: ['Real-time risk scoring'],
       cta: 'Start Growth',
+      variant: 'gold' as const
     },
     {
       name: 'Enterprise',
@@ -94,31 +104,41 @@ export default function Landing() {
       features: ['Unlimited disputes', 'Real-time risk scoring', 'Priority bank representation'],
       missing: [],
       cta: 'Contact Sales',
+      variant: 'default' as const
     }
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-[#10B981] selection:text-black overflow-x-hidden font-body">
+    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] overflow-x-hidden font-body relative">
       
+      {/* Subtle animated grid background pattern */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 transition-transform duration-100 ease-out"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm20 20h20v20H20V20z' fill='%23D4AF37' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+          transform: `translateY(${scrollY * 0.15}px)`
+        }}
+      />
+
       {/* Top Header */}
-      <nav className="sticky top-0 z-50 bg-[#0A110F] text-white border-b border-[var(--border-primary)]">
+      <nav className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3">
-            <Logo size={32} iconSize={18} theme="light" showText={true} />
+            <Logo size={32} iconSize={18} showText={true} />
           </Link>
           
-          <div className="hidden md:flex items-center space-x-8 text-xs font-semibold tracking-wider uppercase text-zinc-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <Link to="/developers" className="hover:text-white transition-colors">Developers</Link>
-            <Link to="/docs" className="hover:text-white transition-colors">Documentation</Link>
+          <div className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-xs font-semibold uppercase tracking-[var(--tracking-widest)] text-[var(--text-secondary)] hover:text-[var(--text-gold)] transition-colors">Features</a>
+            <a href="#pricing" className="text-xs font-semibold uppercase tracking-[var(--tracking-widest)] text-[var(--text-secondary)] hover:text-[var(--text-gold)] transition-colors">Pricing</a>
+            <Link to="/developers" className="text-xs font-semibold uppercase tracking-[var(--tracking-widest)] text-[var(--text-secondary)] hover:text-[var(--text-gold)] transition-colors">Developers</Link>
+            <Link to="/docs" className="text-xs font-semibold uppercase tracking-[var(--tracking-widest)] text-[var(--text-secondary)] hover:text-[var(--text-gold)] transition-colors">Documentation</Link>
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link to="/login" className="text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors">
+            <Link to="/login" className="text-xs font-semibold uppercase tracking-[var(--tracking-widest)] text-[var(--text-secondary)] hover:text-white transition-colors">
               Log in
             </Link>
-            <Button asChild size="sm" className="bg-white text-black hover:bg-zinc-200 rounded font-bold px-5 h-9">
+            <Button asChild size="sm" variant="primary" className="rounded-[var(--radius-sm)]">
               <Link to="/register">Get access</Link>
             </Button>
           </div>
@@ -126,189 +146,214 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-[#0A110F] text-white pt-16 md:pt-24 pb-20 md:pb-28 px-6 border-b border-[var(--border-primary)]">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
+      <section className="relative pt-16 md:pt-24 pb-20 md:pb-28 px-6 border-b border-[var(--border-subtle)] bg-[var(--gradient-hero)]">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center relative z-10">
           
           {/* Left Headlines */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-7 space-y-6"
-          >
-            <div className="inline-flex items-center gap-2 border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-1 rounded text-xs font-mono uppercase tracking-wider text-zinc-300">
-              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-              Active Fraud Prevention
+          <div className="lg:col-span-7 space-y-6 text-left">
+            <div className="inline-flex items-center">
+              <Label className="text-[var(--text-gold)] tracking-[var(--tracking-widest)] flex items-center gap-1.5 bg-[var(--color-primary-muted)] border border-[var(--color-primary-border)] px-3 py-1 rounded-full">
+                <Sparkles size={12} className="animate-pulse" /> ◆ Real-time Protection
+              </Label>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-white">
-              Real-time transaction risk evaluation.
-            </h1>
+            <div className="space-y-2">
+              <Display className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05]">
+                Stop Fraud.
+              </Display>
+              <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] bg-gradient-gold -webkit-background-clip-text -webkit-text-fill-color-transparent bg-clip-text text-transparent">
+                Win Every Dispute.
+              </h1>
+            </div>
 
-            <p className="text-sm md:text-base text-zinc-400 max-w-xl font-normal leading-relaxed">
-              Flowshield monitors merchant checkouts, extracts telemetry signals, and automatically submits evidence dockets to resolve disputes.
-            </p>
+            <Body className="max-w-lg text-[var(--text-secondary)]">
+              The only fraud detection and chargeback defense platform built specifically for Indian merchants. Connect in 2 minutes. No card required.
+            </Body>
 
             {/* CTAs */}
-            <div className="pt-4 flex flex-wrap items-center gap-4">
+            <div className="pt-4 flex flex-col gap-6">
               {!isJoined ? (
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                   <Input 
                     type="email" 
                     placeholder="Enter work email" 
-                    className="bg-black border-[var(--border-primary)] h-12 rounded text-white placeholder:text-zinc-600 font-medium focus-visible:ring-white" 
+                    className="flex-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <Button onClick={handleWaitlistManual} className="bg-white text-black hover:bg-zinc-200 h-12 px-6 rounded font-bold whitespace-nowrap">
+                  <Button 
+                    onClick={handleWaitlistManual} 
+                    variant="gold" 
+                    size="lg"
+                  >
                     {isSubmitting ? 'Processing...' : 'Request access →'}
                   </Button>
                 </div>
               ) : (
-                <div className="text-white font-bold bg-[#101B18] border border-[var(--border-primary)] py-3 px-6 rounded text-xs uppercase tracking-wider">
+                <div className="text-[var(--text-gold)] font-bold bg-[var(--color-primary-muted)] border border-[var(--color-primary-border)] py-3 px-6 rounded-[var(--radius-md)] text-xs uppercase tracking-[var(--tracking-widest)]">
                   Request received. An onboarding specialist will contact you shortly.
                 </div>
               )}
 
-              <div className="flex items-center gap-3 w-full pt-2">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Button 
                   onClick={() => document.getElementById('product-tour')?.scrollIntoView({ behavior: 'smooth' })}
-                  variant="outline" 
-                  className="border-[var(--border-primary)] hover:bg-zinc-900 text-white h-11 px-5 rounded font-bold flex items-center gap-2"
+                  variant="gold" 
+                  size="xl"
                 >
-                  <Play className="w-3.5 h-3.5 fill-white text-white" />
-                  Watch 60s Demo
+                  Start Free — No Card Required
                 </Button>
-                <Button asChild variant="ghost" className="text-zinc-400 hover:text-white h-11 px-4 font-bold">
-                  <Link to="/register" className="flex items-center gap-1">
-                    Console Sign-up <ArrowRight className="w-4 h-4" />
-                  </Link>
+                <Button asChild variant="ghost" size="xl">
+                  <a href="#product-tour">See How It Works →</a>
                 </Button>
               </div>
             </div>
-          </motion.div>
 
-          {/* Right Hero Graphic Card */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.96 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="lg:col-span-5 bg-zinc-950 border border-zinc-900 rounded-lg p-8 relative overflow-hidden shadow-sm"
-          >
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
-                <div className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-500">System Telemetry</div>
-                <div className="flex items-center gap-2 text-xs font-bold text-white bg-zinc-900 px-3 py-1 rounded border border-zinc-800">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Active Monitoring
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="bg-black border border-zinc-900 p-4 rounded flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase">Checkout Telemetry</div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">UPI Collect • ₹45,000</div>
-                  </div>
-                  <span className="text-xs font-mono font-bold bg-zinc-900 text-white px-2.5 py-1 rounded border border-zinc-800">PASS</span>
-                </div>
-
-                <div className="bg-black border border-zinc-900 p-4 rounded flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase">Risk Evaluation</div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">XGBoost Classifiers</div>
-                  </div>
-                  <span className="text-xs font-mono font-bold bg-zinc-900 text-[#10B981] px-2.5 py-1 rounded border border-zinc-800">0.030% FBR</span>
-                </div>
-
-                <div className="bg-black border border-zinc-900 p-4 rounded flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase">Evidence Submission</div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">Automated Evidence Compilation</div>
-                  </div>
-                  <span className="text-xs font-mono font-bold bg-zinc-900 text-white px-2.5 py-1 rounded border border-zinc-800">WON 94.2%</span>
-                </div>
-              </div>
-
-              <div className="pt-2 text-center text-xs font-mono text-zinc-500 border-t border-zinc-900">
-                Evaluation pipeline running on merchant gateway telemetry.
-              </div>
+            {/* Trust Strip */}
+            <div className="pt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-[var(--text-muted)] text-[10px] font-mono uppercase tracking-[var(--tracking-wider)] border-t border-[var(--border-subtle)] mt-8">
+              <span className="flex items-center gap-1">✓ DPDP Act 2023 Compliant</span>
+              <span className="flex items-center gap-1">✓ Razorpay Certified Partner</span>
+              <span className="flex items-center gap-1">✓ 94% Detection Accuracy</span>
+              <span className="flex items-center gap-1">✓ &lt;100ms Response Time</span>
             </div>
-          </motion.div>
+          </div>
+
+          {/* Right Hero Graphic Card with Blurred Background Stack */}
+          <div className="lg:col-span-5 relative flex justify-center items-center py-12">
+            {/* Background Blur Deck Card 1 */}
+            <div 
+              className="absolute w-72 h-48 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] opacity-30 shadow-[var(--shadow-navy)] pointer-events-none transition-transform duration-300"
+              style={{
+                transform: `rotate(-12deg) translate(-30px, -20px) translateZ(-50px) scale(0.9)`,
+                filter: 'blur(2px)'
+              }}
+            />
+            {/* Background Blur Deck Card 2 */}
+            <div 
+              className="absolute w-72 h-48 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] opacity-20 shadow-[var(--shadow-navy)] pointer-events-none transition-transform duration-300"
+              style={{
+                transform: `rotate(12deg) translate(30px, 20px) translateZ(-60px) scale(0.85)`,
+                filter: 'blur(4px)'
+              }}
+            />
+
+            {/* Active Foreground Card */}
+            <Card 
+              variant="gold"
+              className="w-full max-w-sm relative z-10 shadow-[var(--shadow-gold)] hover:scale-[1.02] transform transition-transform duration-300"
+            >
+              <div className="space-y-6 text-left">
+                <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
+                  <Label className="text-[var(--text-gold)]">System Telemetry</Label>
+                  <Badge variant="success" dot pulse>Active</Badge>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] p-3 rounded-[var(--radius-md)] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Checkout Telemetry</span>
+                      <div className="text-xs font-bold text-white mt-0.5">UPI Collect • ₹45,000</div>
+                    </div>
+                    <Badge variant="success">PASS</Badge>
+                  </div>
+
+                  <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] p-3 rounded-[var(--radius-md)] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Risk Evaluation</span>
+                      <div className="text-xs font-bold text-white mt-0.5">XGBoost Classifiers</div>
+                    </div>
+                    <Badge variant="gold">0.030% FBR</Badge>
+                  </div>
+
+                  <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] p-3 rounded-[var(--radius-md)] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase">Evidence Submission</span>
+                      <div className="text-xs font-bold text-white mt-0.5">Evidence Compilation</div>
+                    </div>
+                    <Badge variant="info">WON 94.2%</Badge>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-center">
+                  <Caption>Evaluation pipeline running on merchant gateway telemetry.</Caption>
+                </div>
+              </div>
+            </Card>
+          </div>
 
         </div>
       </section>
 
       {/* --- SYSTEM PIPELINE SECTION --- */}
       <section className="py-20 md:py-28 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400 bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded">
-            TRANSACTION EVALUATION
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mt-6">
-            Transaction Risk Evaluation
-          </h2>
-          <p className="text-zinc-400 text-sm max-w-xl mx-auto mt-4">
+        <div className="text-center mb-16 space-y-4">
+          <Label className="text-[var(--text-gold)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-1.5 rounded-full">
+            Transaction Evaluation
+          </Label>
+          <Heading1 className="text-3xl md:text-5xl">
+            Real-Time Risk Pipeline
+          </Heading1>
+          <Body className="max-w-xl mx-auto">
             Flowshield parses raw incoming payloads, engineers velocity features, and evaluates risk levels.
-          </p>
+          </Body>
         </div>
 
         <div className="grid md:grid-cols-12 gap-8 items-center">
           
           {/* Left: Input Nodes */}
-          <div className="md:col-span-3 space-y-4">
-            <div className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-2">Checkout Fields</div>
-            <NeuralNode icon={<CreditCard className="w-4 h-4 text-white" />} label="Card Payload" sub="Amount, BIN, MCC" />
-            <NeuralNode icon={<Globe className="w-4 h-4 text-white" />} label="Geographic Coordinates" sub="IP, Location Distance" />
-            <NeuralNode icon={<Zap className="w-4 h-4 text-white" />} label="Velocity Features" sub="Transaction Frequency" />
+          <div className="md:col-span-3 space-y-4 text-left">
+            <Label className="mb-2 block">Checkout Fields</Label>
+            <NeuralNode icon={<CreditCard className="w-4 h-4 text-[var(--text-gold)]" />} label="Card Payload" sub="Amount, BIN, MCC" />
+            <NeuralNode icon={<Globe className="w-4 h-4 text-[var(--text-gold)]" />} label="Geographic Coordinates" sub="IP, Location Distance" />
+            <NeuralNode icon={<Zap className="w-4 h-4 text-[var(--text-gold)]" />} label="Velocity Features" sub="Transaction Frequency" />
           </div>
 
           {/* Center: Core */}
           <div className="md:col-span-6 flex justify-center py-6">
-            <div className="w-full max-w-md bg-zinc-950 border border-zinc-900 rounded p-8 text-center space-y-6">
-              <div className="text-xs font-mono uppercase font-bold tracking-widest text-zinc-400 border-b border-zinc-900 pb-3">
+            <Card variant="gold" className="w-full max-w-md text-center space-y-6">
+              <Label className="border-b border-[var(--border-default)] pb-3 block">
                 Core Risk Models
-              </div>
+              </Label>
               <div className="space-y-3 font-mono text-xs">
-                <div className="bg-zinc-900 border border-zinc-800 px-4 py-3 rounded text-zinc-300">
+                <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-4 py-3 rounded-[var(--radius-md)] text-[var(--text-secondary)]">
                   LAYER 1 — ANOMALY CLASSIFICATION
                 </div>
-                <div className="bg-zinc-900 border border-zinc-800 px-4 py-3 rounded text-zinc-300">
+                <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-4 py-3 rounded-[var(--radius-md)] text-[var(--text-secondary)]">
                   LAYER 2 — ENSEMBLE PREDICTIONS
                 </div>
-                <div className="bg-white text-black font-extrabold px-4 py-3 rounded">
+                <div className="bg-[var(--color-primary)] text-[var(--text-inverse)] font-extrabold px-4 py-3 rounded-[var(--radius-md)] shadow-[var(--shadow-gold)]">
                   LAYER 3 — RISK RULES PIPELINE
                 </div>
               </div>
-              <div className="text-[11px] font-mono text-zinc-500">
+              <Caption className="block">
                 100% Target Recall • 0.030% False Block Rate
-              </div>
-            </div>
+              </Caption>
+            </Card>
           </div>
 
           {/* Right: Output Nodes */}
-          <div className="md:col-span-3 space-y-4">
-            <div className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-2">System Integrations</div>
-            <NeuralNode icon={<Building2 className="w-4 h-4 text-white" />} label="Gateway Ledger" sub="Settlement Updates" />
-            <NeuralNode icon={<ShieldCheck className="w-4 h-4 text-white" />} label="Risk Dashboard" sub="Triage Alerts" />
-            <NeuralNode icon={<BarChart3 className="w-4 h-4 text-white" />} label="Dispute Evidence" sub="Automated Submissions" />
+          <div className="md:col-span-3 space-y-4 text-left">
+            <Label className="mb-2 block">System Integrations</Label>
+            <NeuralNode icon={<Building2 className="w-4 h-4 text-[var(--text-gold)]" />} label="Gateway Ledger" sub="Settlement Updates" />
+            <NeuralNode icon={<ShieldCheck className="w-4 h-4 text-[var(--text-gold)]" />} label="Risk Dashboard" sub="Triage Alerts" />
+            <NeuralNode icon={<BarChart3 className="w-4 h-4 text-[var(--text-gold)]" />} label="Dispute Evidence" sub="Automated Submissions" />
           </div>
 
         </div>
       </section>
 
       {/* --- PLATFORM DEMO: 60 SEC WALKTHROUGH --- */}
-      <section id="product-tour" className="py-20 md:py-28 px-6 border-t border-zinc-900 bg-zinc-950">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-400 bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded">
-            DEMO SIMULATION
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mt-6">
+      <section id="product-tour" className="py-20 md:py-28 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+        <div className="max-w-6xl mx-auto text-center mb-12 space-y-4">
+          <Label className="text-[var(--text-gold)] border border-[var(--border-default)] bg-[var(--bg-base)] px-4 py-1.5 rounded-full">
+            Demo Simulation
+          </Label>
+          <Heading2 className="text-3xl md:text-5xl">
             60-Second Walkthrough
-          </h2>
-          <p className="text-zinc-400 text-sm max-w-xl mx-auto mt-3">
+          </Heading2>
+          <Body className="max-w-xl mx-auto">
             Watch the evaluation pipeline gather order details, submit shipping logs, and update dispute statuses automatically.
-          </p>
+          </Body>
         </div>
 
         <InteractiveWalkthrough />
@@ -318,13 +363,13 @@ export default function Landing() {
       <ProductVideoSection />
 
       {/* Features Grid */}
-      <section id="features" className="py-20 md:py-28 px-6 max-w-7xl mx-auto border-t border-zinc-900">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Built for Enterprise Merchant Pipelines</h2>
-          <p className="text-zinc-400 text-sm max-w-xl mx-auto mt-4">Automated evidence compilation and transaction risk control.</p>
+      <section id="features" className="py-20 md:py-28 px-6 max-w-7xl mx-auto border-t border-[var(--border-subtle)]">
+        <div className="text-center mb-16 space-y-4">
+          <Heading2 className="text-3xl md:text-5xl">Built for Enterprise Merchant Pipelines</Heading2>
+          <Body className="max-w-xl mx-auto">Automated evidence compilation and transaction risk control.</Body>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
           <FeatureCard 
             title="Automated Evidence Compilation" 
             icon={<Zap className="w-5 h-5 text-white" />} 
@@ -344,22 +389,22 @@ export default function Landing() {
       </section>
 
       {/* Pricing Matrix */}
-      <section id="pricing" className="py-20 md:py-28 px-6 max-w-7xl mx-auto border-t border-zinc-900 bg-zinc-950">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-6">Choose Your Plan</h2>
+      <section id="pricing" className="py-20 md:py-28 px-6 max-w-7xl mx-auto border-t border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+        <div className="text-center mb-16 space-y-6">
+          <Heading2 className="text-3xl md:text-5xl">Choose Your Plan</Heading2>
           <div className="flex items-center justify-center space-x-4">
-            <span className={`text-xs font-mono font-bold ${!isAnnual ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
+            <span className={`text-xs font-mono font-bold ${!isAnnual ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>Monthly</span>
             <button 
               onClick={() => setIsAnnual(!isAnnual)}
-              className="w-12 h-6 bg-zinc-900 border border-zinc-800 rounded-full relative transition-all"
+              className="w-12 h-6 bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-full relative transition-all"
             >
               <motion.div 
                 animate={{ x: isAnnual ? 24 : 0 }}
-                className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full"
+                className="absolute top-1 left-1 w-4 h-4 bg-[var(--color-primary)] rounded-full"
               />
             </button>
-            <span className={`text-xs font-mono font-bold flex items-center ${isAnnual ? 'text-white' : 'text-zinc-500'}`}>
-              Annual <span className="ml-2 text-[10px] bg-white text-black px-2 py-0.5 rounded font-black uppercase">Save 20%</span>
+            <span className={`text-xs font-mono font-bold flex items-center ${isAnnual ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
+              Annual <span className="ml-2 text-[10px] bg-[var(--color-primary)] text-[var(--text-inverse)] px-2 py-0.5 rounded font-black uppercase">Save 20%</span>
             </span>
           </div>
         </div>
@@ -380,50 +425,50 @@ export default function Landing() {
       <EnterpriseModal isOpen={isEnterpriseModalOpen} onClose={() => setIsEnterpriseModalOpen(false)} />
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 pt-16 pb-12 px-6 bg-black">
+      <footer className="border-t border-[var(--border-subtle)] pt-16 pb-12 px-6 bg-[var(--bg-base)] text-left">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-16">
-          <div>
-            <div className="flex items-center space-x-3 mb-4">
-              <Logo size={28} iconSize={16} theme="dark" showText={true} />
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Logo size={28} iconSize={16} showText={true} />
             </div>
-            <p className="text-zinc-500 text-xs leading-relaxed max-w-xs">
+            <Caption className="block leading-relaxed max-w-xs">
               Transaction risk scoring and automated chargeback resolution logs.
-            </p>
+            </Caption>
           </div>
           
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-4">Platform</h4>
-            <ul className="space-y-3 text-xs font-medium text-zinc-400">
-              <li><a href="#features" className="hover:text-white transition-colors">Risk Scoring</a></li>
-              <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><Link to="/register" className="hover:text-white transition-colors">Get Access</Link></li>
+            <h4 className="text-[var(--text-primary)] text-xs font-bold uppercase tracking-[var(--tracking-widest)] mb-4">Platform</h4>
+            <ul className="space-y-3 text-xs font-medium text-[var(--text-secondary)]">
+              <li><a href="#features" className="hover:text-[var(--text-gold)] transition-colors">Risk Scoring</a></li>
+              <li><a href="#pricing" className="hover:text-[var(--text-gold)] transition-colors">Pricing</a></li>
+              <li><Link to="/register" className="hover:text-[var(--text-gold)] transition-colors">Get Access</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-4">Developers</h4>
-            <ul className="space-y-3 text-xs font-medium text-zinc-400">
-              <li><Link to="/developers" className="hover:text-white transition-colors">Integration Keys</Link></li>
-              <li><Link to="/docs" className="hover:text-white transition-colors">API Docs</Link></li>
+            <h4 className="text-[var(--text-primary)] text-xs font-bold uppercase tracking-[var(--tracking-widest)] mb-4">Developers</h4>
+            <ul className="space-y-3 text-xs font-medium text-[var(--text-secondary)]">
+              <li><Link to="/developers" className="hover:text-[var(--text-gold)] transition-colors">Integration Keys</Link></li>
+              <li><Link to="/docs" className="hover:text-[var(--text-gold)] transition-colors">API Docs</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-4">Legal</h4>
-            <ul className="space-y-3 text-xs font-medium text-zinc-400">
-              <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+            <h4 className="text-[var(--text-primary)] text-xs font-bold uppercase tracking-[var(--tracking-widest)] mb-4">Legal</h4>
+            <ul className="space-y-3 text-xs font-medium text-[var(--text-secondary)]">
+              <li><Link to="/privacy" className="hover:text-[var(--text-gold)] transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-[var(--text-gold)] transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto pt-8 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-600 font-mono tracking-wider">
+        <div className="max-w-7xl mx-auto pt-8 border-t border-[var(--border-subtle)] flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-[var(--text-muted)] font-mono tracking-wider">
             © 2026 FLOWSHIELD \ ALL RIGHTS RESERVED
           </p>
-          <div className="flex items-center space-x-5 text-zinc-500">
-            <Globe className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-            <MessageSquare className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
+          <div className="flex items-center space-x-5 text-[var(--text-muted)]">
+            <Globe className="w-4 h-4 hover:text-[var(--text-gold)] cursor-pointer transition-colors" />
+            <MessageSquare className="w-4 h-4 hover:text-[var(--text-gold)] cursor-pointer transition-colors" />
           </div>
         </div>
       </footer>
@@ -431,19 +476,17 @@ export default function Landing() {
   );
 }
 
-function PricingCard({ name, id, price, requests, features, missing, cta, badge, isAnnual, onEnterprise, onSelect }: any) {
-  const isSelected = id === 'standard';
+function PricingCard({ name, id, price, requests, features, missing, cta, badge, isAnnual, onEnterprise, onSelect, variant }: any) {
   const isEnterprise = id === 'premium';
   const isFree = id === 'free';
 
   return (
-    <div className={`p-8 rounded border flex flex-col h-full relative transition-all ${
-      isSelected 
-        ? 'bg-zinc-950 border-white shadow-sm' 
-        : 'bg-zinc-950 border-zinc-900'
-    }`}>
+    <Card 
+      variant={variant}
+      className={`relative flex flex-col h-full ${variant === 'gold' ? 'border-[var(--border-gold)]' : ''}`}
+    >
       {badge && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-white text-black border border-zinc-300">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-[var(--color-primary)] text-[var(--text-inverse)]">
           {badge}
         </div>
       )}
@@ -452,26 +495,26 @@ function PricingCard({ name, id, price, requests, features, missing, cta, badge,
         <h3 className="text-sm font-bold uppercase tracking-tight text-white mb-2">{name}</h3>
         <div className="flex items-baseline space-x-1 mb-1">
           <span className="text-3xl font-extrabold tracking-tight">₹{price.toLocaleString()}</span>
-          {!isFree && <span className="text-zinc-500 text-xs">/mo</span>}
+          {!isFree && <span className="text-[var(--text-muted)] text-xs">/mo</span>}
         </div>
         {!isFree && isAnnual && (
-          <div className="text-[10px] text-zinc-400 font-mono mb-3">Billed annually</div>
+          <div className="text-[10px] text-[var(--text-muted)] font-mono mb-3">Billed annually</div>
         )}
-        <div className="text-xs font-mono bg-zinc-900 border border-zinc-800 px-3 py-1 rounded w-fit text-zinc-300">
+        <div className="text-xs font-mono bg-[var(--bg-inset)] border border-[var(--border-default)] px-3 py-1 rounded-full w-fit text-[var(--text-secondary)]">
           {requests}
         </div>
       </div>
 
       <ul className="space-y-3 mb-8 flex-grow">
         {features.map((f: string) => (
-          <li key={f} className="flex items-start text-xs text-zinc-300">
-            <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0 text-white" />
+          <li key={f} className="flex items-start text-xs text-[var(--text-secondary)]">
+            <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0 text-[var(--text-gold)] animate-pulse" size={14} />
             <span>{f}</span>
           </li>
         ))}
         {missing.map((f: string) => (
-          <li key={f} className="flex items-start text-xs text-zinc-600 line-through">
-            <X className="w-4 h-4 mr-2 flex-shrink-0 text-zinc-700" />
+          <li key={f} className="flex items-start text-xs text-[var(--text-muted)] line-through">
+            <X className="w-4 h-4 mr-2 flex-shrink-0 text-red-500/50" size={14} />
             <span>{f}</span>
           </li>
         ))}
@@ -479,41 +522,47 @@ function PricingCard({ name, id, price, requests, features, missing, cta, badge,
 
       <Button 
         onClick={isEnterprise ? onEnterprise : onSelect}
-        className={`w-full py-5 rounded font-bold text-xs uppercase transition-all ${
-          isSelected 
-            ? 'bg-white text-black hover:bg-zinc-200' 
-            : 'bg-zinc-900 text-white hover:bg-zinc-800 border border-zinc-800'
-        }`}
+        variant={variant === 'gold' ? 'gold' : 'primary'}
+        size="lg"
+        fullWidth
       >
         {cta}
       </Button>
-    </div>
+    </Card>
+  );
+}
+
+function CheckCircle2({ className, size }: { className?: string, size?: number }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   );
 }
 
 function FeatureCard({ title, icon, desc }: any) {
   return (
-    <div className="bg-zinc-950 border border-zinc-900 p-8 rounded hover:border-zinc-800 transition-colors">
-      <div className="w-10 h-10 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5">
+    <Card variant="default" className="hover:border-[var(--border-gold)] transition-colors duration-300">
+      <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] border border-[var(--color-primary-border)] flex items-center justify-center mb-5 text-[var(--text-gold)]">
         {icon}
       </div>
-      <h3 className="text-base font-bold text-white mb-2">{title}</h3>
-      <p className="text-zinc-400 text-xs leading-relaxed">{desc}</p>
-    </div>
+      <Heading3 className="mb-2">{title}</Heading3>
+      <Body className="text-xs text-[var(--text-secondary)]">{desc}</Body>
+    </Card>
   );
 }
 
 function NeuralNode({ icon, label, sub }: any) {
   return (
-    <div className="bg-zinc-950 border border-zinc-900 p-4 rounded flex items-center gap-3.5 hover:border-zinc-800 transition-colors">
-      <div className="w-8 h-8 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
+    <Card variant="default" padding="sm" className="flex items-center gap-3.5 hover:border-[var(--border-gold)] transition-colors duration-300">
+      <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--bg-inset)] border border-[var(--border-default)] flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div>
         <div className="text-xs font-bold text-white">{label}</div>
-        <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{sub}</div>
+        <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">{sub}</div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -612,47 +661,47 @@ function InteractiveWalkthrough() {
   const currentStep = WALKTHROUGH_STEPS[activeStepIndex];
 
   return (
-    <div className="bg-zinc-950 border border-zinc-900 rounded overflow-hidden max-w-4xl mx-auto text-left shadow-sm">
-      <div className="p-6 md:p-8 border-b border-zinc-900 relative">
+    <Card variant="glass" padding="none" className="max-w-4xl mx-auto overflow-hidden text-left relative">
+      <div className="p-6 md:p-8 border-b border-[var(--border-default)] relative">
         {!isPlaying && currentTime === 0 && (
           <div 
             onClick={handlePlayPause}
-            className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center cursor-pointer z-20 hover:bg-black/60 transition-colors"
+            className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center cursor-pointer z-20 hover:bg-black/70 transition-colors"
           >
-            <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center font-bold shadow-md hover:scale-105 transition-transform">
+            <div className="w-16 h-16 rounded-full bg-[var(--gradient-primary)] text-[var(--text-inverse)] flex items-center justify-center font-bold shadow-[var(--shadow-gold)] hover:scale-105 transition-transform duration-300">
               <Play className="h-6 w-6 fill-current ml-0.5" />
             </div>
-            <span className="text-xs font-bold text-white mt-4 uppercase tracking-widest">
+            <Label className="text-white mt-4 tracking-[var(--tracking-widest)]">
               Play Interactive Walkthrough
-            </span>
+            </Label>
           </div>
         )}
 
-        <div className="flex items-center justify-between border-b border-zinc-900 pb-4 mb-6">
+        <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4 mb-6">
           <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+            <span className="text-xs font-mono text-[var(--text-secondary)] uppercase tracking-wider">
               Live Pipeline Stream
             </span>
           </div>
-          <span className="text-xs font-mono text-zinc-400">
+          <span className="text-xs font-mono text-[var(--text-muted)]">
             00:{currentTime.toString().padStart(2, '0')} / 00:60
           </span>
         </div>
 
-        <div className="space-y-4 max-w-xl mx-auto bg-zinc-900 border border-zinc-800 rounded p-6">
+        <div className="space-y-4 max-w-xl mx-auto bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-lg)] p-6">
           <div>
             <h4 className="text-sm font-bold text-white uppercase tracking-tight">
               {currentStep.title}
             </h4>
-            <p className="text-xs text-zinc-400 mt-1">{currentStep.subtitle}</p>
+            <Caption className="mt-1 block">{currentStep.subtitle}</Caption>
           </div>
 
-          <div className="space-y-2 border-t border-zinc-800 pt-3">
+          <div className="space-y-2 border-t border-[var(--border-default)] pt-3">
             {currentStep.details.map((detail, idx) => (
               <div key={idx} className="flex justify-between items-center text-xs font-mono">
-                <span className="text-zinc-500">{detail.label}:</span>
-                <span className="font-medium text-white bg-zinc-800 border border-zinc-700 px-2 py-0.5 rounded">
+                <span className="text-[var(--text-muted)]">{detail.label}:</span>
+                <span className="font-medium text-white bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-2 py-0.5 rounded">
                   {detail.value}
                 </span>
               </div>
@@ -661,38 +710,38 @@ function InteractiveWalkthrough() {
         </div>
 
         <div className="mt-6 text-center">
-          <p className="text-xs text-zinc-300 font-mono">
-            <span className="text-zinc-500 mr-2">[00:{currentTime.toString().padStart(2, '0')}]</span>
+          <p className="text-xs text-[var(--text-secondary)] font-mono">
+            <span className="text-[var(--text-muted)] mr-2">[00:{currentTime.toString().padStart(2, '0')}]</span>
             {currentStep.phaseMessage}
           </p>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="bg-black px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-[var(--bg-inset)] px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <button 
-            type="button"
+          <Button 
             onClick={handlePlayPause}
-            className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
+            variant="gold"
+            size="sm"
           >
             {isPlaying ? (
               <>
-                <Pause className="h-3.5 w-3.5 fill-current" />
+                <Pause className="h-3.5 w-3.5 fill-current mr-1.5" />
                 <span>Pause</span>
               </>
             ) : (
               <>
-                <Play className="h-3.5 w-3.5 fill-current" />
+                <Play className="h-3.5 w-3.5 fill-current mr-1.5" />
                 <span>{currentTime >= 60 ? 'Replay' : 'Play'}</span>
               </>
             )}
-          </button>
+          </Button>
           
           <button 
             type="button"
             onClick={handleReset}
-            className="flex items-center space-x-1.5 border border-zinc-900 bg-transparent text-zinc-400 hover:text-white px-3 py-2 rounded text-xs transition-colors"
+            className="flex items-center space-x-1.5 border border-[var(--border-default)] bg-transparent text-[var(--text-muted)] hover:text-white px-3 py-2 rounded-[var(--radius-sm)] text-xs transition-colors"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Reset</span>
@@ -700,17 +749,17 @@ function InteractiveWalkthrough() {
         </div>
 
         <div className="flex-1 max-w-xs w-full flex items-center space-x-3">
-          <div className="flex-1 bg-zinc-900 h-2 rounded-full overflow-hidden border border-zinc-800">
+          <div className="flex-1 bg-[var(--bg-elevated)] h-2 rounded-full overflow-hidden border border-[var(--border-subtle)]">
             <div 
-              className="bg-white h-full transition-all duration-300 ease-linear"
+              className="bg-[var(--color-primary)] h-full transition-all duration-300 ease-linear"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <span className="text-xs font-mono text-zinc-400">
+          <span className="text-xs font-mono text-[var(--text-muted)]">
             {Math.round(progressPercentage)}%
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

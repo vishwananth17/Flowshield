@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
+import { Heading2, Caption } from '@/components/ui/Typography';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuthStore();
@@ -41,74 +44,92 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-black text-white p-4 overflow-hidden font-body">
+    <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg-base)] text-[var(--text-primary)] p-4 overflow-hidden font-body">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-md z-10"
       >
-        <Card className="w-full bg-zinc-950 border border-zinc-800 rounded-xl shadow-sm overflow-hidden text-left">
-          <CardHeader className="space-y-3 text-center pt-8 pb-4">
+        <Card variant="default" padding="none" className="w-full overflow-hidden text-left border border-[var(--border-default)]">
+          <div className="space-y-3 text-center pt-8 pb-4">
             <div className="flex justify-center mb-2">
               <Link to="/">
-                <Logo size={40} iconSize={24} theme="dark" showText={true} />
+                <Logo size={40} iconSize={24} showText={true} />
               </Link>
             </div>
             <div>
-              <CardTitle className="text-2xl font-extrabold text-white tracking-tight">Sign In</CardTitle>
-              <CardDescription className="text-zinc-400 text-xs mt-1">Enter your credentials to access the console</CardDescription>
+              <Heading2 className="text-center">Sign In</Heading2>
+              <Caption className="text-center mt-1 block">Enter your credentials to access the console</Caption>
             </div>
-          </CardHeader>
-          <CardContent className="px-8 py-4">
+          </div>
+          
+          <div className="px-8 py-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="rounded bg-zinc-900 border border-zinc-700 p-3 text-xs text-red-400 text-center font-mono">
+                <div className="rounded-[var(--radius-sm)] bg-[var(--color-danger-muted)] border border-[var(--color-danger-border)] p-3 text-xs text-[var(--color-danger)] text-center font-mono">
                   {error}
                 </div>
               )}
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Email address</label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  required
-                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
-                />
-              </div>
-              <div className="space-y-1.5">
+              
+              <Input
+                required
+                id="email"
+                type="email"
+                label="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+              />
+
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Password</label>
-                  <Link to="#" className="text-xs text-zinc-400 hover:text-white transition-colors">Forgot password?</Link>
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">Password</span>
+                  <Link to="#" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">Forgot password?</Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:ring-white h-10 rounded text-xs"
-                />
+                <div className="relative">
+                  <Input
+                    required
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword
+                      ? <EyeOff className="w-4 h-4" />
+                      : <Eye className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
               </div>
+
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full h-11 bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-wider rounded transition-colors"
+                variant="gold"
+                fullWidth
+                size="lg"
               >
                 {isLoading ? 'Authenticating...' : 'Sign in to Dashboard'}
               </Button>
             </form>
-          </CardContent>
-          <CardFooter className="flex justify-center border-t border-zinc-900 py-6 bg-black">
-            <p className="text-xs text-zinc-400">
+          </div>
+
+          <div className="flex justify-center border-t border-[var(--border-subtle)] py-6 bg-[var(--bg-inset)]">
+            <p className="text-xs text-[var(--text-muted)]">
               New to Flowshield?{' '}
-              <Link to="/register" className="text-white font-bold hover:underline">Request access</Link>
+              <Link to="/register" className="text-[var(--text-gold)] font-bold hover:underline">Request access</Link>
             </p>
-          </CardFooter>
+          </div>
         </Card>
       </motion.div>
     </div>

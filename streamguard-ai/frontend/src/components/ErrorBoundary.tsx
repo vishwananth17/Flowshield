@@ -1,8 +1,9 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
+import { Heading1, Caption } from '@/components/ui/Typography';
 
 interface Props {
   children: ReactNode;
@@ -34,20 +35,20 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0E1A] p-4 text-white">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] p-4 text-white font-body">
           <div className="flex max-w-md flex-col items-center text-center space-y-6">
-            <div className="rounded-full bg-red-500/10 p-6 flex items-center justify-center">
-              <AlertTriangle className="h-16 w-16 text-red-500 animate-pulse" />
+            <div className="rounded-full bg-[var(--color-danger-muted)] border border-[var(--color-danger-border)] p-6 flex items-center justify-center">
+              <AlertTriangle className="h-16 w-16 text-[var(--color-danger)] animate-pulse" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                A critical rendering error occurred in the StreamGuard interface. If this persists, please contact support.
-              </p>
+              <Heading1 className="mb-2">Something went wrong</Heading1>
+              <Caption className="block leading-relaxed">
+                A critical rendering error occurred in the Flowshield interface. If this persists, please contact support.
+              </Caption>
             </div>
             
-            <div className="bg-[#111827] border border-[#1F2937] text-left p-4 rounded-lg w-full overflow-hidden">
-              <p className="font-mono text-xs text-red-400 break-words opacity-80">
+            <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-left p-4 rounded-[var(--radius-md)] w-full overflow-hidden">
+              <p className="font-mono text-xs text-[var(--color-danger)] break-words opacity-80">
                 {this.state.error?.toString()}
               </p>
             </div>
@@ -55,13 +56,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-4 w-full pt-4">
               <Button 
                 onClick={this.handleReload} 
-                className="flex-1 bg-blue-600 hover:bg-blue-500"
+                variant="gold"
+                className="flex-grow"
               >
-                <RefreshCw className="mr-2 h-4 w-4" />
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin-slow" />
                 Reload Application
               </Button>
-              <Link to="/dashboard" className="flex-1">
-                <Button variant="outline" className="w-full border-[#1F2937] text-gray-300 hover:text-white">
+              <Link to="/dashboard" className="flex-grow">
+                <Button variant="ghost" className="w-full">
                   <Home className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>
