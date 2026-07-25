@@ -6,27 +6,27 @@
 
 @layer base {
   :root {
-    /* Premium Fintech Forest & Mint Green Palette */
-    --bg-primary: #050807;         /* Deep obsidian with soft forest cast */
-    --bg-secondary: #0A110F;       /* Dark forest green container base */
-    --bg-tertiary: #101B18;        /* Muted forest green card layer */
-    --bg-elevated: #162622;        /* Elevated forest green elements */
-    --bg-light: #F6FAF8;           /* Light mint off-white background */
-    --bg-light-subtle: #EDF3F0;    /* Muted off-white */
+    /* Premium Fintech Midnight Blue & Vibrant Indigo Palette */
+    --bg-primary: #05060F;         /* Deep midnight blue base */
+    --bg-secondary: #0A0C1A;       /* Deep slate-blue container background */
+    --bg-tertiary: #11142B;        /* Muted slate-blue card layer */
+    --bg-elevated: #1A1F42;        /* Elevated elements */
+    --bg-light: #F4F6FA;           /* Off-white light background */
+    --bg-light-subtle: #E9ECF5;    /* Muted off-white */
 
-    /* Typography (Grounded warm pine grays) */
+    /* Typography (Grounded slate grays) */
     --text-primary: #FFFFFF;       /* Pure white text */
-    --text-secondary: #8E9C98;     /* Soft sage gray */
-    --text-muted: #64736E;         /* Muted pine gray */
-    --text-dark-primary: #0A110F;  /* Stark black text on light */
-    --text-dark-secondary: #3D4A46;/* Muted dark text */
+    --text-secondary: #94A3B8;     /* Soft slate-blue gray */
+    --text-muted: #64748B;         /* Muted slate gray */
+    --text-dark-primary: #0A0C1A;  /* Stark black text on light */
+    --text-dark-secondary: #475569;/* Muted dark text */
 
-    /* Crisp Pine Borders */
-    --border-primary: #172824;     /* Crisp dark pine border */
-    --border-subtle: #0F1A17;      /* Subtle pine border */
-    --border-light: #E1EAE6;       /* Clean light border */
+    /* Crisp Slate-Blue Borders */
+    --border-primary: #1C2342;     /* Crisp slate-blue border */
+    --border-subtle: #10152A;      /* Subtle border */
+    --border-light: #E2E8F0;       /* Clean light border */
 
-    /* Minimalist status indicators */
+    /* Status colors */
     --status-safe: #10B981;
     --status-suspicious: #F59E0B;
     --status-fraud: #EF4444;
@@ -36,26 +36,26 @@
     --font-mono: 'JetBrains Mono', monospace;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
-    /* Shadcn defaults mapped to our Minimalist Forest Palette */
-    --background: 160 23% 2.4%;
+    /* Shadcn defaults mapped to our Midnight Indigo Palette */
+    --background: 235 50% 3.7%;
     --foreground: 0 0% 100%;
-    --card: 160 23% 5.3%;
+    --card: 235 45% 7%;
     --card-foreground: 0 0% 100%;
-    --popover: 160 23% 5.3%;
+    --popover: 235 45% 7%;
     --popover-foreground: 0 0% 100%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 160 23% 5.3%;
-    --secondary: 160 23% 10%;
+    --primary: 238 100% 70%;
+    --primary-foreground: 235 45% 7%;
+    --secondary: 235 30% 15%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 160 23% 10%;
-    --muted-foreground: 160 10% 60%;
-    --accent: 160 23% 10%;
+    --muted: 235 30% 15%;
+    --muted-foreground: 235 10% 65%;
+    --accent: 235 30% 15%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
-    --border: 160 23% 12%;
-    --input: 160 23% 12%;
-    --ring: 160 84% 39%;
+    --border: 235 30% 18%;
+    --input: 235 30% 18%;
+    --ring: 238 100% 70%;
     --radius: 0.375rem;
   }
 }
@@ -66,7 +66,7 @@
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
   body {
-    @apply antialiased selection:bg-emerald-500 selection:text-black;
+    @apply antialiased selection:bg-indigo-500 selection:text-white;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: var(--font-body);
@@ -100,7 +100,7 @@
   }
 }
 
-/* Styled Minimalist Scrollbars with Forest cast */
+/* Styled Minimalist Scrollbars with Midnight cast */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -109,11 +109,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #101B18;
+  background: #11142B;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #172824;
+  background: #1C2342;
 }
 
 @keyframes slideIn {

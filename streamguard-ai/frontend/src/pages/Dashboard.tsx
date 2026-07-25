@@ -89,6 +89,7 @@ export default function Dashboard() {
       trend: '+0%', 
       isUp: true, 
       icon: Activity, 
+      iconColor: 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
     },
     { 
       title: 'Flagged Alerts', 
@@ -98,6 +99,7 @@ export default function Dashboard() {
         : '0%', 
       isUp: false, 
       icon: ShieldAlert, 
+      iconColor: 'text-red-400 bg-red-500/10 border border-red-500/20'
     },
     { 
       title: 'Protected Volume', 
@@ -105,6 +107,7 @@ export default function Dashboard() {
       trend: '+0%', 
       isUp: true, 
       icon: DollarSign, 
+      iconColor: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20'
     },
     { 
       title: 'Inference Latency', 
@@ -112,6 +115,7 @@ export default function Dashboard() {
       trend: '-0%', 
       isUp: true, 
       icon: Clock, 
+      iconColor: 'text-amber-400 bg-amber-500/10 border border-amber-500/20'
     },
   ];
 
@@ -186,7 +190,7 @@ export default function Dashboard() {
           <button 
             disabled={isDownloading}
             onClick={handleDownload}
-            className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
+            className="flex items-center space-x-2 bg-[#6366F1] text-white hover:bg-[#4F46E5] font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             <span>Export Report</span>
@@ -222,9 +226,9 @@ export default function Dashboard() {
                 setIsSimulating(false);
               }
             }}
-            className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
+            className="flex items-center space-x-2 bg-[#10132B] border border-[#1C2342] hover:bg-[#1A1F42] text-indigo-400 font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
-            {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
+            {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5 text-indigo-400" />}
             <span>Simulate Test Transactions</span>
           </button>
           
@@ -243,9 +247,9 @@ export default function Dashboard() {
                 setIsCheckingHealth(false);
               }
             }}
-            className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
+            className="flex items-center space-x-2 bg-[#10132B] border border-[#1C2342] hover:bg-[#1A1F42] text-indigo-400 font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
-            {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 text-white" />}
+            {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 text-indigo-400" />}
             <span>System Status</span>
           </button>
         </div>
@@ -269,7 +273,7 @@ export default function Dashboard() {
                       <p className="text-xs font-mono uppercase tracking-wider text-zinc-400">{stat.title}</p>
                       <p className="text-3xl font-extrabold mt-2 text-white tracking-tight">{stat.value}</p>
                     </div>
-                    <div className="p-2.5 rounded bg-zinc-900 border border-zinc-800 text-white">
+                    <div className={`p-2.5 rounded ${stat.iconColor}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                   </div>
@@ -292,7 +296,7 @@ export default function Dashboard() {
         <Card className="col-span-2 bg-zinc-950 border-zinc-800 overflow-hidden rounded-lg">
           <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
             <CardTitle className="text-white text-sm font-bold flex items-center">
-              <Activity className="h-4 w-4 mr-2 text-white" />
+              <Activity className="h-4 w-4 mr-2 text-indigo-400" />
               Real-Time Transaction Feed
             </CardTitle>
           </CardHeader>
@@ -332,14 +336,14 @@ export default function Dashboard() {
         <Card className="bg-zinc-950 border-zinc-800 rounded-lg">
           <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
             <CardTitle className="text-white text-sm font-bold flex items-center">
-              <ShieldAlert className="h-4 w-4 mr-2 text-white" />
+              <ShieldAlert className="h-4 w-4 mr-2 text-red-400" />
               Recent Risk Alerts
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="flex h-[350px] items-center justify-center flex-col p-6 text-center">
               <div className="w-12 h-12 rounded bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-3 text-white">
-                <CheckCircle2 className="h-6 w-6" />
+                <CheckCircle2 className="h-6 w-6 text-emerald-400" />
               </div>
               <p className="text-white font-bold text-xs uppercase tracking-wider">All Clear</p>
               <p className="text-zinc-500 text-xs mt-1 leading-relaxed">No anomalous patterns flagged in the last hour.</p>

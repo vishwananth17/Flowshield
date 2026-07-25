@@ -141,15 +141,15 @@ export default function Disputes() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'won':
-        return <span className="bg-white text-black font-extrabold px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">WON</span>;
+        return <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">WON</span>;
       case 'lost':
-        return <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">LOST</span>;
+        return <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">LOST</span>;
       case 'submitted':
-        return <span className="bg-zinc-900 text-white border border-zinc-700 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">SUBMITTED</span>;
+        return <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">SUBMITTED</span>;
       case 'evidence_gathering':
-        return <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">GATHERING</span>;
+        return <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-bold">GATHERING</span>;
       default:
-        return <span className="bg-black text-white border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">{status}</span>;
+        return <span className="bg-zinc-900 text-zinc-300 border border-zinc-800 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase">{status}</span>;
     }
   };
 
@@ -177,7 +177,7 @@ export default function Disputes() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
+          className="flex items-center space-x-2 bg-[#6366F1] text-white hover:bg-[#4F46E5] font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
         >
           <Plus className="h-4 w-4" />
           <span>Log Dispute</span>
@@ -190,7 +190,7 @@ export default function Disputes() {
           <CardContent className="p-0">
             <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
               <span>Win Rate</span>
-              <TrendingUp className="h-4 w-4 text-white" />
+              <TrendingUp className="h-4 w-4 text-emerald-400" />
             </div>
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               {stats?.win_rate_percent !== undefined ? `${stats.win_rate_percent}%` : '0%'}
@@ -203,7 +203,7 @@ export default function Disputes() {
           <CardContent className="p-0">
             <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
               <span>Open Disputes</span>
-              <AlertTriangle className="h-4 w-4 text-white" />
+              <AlertTriangle className="h-4 w-4 text-amber-400" />
             </div>
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               {stats?.open_disputes || 0}
@@ -216,7 +216,7 @@ export default function Disputes() {
           <CardContent className="p-0">
             <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
               <span>Disputed Volume</span>
-              <Clock className="h-4 w-4 text-white" />
+              <Clock className="h-4 w-4 text-indigo-400" />
             </div>
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               ₹{(stats?.total_at_risk_amount || 0).toLocaleString()}
@@ -229,7 +229,7 @@ export default function Disputes() {
           <CardContent className="p-0">
             <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
               <span>Recovered Revenue</span>
-              <CheckCircle className="h-4 w-4 text-white" />
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
             </div>
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               ₹{(stats?.total_won_amount || 0).toLocaleString()}
@@ -292,7 +292,7 @@ export default function Disputes() {
                   <th className="px-5 py-3.5">Reason</th>
                   <th className="px-5 py-3.5">Amount</th>
                   <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5">Urgency</th>
+                  <th className="px-5 py-3.5">Time</th>
                   <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
@@ -335,7 +335,7 @@ export default function Disputes() {
                       <td className="px-5 py-3.5 text-right">
                         <button
                           onClick={() => navigate(`/dashboard/disputes/${d.id}`)}
-                          className="text-xs text-white hover:bg-zinc-800 font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors"
+                          className="text-xs text-[#6366F1] hover:text-[#4F46E5] font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors"
                         >
                           Review Evidence
                         </button>
@@ -462,7 +462,7 @@ export default function Disputes() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-zinc-200"
+                  className="px-5 py-2 bg-[#6366F1] text-white font-bold text-xs uppercase tracking-wider rounded hover:bg-[#4F46E5]"
                 >
                   {submitting ? 'Submitting...' : 'Create Record'}
                 </button>

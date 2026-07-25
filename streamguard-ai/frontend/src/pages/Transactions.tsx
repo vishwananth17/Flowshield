@@ -165,9 +165,9 @@ export default function Transactions() {
                         </td>
                         <td className="px-5 py-3.5">
                           <Badge className={`font-mono text-[10px] uppercase font-bold border ${
-                            tx.risk_label === 'fraud' ? 'bg-zinc-900 text-white border-zinc-700' :
-                            tx.risk_label === 'review' ? 'bg-zinc-900 text-zinc-300 border-zinc-800' :
-                            'bg-black text-white border-zinc-800'
+                            tx.risk_label === 'fraud' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                            tx.risk_label === 'review' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                           }`}>
                             {tx.risk_label || 'SAFE'}
                           </Badge>
