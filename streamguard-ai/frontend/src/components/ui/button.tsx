@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded text-xs font-semibold uppercase tracking-wider transition-all duration-300 ease-out focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 font-body",
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-500",
+        default: "bg-white text-black hover:bg-zinc-200",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-zinc-900 text-white border border-zinc-800 hover:bg-zinc-800",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-[var(--border-primary)] bg-transparent hover:bg-zinc-900 text-white",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-zinc-900 text-zinc-300 border border-zinc-800 hover:bg-zinc-800",
+        ghost: "hover:bg-zinc-900 text-white",
+        link: "text-white underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 py-2",
+        sm: "h-8 px-3",
+        lg: "h-11 px-8",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
@@ -54,4 +54,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-

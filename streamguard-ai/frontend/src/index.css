@@ -6,55 +6,55 @@
 
 @layer base {
   :root {
-    /* Stark Monochrome Palette */
-    --bg-primary: #000000;         /* Pure pitch black */
-    --bg-secondary: #09090B;       /* Deep obsidian charcoal */
-    --bg-tertiary: #18181B;        /* Muted slate black */
-    --bg-elevated: #27272A;        /* Elevated elements */
-    --bg-light: #FFFFFF;           /* Stark pure white */
-    --bg-light-subtle: #F4F4F5;    /* Off-white light gray */
+    /* Minimalist Dark Obsidian & Warm Slate Palette */
+    --bg-primary: #030303;         /* Smooth soft black */
+    --bg-secondary: #0A0A0C;       /* Obsidian charcoal */
+    --bg-tertiary: #121214;        /* Soft elevated black */
+    --bg-elevated: #1A1A1E;        /* Interactive elements */
+    --bg-light: #FAFAFA;           /* Off-white light */
+    --bg-light-subtle: #F4F4F6;    /* Crisp light gray */
 
-    /* Typography colors */
-    --text-primary: #FFFFFF;       /* Pure white text on dark */
-    --text-secondary: #A1A1AA;     /* Soft zinc gray */
-    --text-muted: #71717A;         /* Dark zinc muted */
-    --text-dark-primary: #09090B;  /* Stark black text on white */
-    --text-dark-secondary: #52525B;/* Muted dark text */
+    /* Typography (Sleek Warm Slate Grays) */
+    --text-primary: #FFFFFF;       /* Pure white text */
+    --text-secondary: #9A9A9E;     /* Soft slate grey */
+    --text-muted: #6E6E73;         /* Muted zinc grey */
+    --text-dark-primary: #0A0A0C;  /* Stark black text on light */
+    --text-dark-secondary: #48484A;/* Muted dark text */
 
-    /* Crisp Monochrome Borders */
-    --border-primary: #27272A;     /* Dark zinc border */
-    --border-subtle: #18181B;      /* Deep border */
-    --border-light: #E4E4E7;       /* Crisp light border */
+    /* Crisp Minimalist Borders */
+    --border-primary: #1F1F23;     /* Warm dark border */
+    --border-subtle: #141416;      /* Subtly darker border */
+    --border-light: #E5E5E9;       /* Crisp light border */
 
-    /* Functional Status (minimalist, zero neon) */
+    /* Functional status (minimal, non-neon) */
     --status-safe: #10B981;
     --status-suspicious: #F59E0B;
     --status-fraud: #EF4444;
 
-    /* Bold Professional Inter & Space Grotesk Typography */
+    /* Typography Family */
     --font-display: 'Inter', 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
-    /* Shadcn defaults - Stark Dark Theme */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    /* Shadcn defaults mapped to our Minimalist Obsidian Palette */
+    --background: 0 0% 1.2%;
+    --foreground: 0 0% 100%;
+    --card: 240 5.9% 4.1%;
+    --card-foreground: 0 0% 100%;
+    --popover: 240 5.9% 4.1%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 240 5.9% 4.1%;
+    --secondary: 240 3.7% 8%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 3.7% 8%;
+    --muted-foreground: 240 4% 60%;
+    --accent: 240 3.7% 8%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 3.7% 12%;
+    --input: 240 3.7% 12%;
     --ring: 240 4.9% 83.9%;
     --radius: 0.375rem;
   }
@@ -62,18 +62,19 @@
 
 @layer base {
   * {
-    @apply border-zinc-800;
+    @apply border-zinc-900;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
   body {
-    @apply bg-black text-white font-body antialiased selection:bg-white selection:text-black;
+    @apply antialiased selection:bg-white selection:text-black;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: var(--font-body);
-    letter-spacing: -0.015em;
+    letter-spacing: -0.011em;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display text-white font-extrabold;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
   }
   button, input, select, textarea {
     font-family: var(--font-body);
@@ -82,16 +83,37 @@
 
 @layer utilities {
   .border-grid {
-    @apply border border-zinc-800;
+    border: 1px solid var(--border-primary);
   }
   
   .border-grid-light {
-    @apply border border-zinc-200;
+    border: 1px solid var(--border-light);
+  }
+
+  /* Extremely smooth transition preset */
+  .smooth-transition {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .slide-in {
     animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
+}
+
+/* Styled Minimalist Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C1C1E;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2C2C2E;
 }
 
 @keyframes slideIn {
