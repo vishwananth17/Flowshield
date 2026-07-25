@@ -1,41 +1,26 @@
 {
-  "buildCommand": "cd streamguard-ai/frontend && npm install && npm run build",
-  "outputDirectory": "streamguard-ai/frontend/dist",
-  "framework": "vite",
-  "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "https://flowshield-backend-ani8.onrender.com/api/v1/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {"key": "X-Frame-Options", "value": "DENY"},
-        {"key": "X-Content-Type-Options", "value": "nosniff"},
-        {"key": "X-XSS-Protection", "value": "1; mode=block"},
-        {"key": "Referrer-Policy",
-         "value": "strict-origin-when-cross-origin"},
-        {"key": "Permissions-Policy",
-         "value": "geolocation=(), microphone=(), camera=()"},
-        {"key": "Strict-Transport-Security",
-         "value": "max-age=31536000; includeSubDomains; preload"}
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {"key": "Cache-Control",
-         "value": "public, max-age=31536000, immutable"}
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]
