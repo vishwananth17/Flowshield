@@ -25,6 +25,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import ProductVideoSection from '@/components/ProductVideoSection';
 import EnterpriseModal from '@/components/EnterpriseModal';
 import Logo from '@/components/Logo';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Landing() {
   const [email, setEmail] = useState('');
