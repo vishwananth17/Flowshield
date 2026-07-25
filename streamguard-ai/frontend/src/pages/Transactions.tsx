@@ -77,8 +77,8 @@ export default function Transactions() {
     <div className="space-y-6 text-left font-body">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Transactions Feed</h1>
-          <p className="text-zinc-400 text-xs mt-1">Live monitoring of your transaction stream</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Transaction Activity Log</h1>
+          <p className="text-zinc-400 text-xs mt-1">Real-time log of gateway transaction events.</p>
         </div>
         <div className="flex items-center space-x-3">
           <div className="relative">
@@ -134,7 +134,7 @@ export default function Transactions() {
                 {loading && filteredTransactions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 font-mono text-xs">
-                      Intercepting transaction packets...
+                      Processing transaction records...
                     </td>
                   </tr>
                 ) : filteredTransactions.length === 0 ? (

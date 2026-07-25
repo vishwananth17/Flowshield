@@ -1,18 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
-  ShieldAlert,
   Search,
   Plus,
-  ArrowUpRight,
   TrendingUp,
   AlertTriangle,
   Clock,
   CheckCircle,
-  XCircle,
-  Info,
-  Calendar,
   X
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -111,7 +105,7 @@ export default function Disputes() {
       };
 
       await api.post('/disputes', payload);
-      toast.success("Dispute logged. Automated evidence gathering sequence started!", { id: toastId });
+      toast.success("Dispute logged. Automated evidence gathering initialized.", { id: toastId });
       
       // Reset Form & Close
       setShowModal(false);
@@ -178,15 +172,15 @@ export default function Disputes() {
       {/* Top Header & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Dispute Command Center</h1>
-          <p className="text-zinc-400 text-xs mt-1">Automated evidence compilation and gateway dispute defense.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Chargeback & Dispute Manager</h1>
+          <p className="text-zinc-400 text-xs mt-1">Automated evidence compilation and payment gateway dispute representation.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
         >
           <Plus className="h-4 w-4" />
-          <span>Log Manual Dispute</span>
+          <span>Log Dispute</span>
         </button>
       </div>
 
@@ -201,7 +195,7 @@ export default function Disputes() {
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               {stats?.win_rate_percent !== undefined ? `${stats.win_rate_percent}%` : '0%'}
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Based on resolved cases</div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Based on resolved disputes</div>
           </CardContent>
         </Card>
 
@@ -214,14 +208,14 @@ export default function Disputes() {
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               {stats?.open_disputes || 0}
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Require response</div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Requires evidence submission</div>
           </CardContent>
         </Card>
 
         <Card className="bg-zinc-950 border-zinc-800 p-5 rounded-lg">
           <CardContent className="p-0">
             <div className="flex justify-between items-center text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>At Risk Volume</span>
+              <span>Disputed Volume</span>
               <Clock className="h-4 w-4 text-white" />
             </div>
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
@@ -240,7 +234,7 @@ export default function Disputes() {
             <div className="text-3xl font-extrabold text-white mt-2 tracking-tight">
               ₹{(stats?.total_won_amount || 0).toLocaleString()}
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono mt-1">Funds returned to merchant</div>
+            <div className="text-[10px] text-zinc-500 font-mono mt-1">Funds recovered successfully</div>
           </CardContent>
         </Card>
       </div>
@@ -343,7 +337,7 @@ export default function Disputes() {
                           onClick={() => navigate(`/dashboard/disputes/${d.id}`)}
                           className="text-xs text-white hover:bg-zinc-800 font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors"
                         >
-                          View Dossier
+                          Review Evidence
                         </button>
                       </td>
                     </tr>
@@ -388,7 +382,7 @@ export default function Disputes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
           <div className="bg-zinc-950 border border-zinc-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <h3 className="text-lg font-bold text-white">Log Manual Dispute</h3>
+              <h3 className="text-lg font-bold text-white">Log Dispute Reference</h3>
               <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
                 <X className="h-5 w-5" />
               </button>
@@ -470,7 +464,7 @@ export default function Disputes() {
                   disabled={submitting}
                   className="px-5 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-zinc-200"
                 >
-                  {submitting ? 'Submitting...' : 'Create Dispute'}
+                  {submitting ? 'Submitting...' : 'Create Record'}
                 </button>
               </div>
             </form>

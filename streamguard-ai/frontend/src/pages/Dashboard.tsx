@@ -43,7 +43,7 @@ export default function Dashboard() {
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    const toastId = toast.loading("Preparing institutional export...");
+    const toastId = toast.loading("Preparing transaction report export...");
     try {
       const api = (await import('@/services/api')).default;
       const response = await api.get(`/analytics/export?range=${timeRange}`, {
@@ -57,9 +57,9 @@ export default function Dashboard() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Export complete. Forensics ready.", { id: toastId });
+      toast.success("Export complete.", { id: toastId });
     } catch (e) {
-      toast.error("Export failed. Internal ledger inaccessible.", { id: toastId });
+      toast.error("Export failed. Ledger inaccessible.", { id: toastId });
     } finally {
       setIsDownloading(false);
     }
@@ -84,14 +84,14 @@ export default function Dashboard() {
 
   const stats = [
     { 
-      title: `Total Analyzed (${timeRange.toUpperCase()})`, 
+      title: `Transactions (${timeRange.toUpperCase()})`, 
       value: statsData?.total_analyzed?.toLocaleString() || '0', 
       trend: '+0%', 
       isUp: true, 
       icon: Activity, 
     },
     { 
-      title: 'Fraud Detected', 
+      title: 'Flagged Alerts', 
       value: statsData?.fraud_blocked?.toLocaleString() || '0', 
       trend: (statsData?.total_analyzed && statsData.total_analyzed > 0) 
         ? `${((statsData.fraud_blocked / statsData.total_analyzed) * 100).toFixed(1)}%` 
@@ -147,8 +147,8 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-zinc-400 text-xs mt-1">Institutional risk visibility for your organizational traffic.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Analytics & Risk Dashboard</h1>
+          <p className="text-zinc-400 text-xs mt-1">Monitor real-time payment risk, analyze chargeback trends, and manage dispute evidence.</p>
         </motion.div>
 
         <motion.div 
@@ -189,7 +189,7 @@ export default function Dashboard() {
             className="flex items-center space-x-2 bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-colors"
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-            <span>Download Report</span>
+            <span>Export Report</span>
           </button>
 
         </motion.div>
@@ -202,7 +202,7 @@ export default function Dashboard() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider">Live Stream Active</span>
+          <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase tracking-wider">Real-Time Monitor Active</span>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -210,7 +210,7 @@ export default function Dashboard() {
             disabled={isSimulating}
             onClick={async () => {
               setIsSimulating(true);
-              const toastId = toast.loading("Injecting synthetic fraud signals...");
+              const toastId = toast.loading("Simulating checkout risk evaluations...");
               try {
                 const api = (await import('@/services/api')).default;
                 await api.post('/transactions/simulate?count=10', {}, { timeout: 30000 });
@@ -225,20 +225,20 @@ export default function Dashboard() {
             className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
             {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
-            <span>Run Stress Test</span>
+            <span>Simulate Test Transactions</span>
           </button>
           
           <button 
             onClick={async () => {
               if (isCheckingHealth) return;
               setIsCheckingHealth(true);
-              const toastId = toast.loading("Checking global satellite status...");
+              const toastId = toast.loading("Checking gateway connection status...");
               try {
                 const api = (await import('@/services/api')).default;
                 await api.get('/health/status');
-                toast.success("Global satellites Operational (12ms)", { id: toastId });
+                toast.success("All systems operational (12ms)", { id: toastId });
               } catch (e) {
-                toast.error("Degradation in Asia-North", { id: toastId });
+                toast.error("Connection issue detected", { id: toastId });
               } finally {
                 setIsCheckingHealth(false);
               }
@@ -246,7 +246,7 @@ export default function Dashboard() {
             className="flex items-center space-x-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs px-3 py-1.5 rounded transition-colors"
           >
             {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 text-white" />}
-            <span>System Health</span>
+            <span>System Status</span>
           </button>
         </div>
       </div>
@@ -293,7 +293,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
             <CardTitle className="text-white text-sm font-bold flex items-center">
               <Activity className="h-4 w-4 mr-2 text-white" />
-              Live Transactions Feed
+              Real-Time Transaction Feed
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 h-[350px] overflow-y-auto w-full">
@@ -301,8 +301,8 @@ export default function Dashboard() {
               <div className="flex h-full items-center justify-center p-6 text-center">
                 <div>
                   <div className="w-10 h-10 rounded-full border-2 border-zinc-700 border-t-white animate-spin mx-auto mb-3" />
-                  <p className="text-zinc-400 font-mono text-xs font-bold">Waiting for live events...</p>
-                  <p className="text-zinc-500 text-xs mt-1">Listening for real-time transactions</p>
+                  <p className="text-zinc-400 font-mono text-xs font-bold">Waiting for events...</p>
+                  <p className="text-zinc-500 text-xs mt-1">Listening for real-time transaction activity</p>
                 </div>
               </div>
             ) : (
@@ -333,7 +333,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-zinc-800 bg-black py-3 px-5">
             <CardTitle className="text-white text-sm font-bold flex items-center">
               <ShieldAlert className="h-4 w-4 mr-2 text-white" />
-              Recent Alerts
+              Recent Risk Alerts
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -342,7 +342,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <p className="text-white font-bold text-xs uppercase tracking-wider">All Clear</p>
-              <p className="text-zinc-500 text-xs mt-1 leading-relaxed">No anomalous patterns detected in the last hour.</p>
+              <p className="text-zinc-500 text-xs mt-1 leading-relaxed">No anomalous patterns flagged in the last hour.</p>
             </div>
           </CardContent>
         </Card>

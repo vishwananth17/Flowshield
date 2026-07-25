@@ -7,7 +7,7 @@ import { useAlertStore } from '@/stores/alertStore';
 import { AlertDrawer } from '@/components/AlertDrawer';
 import { toast } from 'sonner';
 
-export function AlertsPage() {
+export const AlertsPage: React.FC = () => {
   const { alerts, stats, fetchAlerts, fetchStats, bulkAction } = useAlertStore();
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('open');
@@ -54,8 +54,8 @@ export function AlertsPage() {
       <div className="px-6 pt-6 pb-4 border-b border-zinc-800 bg-zinc-950">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">Alert Command Center</h1>
-            <p className="text-zinc-400 text-xs mt-1">Monitor and triage flagged transaction signatures in real-time.</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">Security & Fraud Alerts</h1>
+            <p className="text-zinc-400 text-xs mt-1">Review and resolve automated transaction warnings.</p>
           </div>
           <div className="flex gap-3">
              <div className="bg-black border border-zinc-800 rounded-lg p-3 flex items-center gap-3 min-w-[170px]">
@@ -63,7 +63,7 @@ export function AlertsPage() {
                   <ShieldAlert size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-zinc-500 uppercase font-mono font-bold">Critical</p>
+                  <p className="text-[10px] text-zinc-500 uppercase font-mono font-bold">Critical Warnings</p>
                   <p className="text-lg font-extrabold text-white">{stats?.critical || 0}</p>
                 </div>
              </div>
@@ -72,7 +72,7 @@ export function AlertsPage() {
                   <Clock size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-zinc-500 uppercase font-mono font-bold">Resolution</p>
+                  <p className="text-[10px] text-zinc-500 uppercase font-mono font-bold">Avg. Resolution</p>
                   <p className="text-lg font-extrabold text-white">{stats?.avg_resolution_time_minutes || 0}m</p>
                 </div>
              </div>
@@ -142,7 +142,7 @@ export function AlertsPage() {
               {alerts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-zinc-500 font-mono text-xs">
-                    No active alerts found. System normal.
+                    No active warnings. System running normally.
                   </td>
                 </tr>
               ) : (

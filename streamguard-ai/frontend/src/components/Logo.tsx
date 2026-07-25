@@ -11,25 +11,15 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({ 
   className = '', 
   size = 32, 
-  iconSize = 18,
-  theme = 'auto',
+  iconSize = 16,
   showText = false
 }) => {
-  const isDark = theme === 'dark';
-  const isLight = theme === 'light';
-
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Stark Geometric Solid Block */}
+      {/* Premium Fintech Geometric Block */}
       <div 
-        className={`flex items-center justify-center font-bold text-sm tracking-tighter transition-all duration-200 ${
-          isLight 
-            ? 'bg-black text-white' 
-            : isDark 
-              ? 'bg-white text-black' 
-              : 'bg-black text-white dark:bg-white dark:text-black'
-        }`}
-        style={{ width: size, height: size, borderRadius: '4px' }}
+        className="flex items-center justify-center bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[#10B981] rounded-md transition-colors"
+        style={{ width: size, height: size }}
       >
         <svg
           width={iconSize}
@@ -37,17 +27,17 @@ export const Logo: React.FC<LogoProps> = ({
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="square"
-          strokeLinejoin="miter"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" />
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fillOpacity="0.15" />
         </svg>
       </div>
 
       {showText && (
-        <span className="font-extrabold tracking-tight text-lg uppercase">
-          Flowshield<span className="font-light text-zinc-400">.AI</span>
+        <span className="font-extrabold tracking-tight text-base text-white">
+          Flowshield
         </span>
       )}
     </div>
