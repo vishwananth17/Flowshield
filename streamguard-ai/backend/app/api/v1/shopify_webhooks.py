@@ -1,0 +1,293 @@
+import hmac
+import hashlib
+import base64
+import logging
+import uuid
+import time
+from datetime import datetime, UTC
+from typing import Annotated, Optional
+from decimal import Decimal
+
+from fastapi import APIRouter, Header, Request, HTTPException, Depends, Query, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.dependencies import get_db
+from app.core.security import hash_api_key
+from app.models.api_key import ApiKey
+from app.models.organization import Organization
+from app.models.transaction import Transaction
+from app.models.alert import Alert
+from app.models.integration import Integration
+from app.schemas.transaction import TransactionAnalyzeRequest
+from app.services.fraud_detection_service import FraudDetectionService
+from app.core.websockets import ws_manager
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/webhooks/shopify", tags=["Shopify Webhooks"])
+_fraud_service = FraudDetectionService()
+
+
+def verify_shopify_hmac(body_bytes: bytes, hmac_header: str, secret: str) -> bool:
+    """Verifies HMAC-SHA256 signature from Shopify."""
+    if not hmac_header or not secret:
+        return False
+    digest = hmac.new(secret.encode("utf-8"), body_bytes, hashlib.sha256).digest()
+    computed_hmac = base64.b64encode(digest).decode("utf-8")
+    return hmac.compare_digest(computed_hmac, hmac_header)
+
+
+async def resolve_organization_from_request(
+    db: AsyncSession,
+    api_key: Optional[str] = None,
+    x_api_key: Optional[str] = None,
+    shop_domain: Optional[str] = None
+) -> tuple[Organization, Optional[ApiKey]]:
+    """Resolves Organization using API key or shop domain."""
+    key_str = api_key or x_api_key
+    if key_str:
+        key_hash = hash_api_key(key_str.strip())
+        res = await db.execute(select(ApiKey).where(ApiKey.key_hash == key_hash, ApiKey.is_active.is_(True)))
+        api_key_obj = res.scalar_one_or_none()
+        if api_key_obj:
+            org_res = await db.execute(select(Organization).where(Organization.id == api_key_obj.org_id))
+            org = org_res.scalar_one_or_none()
+            if org:
+                return org, api_key_obj
+
+    if shop_domain:
+        # Check if an integration exists for this shop
+        integ_res = await db.execute(
+            select(Integration).where(
+                Integration.platform == "shopify",
+                Integration.store_url.ilike(f"%{shop_domain}%")
+            )
+        )
+        integ = integ_res.scalar_one_or_none()
+        if integ:
+            org_res = await db.execute(select(Organization).where(Organization.id == integ.org_id))
+            org = org_res.scalar_one_or_none()
+            if org:
+                return org, None
+
+    # Fallback to default organization if any exists
+    org_res = await db.execute(select(Organization).limit(1))
+    default_org = org_res.scalar_one_or_none()
+    if default_org:
+        return default_org, None
+
+    raise HTTPException(status_code=401, detail="Could not resolve organization for Shopify webhook")
+
+
+async def process_shopify_order(
+    payload: dict,
+    db: AsyncSession,
+    org: Organization,
+    shop_domain: Optional[str] = None
+) -> dict:
+    """Core pipeline to transform Shopify order, run ML fraud scoring, save transaction & trigger alerts."""
+    start_time = time.perf_counter()
+
+    # Extract Shopify order details safely
+    order_id = str(payload.get("id") or payload.get("order_id") or f"shopify_{uuid.uuid4().hex[:8]}")
+    order_name = str(payload.get("name") or payload.get("order_number") or order_id)
+    total_price = float(payload.get("total_price") or payload.get("amount") or 0.0)
+    currency = str(payload.get("currency") or "INR").upper()
+
+    customer = payload.get("customer") or {}
+    customer_id = str(customer.get("id") or payload.get("customer_id") or "cust_shopify_unknown")
+    customer_email = customer.get("email") or payload.get("email") or ""
+
+    billing_address = payload.get("billing_address") or payload.get("shipping_address") or {}
+    country_code = billing_address.get("country_code") or "IN"
+    city = billing_address.get("city") or "Mumbai"
+
+    payment_details = payload.get("payment_details") or {}
+    card_last_four = payment_details.get("credit_card_bin") or "4242"
+    gateways = payload.get("payment_gateway_names") or ["shopify_payments"]
+    card_type = gateways[0] if gateways else "credit_card"
+    customer_ip = payload.get("browser_ip") or "127.0.0.1"
+
+    # 1. Transform to TransactionAnalyzeRequest schema
+    analyze_req = TransactionAnalyzeRequest(
+        amount=total_price,
+        currency=currency,
+        merchant_id=shop_domain or "shopify_store",
+        merchant_name=shop_domain or f"Shopify Order {order_name}",
+        customer_id=customer_id,
+        customer_ip=customer_ip,
+        customer_country=country_code,
+        customer_city=city,
+        card_last_four=card_last_four[-4:] if len(card_last_four) >= 4 else "4242",
+        card_type=card_type,
+        channel="shopify_webhook",
+        device_fingerprint=payload.get("token") or f"fp_{uuid.uuid4().hex[:12]}",
+        external_id=order_name
+    )
+
+    # 2. Execute Ensemble ML & Heuristics Fraud Service
+    fraud_result = await _fraud_service.analyze(
+        tx=analyze_req,
+        plan=org.plan or "free",
+        db=db,
+        org_id=org.id
+    )
+
+    latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+    # 3. Create & save Transaction record in DB
+    tx_record = Transaction(
+        id=uuid.uuid4(),
+        org_id=org.id,
+        external_id=order_name,
+        amount=Decimal(str(total_price)),
+        currency=currency,
+        merchant_id=shop_domain or "shopify_store",
+        merchant_name=shop_domain or "Shopify Store",
+        merchant_category="ecommerce",
+        card_last_four=analyze_req.card_last_four,
+        card_type=card_type,
+        customer_id=customer_id,
+        customer_ip=customer_ip,
+        customer_country=country_code,
+        customer_city=city,
+        device_fingerprint=analyze_req.device_fingerprint,
+        channel="shopify_webhook",
+        risk_score=Decimal(str(round(fraud_result.risk_score, 4))),
+        risk_label=fraud_result.risk_label,
+        decision=fraud_result.decision,
+        fraud_reasons=fraud_result.reasons,
+        model_version=fraud_result.model_version,
+        detection_latency_ms=latency_ms,
+        created_at=datetime.now(UTC)
+    )
+    db.add(tx_record)
+
+    # 4. If high risk, create Alert record
+    alert_created = False
+    if fraud_result.risk_score >= 0.70 or fraud_result.risk_label in ["fraud", "review"]:
+        alert_record = Alert(
+            id=uuid.uuid4(),
+            org_id=org.id,
+            transaction_id=tx_record.id,
+            alert_type="shopify_fraud_alert",
+            severity="CRITICAL" if fraud_result.risk_score >= 0.85 else "HIGH",
+            title=f"Shopify Order {order_name} Flagged ({fraud_result.risk_label.upper()})",
+            description=f"Automated risk score {int(fraud_result.risk_score * 100)}/100 detected. Reasons: {', '.join(fraud_result.reasons[:2])}",
+            status="OPEN",
+            created_at=datetime.now(UTC)
+        )
+        db.add(alert_record)
+        alert_created = True
+
+    # 5. Update or Register Shopify Integration status
+    if shop_domain:
+        integ_res = await db.execute(
+            select(Integration).where(
+                Integration.org_id == org.id,
+                Integration.platform == "shopify"
+            )
+        )
+        integ = integ_res.scalar_one_or_none()
+        if integ:
+            integ.last_event_at = datetime.now(UTC)
+            integ.status = "active"
+        else:
+            new_integ = Integration(
+                org_id=org.id,
+                platform="shopify",
+                connection_method="webhook",
+                store_name=f"Shopify Store ({shop_domain})",
+                store_url=f"https://{shop_domain}",
+                status="active",
+                last_event_at=datetime.now(UTC)
+            )
+            db.add(new_integ)
+
+    await db.commit()
+    await db.refresh(tx_record)
+
+    # 6. Broadcast Real-time Event via WebSockets
+    ws_event = {
+        "type": "NEW_TRANSACTION",
+        "data": {
+            "id": str(tx_record.id),
+            "external_id": tx_record.external_id,
+            "amount": float(tx_record.amount),
+            "currency": tx_record.currency,
+            "merchant_name": tx_record.merchant_name,
+            "risk_score": float(tx_record.risk_score),
+            "risk_label": tx_record.risk_label,
+            "decision": tx_record.decision,
+            "reasons": fraud_result.reasons,
+            "created_at": tx_record.created_at.isoformat()
+        }
+    }
+    await ws_manager.broadcast_json(ws_event)
+
+    return {
+        "status": "success",
+        "order_id": order_name,
+        "shopify_order_id": order_id,
+        "transaction_id": str(tx_record.id),
+        "risk_score": round(fraud_result.risk_score, 4),
+        "risk_label": fraud_result.risk_label,
+        "decision": fraud_result.decision,
+        "confidence": fraud_result.confidence,
+        "reasons": fraud_result.reasons,
+        "latency_ms": latency_ms,
+        "alert_triggered": alert_created
+    }
+
+
+@router.post("/orders/create", status_code=200)
+@router.post("/orders/paid", status_code=200)
+@router.post("", status_code=200)
+async def shopify_order_webhook(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    api_key: Optional[str] = Query(default=None),
+    x_api_key: Optional[str] = Header(alias="X-API-Key", default=None),
+    x_shopify_shop_domain: Optional[str] = Header(alias="X-Shopify-Shop-Domain", default=None),
+    x_shopify_hmac: Optional[str] = Header(alias="X-Shopify-Hmac-Sha256", default=None),
+):
+    """Receives Shopify order webhooks, runs full ML fraud scoring, and stores real-time telemetry."""
+    payload = await request.json()
+    org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain)
+    
+    result = await process_shopify_order(
+        payload=payload,
+        db=db,
+        org=org,
+        shop_domain=x_shopify_shop_domain
+    )
+    return result
+
+
+@router.post("/test", status_code=200)
+async def shopify_test_webhook(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    api_key: Optional[str] = Query(default=None),
+):
+    """Generates a synthetic test Shopify order to verify end-to-end webhook integration."""
+    org, _ = await resolve_organization_from_request(db, api_key)
+    synthetic_payload = {
+        "id": f"test_sp_{uuid.uuid4().hex[:6]}",
+        "name": f"#TEST-{int(time.time()) % 10000}",
+        "total_price": "8999.00",
+        "currency": "INR",
+        "browser_ip": "103.211.55.12",
+        "customer": {
+            "id": "cust_test_99",
+            "email": "test_merchant@shopify.com",
+            "first_name": "Test",
+            "last_name": "Customer"
+        },
+        "billing_address": {
+            "country_code": "IN",
+            "city": "Bengaluru"
+        },
+        "payment_gateway_names": ["razorpay"]
+    }
+    return await process_shopify_order(payload=synthetic_payload, db=db, org=org, shop_domain="savor-store.myshopify.com")

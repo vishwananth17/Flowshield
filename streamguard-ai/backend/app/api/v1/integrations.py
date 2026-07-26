@@ -31,6 +31,10 @@ class RazorpayConnectRequest(BaseModel):
 class WooCommerceTestRequest(BaseModel):
     storeUrl: str
 
+class ShopifyConnectRequest(BaseModel):
+    storeUrl: str
+    apiKey: Optional[str] = None
+
 @router.get("", response_model=list[IntegrationOut])
 async def list_integrations(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -147,3 +151,43 @@ async def connect_woocommerce(
             "created_at": integration.created_at
         }
     }
+
+@router.post("/shopify/connect", response_model=IntegrationOut)
+async def connect_shopify(
+    payload: ShopifyConnectRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    if not payload.storeUrl:
+        raise HTTPException(status_code=400, detail="Shopify store URL is required.")
+        
+    store_clean = payload.storeUrl.replace("https://", "").replace("http://", "").strip("/")
+    
+    existing_result = await db.execute(
+        select(Integration)
+        .where(Integration.org_id == user.org_id, Integration.platform == "shopify")
+    )
+    integration = existing_result.scalar_one_or_none()
+    
+    if integration:
+        integration.store_url = f"https://{store_clean}"
+        integration.access_token = payload.apiKey or integration.access_token
+        integration.connection_method = "webhook"
+        integration.status = "active"
+        integration.last_event_at = datetime.utcnow()
+    else:
+        integration = Integration(
+            org_id=user.org_id,
+            platform="shopify",
+            connection_method="webhook",
+            store_name=f"Shopify ({store_clean})",
+            store_url=f"https://{store_clean}",
+            access_token=payload.apiKey or "",
+            status="active",
+            last_event_at=datetime.utcnow()
+        )
+        db.add(integration)
+        
+    await db.commit()
+    await db.refresh(integration)
+    return integration
