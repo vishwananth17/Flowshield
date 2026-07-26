@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,45 +6,45 @@
 
 @layer base {
   :root {
-    /* Backgrounds */
-    --bg-primary: #0A0E1A;       /* Deep navy — main background */
-    --bg-secondary: #0F172A;     /* Slate 900 — Card backgrounds */
-    --bg-tertiary: #1E293B;      /* Slate 800 — Input fields, hover states */
-    --bg-elevated: #111827;      /* Modals, dropdowns */
+    /* Enterprise Dark Mode Palette */
+    --bg-primary: #090D16;       /* Obsidian Black Ingress */
+    --bg-secondary: #101623;     /* Sleek Surface Background */
+    --bg-tertiary: #1A2234;      /* Elevated Input / Hover State */
+    --bg-elevated: #1F293D;      /* Modals / Dropdowns */
 
-    /* Brand */
-    --accent-blue: #3B82F6;      /* Blue 500 */
+    /* Brand Accents */
+    --accent-blue: #3B82F6;      /* Primary Electric Blue */
     --accent-blue-bright: #60A5FA;
-    --accent-emerald: #10B981;   /* Emerald 500 */
-    --accent-red: #EF4444;       /* Red 500 */
-    --accent-amber: #F59E0B;     /* Amber 500 */
-    --accent-purple: #8B5CF6;    /* Violet 500 */
+    --accent-emerald: #10B981;   /* Emerald Success */
+    --accent-red: #EF4444;       /* Fraud Alert Red */
+    --accent-amber: #F59E0B;     /* Review Warning Amber */
+    --accent-purple: #8B5CF6;    /* Intelligence Purple */
 
-    /* Text */
-    --text-primary: #F8FAFC;     /* Slate 50 */
-    --text-secondary: #94A3B8;   /* Slate 400 */
-    --text-muted: #64748B;       /* Slate 500 */
+    /* Text System */
+    --text-primary: #F8FAFC;     /* Bright White Primary */
+    --text-secondary: #94A3B8;   /* Steel Slate Secondary */
+    --text-muted: #64748B;       /* Subdued Caption Text */
 
     /* Borders */
-    --border-primary: #1E293B;   /* Slate 800 */
+    --border-primary: #1E293B;   /* Slate Subdued Border */
     --border-accent: #3B82F6;
 
-    /* Status */
+    /* Status Colors */
     --status-safe: #10B981;
     --status-suspicious: #F59E0B;
     --status-fraud: #EF4444;
     --status-review: #8B5CF6;
 
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --font-body: 'Space Grotesk', sans-serif;
     
-    /* Shadcn defaults - Dark Mode */
-    --background: 222.2 84% 4.9%;
+    /* Shadcn defaults */
+    --background: 222 47% 6%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 8%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -59,7 +59,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
-    --radius: 1rem;
+    --radius: 0.75rem;
   }
 }
 
@@ -68,7 +68,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased selection:bg-blue-500/20 selection:text-blue-200;
     background-color: var(--bg-primary);
     color: var(--text-primary);
   }
@@ -79,14 +79,14 @@
 
 @layer utilities {
   .bg-glass {
-    @apply bg-opacity-70 backdrop-blur-md;
+    @apply bg-opacity-80 backdrop-blur-xl;
   }
 
   .shimmer {
     background: linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.04) 50%,
       rgba(255, 255, 255, 0) 100%
     );
     background-size: 200% 100%;
@@ -94,11 +94,7 @@
   }
 
   .slide-in {
-    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .pulse-fraud {
-    animation: pulseFraud 2s infinite;
+    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
@@ -110,10 +106,4 @@
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes pulseFraud {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
