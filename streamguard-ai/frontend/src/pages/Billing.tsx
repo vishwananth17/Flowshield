@@ -3,11 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
+  Settings, 
   CheckCircle2, 
+  BarChart3, 
   Calendar,
   CreditCard,
   X,
   ArrowUpCircle,
+  Clock,
   ChevronRight,
   ShieldCheck,
   Star,
@@ -15,10 +18,8 @@ import {
   Layers,
   Crown
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Heading1, Heading3, Label, Caption } from '@/components/ui/Typography';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { subscribeToPlan } from '@/services/payment';
@@ -50,16 +51,16 @@ interface Invoice {
 }
 
 const containerVars = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
+    animate: {
+        transition: {
+            staggerChildren: 0.1
+        }
     }
-  }
 };
 
 const itemVars = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
 };
 
 export default function Billing() {
@@ -78,14 +79,16 @@ export default function Billing() {
 
     fetchData();
     
+    // Safety guard: only trigger if we aren't already initiating
     const upgradeTarget = searchParams.get('upgrade');
     if (upgradeTarget && !isSubscribing) {
-      const planToUpgrade = upgradeTarget === 'basic' ? 'basic' : upgradeTarget === 'standard' ? 'standard' : null;
-      if (planToUpgrade) {
-        handleSubscribe(planToUpgrade, 'monthly');
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-      }
+        const planToUpgrade = upgradeTarget === 'basic' ? 'basic' : upgradeTarget === 'standard' ? 'standard' : null;
+        if (planToUpgrade) {
+            handleSubscribe(planToUpgrade, 'monthly');
+            // CLEAN UP URL to prevent re-trigger on refresh
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
     }
   }, [searchParams]);
 
@@ -126,9 +129,11 @@ export default function Billing() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-[var(--border-default)] border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-3" />
-          <Caption className="font-mono font-bold">Synchronizing billing status...</Caption>
+        <div className="relative">
+            <div className="h-12 w-12 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-blue-500 animate-pulse" />
+            </div>
         </div>
       </div>
     );
@@ -145,7 +150,7 @@ export default function Billing() {
       features: ['3 dispute templates / mo', 'Manual evidence uploads', 'Core tracking'],
       missing: ['Automated Razorpay gathering', 'Shopify order matching', 'ML fraud risk matching'],
       cta: 'Current Plan',
-      variant: 'default' as const
+      color: 'blue'
     },
     {
       name: 'Starter',
@@ -157,7 +162,7 @@ export default function Billing() {
       features: ['10 disputes / mo', 'Automated Razorpay gathering', 'Template builders'],
       missing: ['Shopify order matching', 'ML fraud risk matching'],
       cta: 'Upgrade Plan',
-      variant: 'default' as const
+      color: 'indigo'
     },
     {
       name: 'Growth',
@@ -170,7 +175,7 @@ export default function Billing() {
       features: ['50 disputes / mo', 'Shopify order matching', 'Courier tracking validation'],
       missing: ['ML fraud risk matching'],
       cta: 'Get Growth',
-      variant: 'gold' as const
+      color: 'sky'
     },
     {
       name: 'Enterprise',
@@ -182,9 +187,10 @@ export default function Billing() {
       features: ['Unlimited disputes', 'ML fraud risk matching', 'Priority bank representation'],
       missing: [],
       cta: 'Contact Sales',
-      variant: 'default' as const
+      color: 'purple'
     }
   ];
+
 
   const handleSubscribe = async (planId: string, interval: 'monthly' | 'annual') => {
     if (isSubscribing) return;
@@ -194,48 +200,55 @@ export default function Billing() {
     } catch (err) {
       console.error(err);
     } finally {
+      // We don't necessarily set to null here if the redirect happens, 
+      // but if the modal blocks it, we should reset.
       setTimeout(() => setIsSubscribing(null), 5000);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 text-left font-body relative overflow-x-hidden pb-20">
+    <div className="max-w-7xl mx-auto space-y-12 p-4 md:p-6 text-white relative overflow-x-hidden pb-20">
       {isSubscribing && (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xs flex items-center justify-center">
-          <Card padding="none" className="p-8 max-w-sm w-full text-center space-y-4">
-            <div className="w-10 h-10 border-2 border-[var(--border-default)] border-t-[var(--color-primary)] rounded-full animate-spin mx-auto" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Initializing Payment Node...</span>
-          </Card>
+        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#0A0E1A] border border-white/10 p-8 rounded-[2rem] flex flex-col items-center space-y-4 shadow-2xl">
+            <div className="h-12 w-12 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initializing Payment Node...</p>
+          </div>
         </div>
       )}
+      {/* Background Ambient Glows */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/5 blur-[120px] rounded-full" />
+      </div>
 
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--border-subtle)] pb-4"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6"
       >
         <div>
-          <Heading1>Plans & Billing</Heading1>
-          <Caption className="mt-1 block">Scale your fraud and account security with unified controls across your global payment and ledger layers.</Caption>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight font-display mb-2">Plans <span className="text-blue-500">&</span> Billing</h1>
+          <p className="text-slate-400 font-medium max-w-xl">Scale your fraud and account security with unified controls across your global payment and ledger layers.</p>
         </div>
-        <div className="flex items-center p-1 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-md)] shadow-2xl">
-          <button 
-            onClick={() => setIsAnnual(false)}
-            className={`px-5 py-2 rounded-[var(--radius-sm)] text-xs font-mono font-bold transition-all duration-300 ${!isAnnual ? 'bg-[var(--color-primary)] text-[var(--text-inverse)]' : 'text-[var(--text-secondary)] hover:text-slate-300'}`}
-          >
-            Monthly
-          </button>
-          <button 
-            onClick={() => setIsAnnual(true)}
-            className={`px-5 py-2 rounded-[var(--radius-sm)] text-xs font-mono font-bold transition-all duration-300 flex items-center ${isAnnual ? 'bg-[var(--color-primary)] text-[var(--text-inverse)]' : 'text-[var(--text-secondary)] hover:text-slate-300'}`}
-          >
-            Annual
-            <span className="ml-2 text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black">SAVE 20%</span>
-          </button>
+        <div className="flex items-center p-1.5 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+            <button 
+              onClick={() => setIsAnnual(false)}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${!isAnnual ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+                Monthly
+            </button>
+            <button 
+              onClick={() => setIsAnnual(true)}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center ${isAnnual ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+                Annual
+                <span className="ml-2 text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-md font-black">SAVE 20%</span>
+            </button>
         </div>
       </motion.div>
 
-      {/* Usage Analytics */}
+      {/* SECTION 1: USAGE HUB */}
       <motion.section 
         variants={containerVars}
         initial="initial"
@@ -243,265 +256,272 @@ export default function Billing() {
         className="grid grid-cols-1 lg:grid-cols-3 gap-6"
       >
         <motion.div variants={itemVars} className="lg:col-span-2">
-          <Card variant="default" padding="none" className="h-full relative overflow-hidden group p-6">
-            <div className="border-b border-[var(--border-default)] bg-[var(--bg-inset)] py-3 px-6 -mx-6 -mt-6 mb-6 flex items-center justify-between">
-              <Heading3 className="flex items-center text-sm font-bold">
-                <Activity className="mr-2 h-4 w-4 text-[var(--text-gold)]" /> API CONSUMPTION HUB
-              </Heading3>
-              <Badge variant="outline">
-                {currentPlan.toUpperCase()} PLAN
-              </Badge>
-            </div>
+            <Card className="h-full bg-white/5 border-white/10 backdrop-blur-2xl overflow-hidden relative group">
+                <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <CardHeader className="border-b border-white/5 bg-white/[0.02] py-6 px-8 flex flex-row items-center justify-between">
+                    <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 flex items-center">
+                        <Activity className="mr-3 h-4 w-4 text-blue-500" /> API CONSUMPTION HUB
+                    </CardTitle>
+                    <div className="flex items-center space-x-2">
+                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Plan Level</span>
+                         <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5`}>
+                            {currentPlan} plan
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-10">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
+                        <div className="space-y-2">
+                            <span className="text-6xl font-black font-display tracking-tighter leading-none">
+                                {data?.requests_used.toLocaleString()}
+                            </span>
+                            <span className="text-slate-500 text-xl font-medium block">
+                                out of {data?.requests_limit === -1 ? '∞' : data?.requests_limit.toLocaleString()} monthly requests
+                            </span>
+                        </div>
+                        <div className="text-right pb-1">
+                            <div className="text-4xl font-black text-blue-500 font-display tabular-nums">
+                                {data?.usage_percent}%
+                            </div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Node Capacity</div>
+                        </div>
+                    </div>
 
-            <div className="space-y-8 pt-2">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                <div className="space-y-1">
-                  <span className="text-5xl font-black tracking-tighter leading-none text-white font-display">
-                    {data?.requests_used.toLocaleString()}
-                  </span>
-                  <Caption className="block text-slate-500 text-sm">
-                    out of {data?.requests_limit === -1 ? '∞' : data?.requests_limit.toLocaleString()} monthly requests
-                  </Caption>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-extrabold text-[var(--text-gold)] font-mono">
-                    {data?.usage_percent}%
-                  </div>
-                  <Label className="text-[10px] text-[var(--text-muted)] font-bold">Node Capacity</Label>
-                </div>
-              </div>
+                    <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5 relative">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(100, data?.usage_percent || 0)}%` }}
+                            transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+                            className={`h-full rounded-full bg-gradient-to-r from-blue-600 via-sky-400 to-emerald-400 shadow-[0_0_20px_rgba(59,130,246,0.4)] relative`}
+                        >
+                            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_3s_infinite]" />
+                        </motion.div>
+                    </div>
 
-              <div className="h-3 w-full bg-[var(--bg-inset)] rounded-full border border-[var(--border-default)] p-0.5 relative">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, data?.usage_percent || 0)}%` }}
-                  transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="h-full rounded-full bg-gradient-gold shadow-[var(--shadow-gold)]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-6 border-t border-[var(--border-subtle)]">
-                <UsageStat label="Billing Cycle Ends" value={data?.next_billing_date ? new Date(data.next_billing_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : '∞'} />
-                <UsageStat label="Current Rate" value={data?.amount_inr ? `₹${data.amount_inr.toLocaleString('en-IN')}` : '₹0'} />
-                <UsageStat label="Network Status" value={data?.status === 'active' ? 'Protected' : 'Pending'} status={data?.status === 'active'} />
-                <div className="flex items-center justify-end">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => fetchData()}
-                  >
-                    Refresh Plan
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-12 pt-10 border-t border-white/5">
+                        <UsageStat label="Billing Cycle Ends" value={data?.next_billing_date ? new Date(data.next_billing_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : '∞'} icon={Calendar} />
+                        <UsageStat label="Current Rate" value={data?.amount_inr ? `₹${data.amount_inr.toLocaleString('en-IN')}` : '₹0'} icon={ArrowUpCircle} />
+                        <UsageStat label="Network Status" value={data?.status === 'active' ? 'Protected' : 'Pending'} icon={ShieldCheck} status={data?.status === 'active'} />
+                        <div className="flex items-center justify-end">
+                            <Button className="rounded-xl px-6 bg-white text-black hover:bg-slate-200 font-black text-[10px] uppercase tracking-widest h-10" onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>
+                                Refresh Plan
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </motion.div>
 
         <motion.div variants={itemVars}>
-          <Card variant="gold" padding="none" className="h-full flex flex-col justify-between p-6">
-            <div className="space-y-6">
-              <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] border border-[var(--color-primary-border)] flex items-center justify-center text-[var(--text-gold)] flex-shrink-0">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div>
-                <Heading3 className="mb-2 text-white">Razorpay Integrated</Heading3>
-                <Caption className="leading-relaxed">
-                  Secure INR processing with UPI, Cards, and Netbanking support. Direct Indian subscription management.
-                </Caption>
-              </div>
-            </div>
-            
-            <div className="pt-6 border-t border-[var(--border-subtle)] space-y-3">
-              <div className="flex flex-wrap gap-4 items-center">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-4 brightness-0 invert opacity-40 hover:opacity-100 transition-opacity" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-3.5 brightness-0 invert opacity-40 hover:opacity-100 transition-opacity" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-4 brightness-0 invert opacity-40 hover:opacity-100 transition-opacity" />
-              </div>
-              <p className="text-[9px] font-mono tracking-widest text-[var(--text-muted)] uppercase">Verified Payment Partner</p>
-            </div>
-          </Card>
+            <Card className="h-full bg-gradient-to-br from-blue-600 to-indigo-800 border-none p-10 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
+                <div className="relative z-10 space-y-6">
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                        <CreditCard className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black tracking-tight mb-2">Razorpay Integrated</h3>
+                        <p className="text-blue-100 text-sm font-medium leading-relaxed opacity-80">
+                            Secure INR processing with UPI, Cards, and Netbanking support. Direct Indian subscription management.
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="mt-8 pt-8 border-t border-white/10 space-y-4 relative z-10">
+                    <div className="flex flex-wrap gap-4 select-none">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-5 brightness-0 invert opacity-50 hover:opacity-100 transition-opacity" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-5 brightness-0 invert opacity-50 hover:opacity-100 transition-opacity" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-5 brightness-0 invert opacity-50 hover:opacity-100 transition-opacity" />
+                    </div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Verified Payment Partner</p>
+                </div>
+            </Card>
         </motion.div>
       </motion.section>
 
-      {/* Plan Selector */}
+      {/* SECTION 2: PLAN SELECTOR */}
       <motion.section 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="space-y-6"
+        className="py-12"
       >
-        <div className="flex items-center space-x-2 pb-2 border-b border-[var(--border-subtle)]">
-          <Star className="w-5 h-5 text-[var(--text-gold)] fill-[var(--text-gold)]/20" />
-          <Heading3>Infrastructure Tiers</Heading3>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-          {plans.map((p, idx) => {
-            const isCurrent = p.id === currentPlan;
-            const isEnterprise = p.id === 'premium';
-            
-            return (
-              <motion.div 
-                key={p.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
-                className="h-full"
-              >
-                <Card 
-                  variant={p.variant}
-                  padding="none"
-                  className="flex flex-col h-full relative p-5"
+          <div className="flex items-center space-x-3 mb-10">
+              <Star className="w-6 h-6 text-blue-500 fill-blue-500/20" />
+              <h2 className="text-3xl font-black tracking-tighter">Infrastructure Tiers</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {plans.map((p, idx) => {
+               const isCurrent = p.id === currentPlan;
+               const isEnterprise = p.id === 'premium';
+               
+               return (
+                <motion.div 
+                    key={p.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
+                    className="h-full"
                 >
-                  {p.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-[var(--color-primary)] text-[var(--text-inverse)]">
-                      Most Popular
-                    </div>
-                  )}
-
-                  <div className="mb-6">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">{p.name}</h4>
-                    <div className="flex items-baseline space-x-1">
-                      {p.id !== 'free' && <span className="text-2xl font-black">₹</span>}
-                      <span className="text-5xl font-black tracking-tighter text-white font-display">{p.id === 'free' ? '0' : p.price.toLocaleString()}</span>
-                      {p.id !== 'free' && <span className="text-slate-500 text-sm font-bold ml-1">/mo</span>}
-                    </div>
-                    <p className="text-[10px] font-mono bg-[var(--bg-inset)] border border-[var(--border-default)] px-3 py-1 rounded-full w-fit text-[var(--text-secondary)] mt-3">
-                      {p.requests} Requests
-                    </p>
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    {p.features.map(f => (
-                      <li key={f} className="flex items-start gap-2 text-[11px] font-medium text-[var(--text-secondary)] leading-relaxed">
-                        <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--color-success)]" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                    {p.missing.map(f => (
-                      <li key={f} className="flex items-start gap-2 text-[11px] font-medium text-[var(--text-muted)] line-through leading-relaxed opacity-50">
-                        <X className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--color-danger)]/40" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div>
-                    {isCurrent ? (
-                      <Button disabled className="w-full bg-[var(--bg-inset)] border border-[var(--border-default)] text-[var(--text-muted)]">
-                        CURRENT TIER
-                      </Button>
-                    ) : isEnterprise ? (
-                      <Button variant="gold" className="w-full" onClick={() => setIsEnterpriseModalOpen(true)}>
-                        <Crown className="w-4 h-4 mr-2" /> CONTACT SALES
-                      </Button>
-                    ) : (
-                      <Button 
-                        disabled={!!isSubscribing}
-                        className="w-full"
-                        variant={p.popular ? 'gold' : 'primary'}
-                        onClick={() => handleSubscribe(p.id, isAnnual ? 'annual' : 'monthly')}
-                      >
-                        {isSubscribing === p.id ? 'INITIALIZING...' : 'UPGRADE NOW'}
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
+                    <Card className={`group relative flex flex-col h-full bg-white/5 border-white/10 backdrop-blur-xl overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:bg-white/[0.08] hover:-translate-y-2 ${p.popular ? 'border-blue-500/40 shadow-2xl shadow-blue-500/10' : ''}`}>
+                        {p.popular && (
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 to-sky-400"></div>
+                        )}
+                        <CardHeader className="p-8 pb-4">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className={`w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-500`}>
+                                    <p.icon size={22} />
+                                </div>
+                                {p.popular && (
+                                    <span className="bg-blue-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-blue-600/30">Most Popular</span>
+                                )}
+                            </div>
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{p.name}</h3>
+                            <div className="flex items-baseline space-x-1">
+                                {p.id !== 'free' && <span className="text-2xl font-black tracking-tight">₹</span>}
+                                <span className="text-5xl font-black font-display tracking-tighter tabular-nums">{p.id === 'free' ? '0' : p.price.toLocaleString()}</span>
+                                {p.id !== 'free' && <span className="text-slate-500 text-sm font-bold ml-1">/mo</span>}
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-4 bg-white/5 py-1.5 px-3 rounded-lg border border-white/5 w-fit">{p.requests} REQUESTS</p>
+                        </CardHeader>
+                        <CardContent className="p-8 pt-6 flex-grow">
+                            <ul className="space-y-4 mb-8">
+                                {p.features.map(f => (
+                                    <li key={f} className="flex items-start text-[11px] font-medium text-slate-300 leading-relaxed">
+                                        <CheckCircle2 className={`w-4 h-4 mr-3 flex-shrink-0 ${p.id === 'standard' ? 'text-blue-400' : 'text-slate-600'}`} />
+                                        <span>{f}</span>
+                                    </li>
+                                ))}
+                                {p.missing.map(f => (
+                                    <li key={f} className="flex items-start text-[11px] font-medium text-slate-600 line-through leading-relaxed opacity-50">
+                                        <X className="w-4 h-4 mr-3 flex-shrink-0" />
+                                        <span>{f}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                        <div className="p-8 pt-0 mt-auto">
+                            {isCurrent ? (
+                                <Button disabled className="w-full bg-white/5 border border-white/10 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl h-14">
+                                    CURRENT TIER
+                                </Button>
+                            ) : isEnterprise ? (
+                                <Button className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl h-14 shadow-lg shadow-purple-600/20" onClick={() => setIsEnterpriseModalOpen(true)}>
+                                    <Crown className="w-4 h-4 mr-2" /> CONTACT SALES
+                                </Button>
+                            ) : (
+                                <Button 
+                                  disabled={!!isSubscribing}
+                                  className={`w-full font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl h-14 transition-all duration-500 ${p.popular ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/20' : 'bg-transparent border border-white/10 text-white hover:bg-white/10 shadow-none hover:shadow-none'}`}
+                                  onClick={() => handleSubscribe(p.id, isAnnual ? 'annual' : 'monthly')}
+                                >
+                                    {isSubscribing === p.id ? 'INITIALIZING...' : 'UPGRADE NOW'}
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
+                </motion.div>
+               );
+            })}
+          </div>
       </motion.section>
 
-      {/* Invoice Ledger Table */}
+      {/* SECTION 3: INVOICE TIMELINE */}
       <AnimatePresence>
         {invoices.length > 0 && (
-          <motion.section 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 pt-4"
-          >
-            <div className="flex items-center space-x-2 pb-2 border-b border-[var(--border-subtle)]">
-              <CreditCard className="w-5 h-5 text-[var(--text-gold)]" />
-              <Heading3>Billing Timeline</Heading3>
-            </div>
-            
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-lg)] overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="bg-[var(--bg-inset)] border-b border-[var(--border-default)]">
-                    <th className="py-4 px-6 font-mono text-[10px] uppercase text-[var(--text-muted)] font-bold">Transaction Date</th>
-                    <th className="py-4 px-6 font-mono text-[10px] uppercase text-[var(--text-muted)] font-bold">Amount</th>
-                    <th className="py-4 px-6 font-mono text-[10px] uppercase text-[var(--text-muted)] font-bold">Protocol</th>
-                    <th className="py-4 px-6 font-mono text-[10px] uppercase text-[var(--text-muted)] font-bold">Status</th>
-                    <th className="py-4 px-6 font-mono text-[10px] uppercase text-[var(--text-muted)] font-bold text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {invoices.map((inv) => (
-                    <tr 
-                      key={inv.id}
-                      className="hover:bg-[var(--bg-highlight)] transition-colors"
-                    >
-                      <td className="py-4 px-6 font-medium text-[var(--text-secondary)]">{inv.date}</td>
-                      <td className="py-4 px-6 font-mono font-bold text-white text-base">₹{inv.amount.toLocaleString('en-IN')}</td>
-                      <td className="py-4 px-6 text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-widest">{inv.method || 'payment_node'}</td>
-                      <td className="py-4 px-6">
-                        <Badge variant={inv.status === 'captured' ? 'success' : 'danger'} dot>
-                          {inv.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <button className="text-[var(--text-gold)] hover:text-white font-mono text-[10px] uppercase tracking-widest inline-flex items-center group">
-                          Download <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </motion.section>
+            <motion.section 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="pt-8"
+            >
+                <h2 className="text-xl font-black tracking-tight mb-8 uppercase tracking-[0.2em] text-slate-500 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-3" /> Billing Timeline
+                </h2>
+                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-3xl shadow-2xl">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead>
+                                <tr className="bg-white/[0.02] border-b border-white/5">
+                                    <th className="py-6 px-10 font-black uppercase tracking-[0.2em] text-[10px] text-slate-500">Transaction Date</th>
+                                    <th className="py-6 px-10 font-black uppercase tracking-[0.2em] text-[10px] text-slate-500">Amount</th>
+                                    <th className="py-6 px-10 font-black uppercase tracking-[0.2em] text-[10px] text-slate-500">Protocol</th>
+                                    <th className="py-6 px-10 font-black uppercase tracking-[0.2em] text-[10px] text-slate-500">Status</th>
+                                    <th className="py-6 px-10 font-black uppercase tracking-[0.2em] text-[10px] text-slate-500 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {invoices.map((inv) => (
+                                    <motion.tr 
+                                        key={inv.id}
+                                        whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                                        className="transition-colors"
+                                    >
+                                        <td className="py-6 px-10 font-medium text-slate-300">{inv.date}</td>
+                                        <td className="py-6 px-10 font-black text-lg">₹{inv.amount.toLocaleString('en-IN')}</td>
+                                        <td className="py-6 px-10 text-slate-500 font-black text-[10px] uppercase tracking-widest">{inv.method || 'payment_node'}</td>
+                                        <td className="py-6 px-10">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                                inv.status === 'captured' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                                            }`}>
+                                                {inv.status === 'captured' ? 'Captured' : inv.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-6 px-10 text-right">
+                                            <button className="text-blue-500 hover:text-blue-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-end ml-auto group">
+                                                Download <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                            </button>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </motion.section>
         )}
       </AnimatePresence>
 
-      <div className="pt-12 border-t border-[var(--border-subtle)] text-center space-y-4">
-        <p className="text-[var(--text-muted)] text-[10px] font-mono tracking-widest uppercase">
-          Scale beyond limits? <span className="text-[var(--text-gold)] hover:text-white cursor-pointer transition-colors ml-2 font-bold" onClick={() => setIsEnterpriseModalOpen(true)}>Initialize Enterprise Protocol</span>
-        </p>
-        {currentPlan !== 'free' && (
-          <button 
-            onClick={() => setIsCancelModalOpen(true)}
-            className="text-red-500 hover:text-red-400 text-[10px] font-mono tracking-widest uppercase transition-all"
-          >
-            Terminate Active Subscription
-          </button>
-        )}
+      <div className="pt-12 border-t border-white/10 text-center">
+          <p className="text-slate-500 text-[11px] font-black uppercase tracking-[0.3em]">
+            Scale beyond limits? <span className="text-blue-400 cursor-pointer hover:text-blue-300 hover:underline transition-colors ml-2" onClick={() => setIsEnterpriseModalOpen(true)}>Initialize Enterprise Protocol</span>
+          </p>
+          {currentPlan !== 'free' && (
+              <button 
+                onClick={() => setIsCancelModalOpen(true)}
+                className="mt-8 text-red-900 hover:text-red-600 text-[9px] font-black uppercase tracking-[0.4em] transition-all"
+              >
+                  Terminate Active Subscription
+              </button>
+          )}
       </div>
 
-      {/* Cancellation Modal */}
+      {/* CANCEL MODAL */}
       <AnimatePresence>
-        {isCancelModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xs">
-            <Card padding="none" className="max-w-md w-full p-6 space-y-6 border border-[var(--border-default)]">
-              <div>
-                <Heading3 className="text-white">Confirm Termination?</Heading3>
-                <Caption className="mt-2 block">
-                  You are about to terminate your active protection. Downgrade to Free plan will occur on {data?.next_billing_date}. Intelligence nodes will be deactivated.
-                </Caption>
+          {isCancelModalOpen && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-[#0A0E1A] border border-white/10 rounded-[2.5rem] p-12 max-w-md w-full shadow-2xl relative overflow-hidden"
+                  >
+                      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 to-transparent" />
+                      <h3 className="text-3xl font-black tracking-tighter mb-4">Confirm Termination?</h3>
+                      <p className="text-slate-400 mb-10 leading-relaxed font-medium">
+                          You are about to terminate your active protection. Downgrade to <span className="text-white font-bold font-display">Free</span> will occur on {data?.next_billing_date}. Intelligence nodes will be deactivated.
+                      </p>
+                      <div className="flex flex-col space-y-4">
+                          <Button onClick={() => setIsCancelModalOpen(false)} className="bg-blue-600 hover:bg-blue-500 font-black py-7 rounded-2xl shadow-xl shadow-blue-500/20 text-xs uppercase tracking-widest">
+                              Restore Security
+                          </Button>
+                          <Button onClick={handleCancelSub} variant="link" className="text-red-600 font-black text-[10px] uppercase tracking-widest hover:text-red-400">
+                              Proceed with termination
+                          </Button>
+                      </div>
+                  </motion.div>
               </div>
-              <div className="flex flex-col space-y-3">
-                <Button onClick={() => setIsCancelModalOpen(false)} variant="gold" size="lg" fullWidth>
-                  Restore Security
-                </Button>
-                <Button onClick={handleCancelSub} variant="ghost" size="md" className="text-red-500 hover:text-red-400" fullWidth>
-                  Proceed with termination
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+          )}
       </AnimatePresence>
 
       <EnterpriseModal isOpen={isEnterpriseModalOpen} onClose={() => setIsEnterpriseModalOpen(false)} />
@@ -509,16 +529,18 @@ export default function Billing() {
   );
 }
 
-function UsageStat({ label, value, status }: any) {
+function UsageStat({ label, value, icon: Icon, status }: any) {
   return (
     <div className="space-y-1">
-      <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block font-bold">{label}</span>
-      <div className="flex items-center">
-        {status !== undefined && (
-          <span className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-        )}
-        <span className="text-sm font-bold text-white font-mono">{value}</span>
-      </div>
+        <p className="text-[9px] text-slate-500 uppercase tracking-widest font-black flex items-center">
+            <Icon className="w-3 h-3 mr-2 opacity-50" /> {label}
+        </p>
+        <div className="flex items-center">
+            {status !== undefined && (
+                <div className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 animate-pulse'}`}></div>
+            )}
+            <p className="text-lg font-black tracking-tight">{value}</p>
+        </div>
     </div>
   );
 }

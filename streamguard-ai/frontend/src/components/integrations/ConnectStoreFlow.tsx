@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '@/services/api';
 import PlatformDetectResult from './PlatformDetectResult';
 import { Search, Loader2 } from 'lucide-react';
-import { Heading3, Label, Caption } from '@/components/ui/Typography';
 
 interface ConnectStoreFlowProps {
-  onConnected?: () => void;
-  onFallback?: () => void;
-  onSuccess?: () => void;
+  onFallback: () => void;
+  onSuccess: () => void;
 }
 
-export default function ConnectStoreFlow({ onConnected, onFallback, onSuccess }: ConnectStoreFlowProps) {
+export default function ConnectStoreFlow({ onFallback, onSuccess }: ConnectStoreFlowProps) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
@@ -30,6 +28,7 @@ export default function ConnectStoreFlow({ onConnected, onFallback, onSuccess }:
     setDetectResult(null);
     setProgress(0);
 
+    // Mock progress messages to give it a premium, heavy analysis feel (2-3 seconds)
     const steps = [
       { msg: 'Normalizing URL...', duration: 600, pct: 15 },
       { msg: 'Resolving DNS records...', duration: 600, pct: 40 },
@@ -38,8 +37,10 @@ export default function ConnectStoreFlow({ onConnected, onFallback, onSuccess }:
     ];
 
     try {
+      // Start backend request in parallel
       const backendPromise = api.post('/integrations/detect', { url });
 
+      // Run visual steps
       for (const step of steps) {
         setLoadingStep(step.msg);
         setProgress(step.pct);
@@ -57,60 +58,54 @@ export default function ConnectStoreFlow({ onConnected, onFallback, onSuccess }:
     }
   };
 
-  const handleSuccess = () => {
-    if (onSuccess) onSuccess();
-    if (onConnected) onConnected();
-  };
-
   return (
-    <div className="space-y-6 text-left font-body">
+    <div className="space-y-6">
       {!detectResult && !loading && (
         <form onSubmit={handleSubmit} className="max-w-2xl">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-6">
-            <Heading3 className="text-white mb-2">Connect Your Store</Heading3>
-            <Caption className="mb-5 block">
+          <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-6 shadow-xl">
+            <h3 className="font-semibold text-lg text-white mb-2">Connect Your Store</h3>
+            <p className="text-sm text-gray-400 mb-5">
               Enter your website URL. We will check the platform tags and guide you through the zero-code connection setup.
-            </Caption>
+            </p>
 
             <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-[var(--text-muted)]" />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://mystore.com"
-                  className="w-full bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-md)] pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                  className="w-full bg-[#1F2937] border border-[#374151] rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
               <Button 
                 type="submit" 
-                variant="gold"
-                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm transition-colors"
               >
                 Detect & Connect
               </Button>
             </div>
             
-            <div className="mt-4 flex flex-wrap gap-2 items-center text-xs text-[var(--text-muted)]">
+            <div className="mt-4 flex flex-wrap gap-2 items-center text-xs text-gray-500">
               <span>Supports instant connectors for:</span>
-              <span className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-2 py-0.5 rounded text-gray-300">Shopify OAuth</span>
-              <span className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-2 py-0.5 rounded text-gray-300">WooCommerce Plugin</span>
-              <span className="bg-[var(--bg-inset)] border border-[var(--border-default)] px-2 py-0.5 rounded text-gray-300">Razorpay Pages</span>
+              <span className="bg-[#1F2937] px-2 py-0.5 rounded text-gray-300">Shopify OAuth</span>
+              <span className="bg-[#1F2937] px-2 py-0.5 rounded text-gray-300">WooCommerce Plugin</span>
+              <span className="bg-[#1F2937] px-2 py-0.5 rounded text-gray-300">Razorpay Pages</span>
             </div>
           </div>
         </form>
       )}
 
       {loading && (
-        <div className="max-w-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-8 flex flex-col items-center justify-center text-center">
-          <Loader2 className="h-10 w-10 text-[var(--color-primary)] animate-spin mb-4" />
+        <div className="max-w-2xl bg-[#111827] border border-[#1F2937] rounded-xl p-8 shadow-xl flex flex-col items-center justify-center text-center">
+          <Loader2 className="h-10 w-10 text-blue-500 animate-spin mb-4" />
           <h4 className="font-medium text-white text-base mb-1">{loadingStep}</h4>
-          <Caption className="mb-4 block">Please wait while we audit the remote page signatures...</Caption>
+          <p className="text-xs text-gray-400 mb-4">Please wait while we audit the remote page signatures...</p>
           
-          <div className="w-full bg-[var(--bg-inset)] border border-[var(--border-default)] h-2 rounded-full overflow-hidden max-w-xs">
+          <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden max-w-xs">
             <div 
-              className="bg-[var(--color-primary)] h-2 rounded-full transition-all duration-300 ease-out"
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -123,8 +118,8 @@ export default function ConnectStoreFlow({ onConnected, onFallback, onSuccess }:
             platform={detectResult.platform}
             detectedUrl={url}
             storeName={detectResult.store_name}
-            onFallback={onFallback || (() => {})}
-            onSuccess={handleSuccess}
+            onFallback={onFallback}
+            onSuccess={onSuccess}
           />
         </div>
       )}

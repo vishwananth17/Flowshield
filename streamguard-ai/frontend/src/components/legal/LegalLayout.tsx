@@ -1,10 +1,6 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Shield, ArrowLeft, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Heading1, Heading3, Label, Caption } from '@/components/ui/Typography';
-import Logo from '@/components/Logo';
 
 interface Section {
   id: string;
@@ -35,8 +31,10 @@ export default function LegalLayout({
     
     const observer = new IntersectionObserver(
       (entries) => {
+        // Find entries that are intersecting
         const intersecting = entries.filter((e) => e.isIntersecting);
         if (intersecting.length > 0) {
+          // If multiple are intersecting, choose the one closest to the top of the viewport
           const sorted = intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
           setActiveId(sorted[0].target.id);
         }
@@ -64,7 +62,7 @@ export default function LegalLayout({
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) {
-      const offset = 80;
+      const offset = 80; // offset for the sticky header
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = el.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -92,7 +90,7 @@ export default function LegalLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-secondary)] font-body relative text-left">
+    <div className="min-h-screen bg-[#0A0E1A] text-[#9CA3AF] font-sans relative">
       {/* Dynamic Print Styles Injection */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -148,28 +146,30 @@ export default function LegalLayout({
       }} />
 
       {/* Top Navbar */}
-      <nav className="no-print h-[60px] border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] fixed top-0 left-0 right-0 z-50">
+      <nav className="no-print h-[60px] border-b border-[#1F2937] bg-[#0A0E1A]/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-full flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Link to="/" className="flex items-center space-x-2">
-              <Logo size={28} iconSize={16} showText={true} />
+              <div className="bg-blue-600 p-1 rounded-md">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-bold text-white tracking-tight">Flowshield AI</span>
             </Link>
-            <span className="text-[var(--border-default)] font-mono">/</span>
-            <span className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">Legal</span>
+            <span className="text-[#1F2937] font-mono">/</span>
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Legal</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Link to="/" className="text-xs font-bold text-[var(--text-muted)] hover:text-white uppercase transition-colors tracking-widest flex items-center space-x-1.5">
+            <Link to="/" className="text-xs font-bold text-slate-400 hover:text-white uppercase transition-colors tracking-widest flex items-center space-x-1.5">
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Home</span>
             </Link>
-            <Button
+            <button
               onClick={handlePrint}
-              variant="gold"
-              size="sm"
+              className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/10 flex items-center space-x-1.5"
             >
-              <Printer className="w-3.5 h-3.5 mr-1.5" />
-              <span>Print Document</span>
-            </Button>
+              <Printer className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -180,8 +180,8 @@ export default function LegalLayout({
           
           {/* Table of Contents Sidebar */}
           <aside className="no-print lg:w-[240px] shrink-0 lg:sticky lg:top-[100px] h-fit self-start">
-            <Label className="mb-4 block">Table of Contents</Label>
-            <ul className="space-y-2.5 border-l border-[var(--border-default)]">
+            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4 font-mono">Table of Contents</h4>
+            <ul className="space-y-2.5 border-l border-[#1F2937]">
               {sections.map((s) => {
                 const isActive = activeId === s.id;
                 return (
@@ -191,8 +191,8 @@ export default function LegalLayout({
                       onClick={(e) => handleScroll(e, s.id)}
                       className={`block pl-4 -ml-[1px] text-xs leading-relaxed transition-all ${
                         isActive
-                          ? 'border-l border-[var(--color-primary)] text-[var(--text-gold)] font-semibold'
-                          : 'border-l border-transparent text-[var(--text-muted)] hover:text-white'
+                          ? 'border-l border-blue-500 text-blue-500 font-semibold'
+                          : 'border-l border-transparent text-slate-400 hover:text-white'
                       }`}
                     >
                       {s.title}
@@ -204,24 +204,24 @@ export default function LegalLayout({
           </aside>
 
           {/* Policy Document Content Area */}
-          <main className="print-content flex-1 max-w-[760px] bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-xl)] p-6 md:p-10 shadow-[var(--shadow-md)]">
+          <main className="print-content flex-1 max-w-[760px] bg-[#111827] border border-[#1F2937] rounded-3xl p-6 md:p-10 shadow-xl shadow-black/20">
             {/* Hero Header */}
             <div className="mb-8">
               <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="print-badge px-2.5 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-wider bg-[var(--color-primary-muted)] text-[var(--text-gold)] border border-[var(--color-primary-border)]">
+                <span className="print-badge px-2.5 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
                   Last Updated: {lastUpdated}
                 </span>
-                <span className="text-xs font-mono text-[var(--text-muted)]">
+                <span className="text-xs font-mono text-slate-500">
                   Effective: {effectiveDate}
                 </span>
               </div>
-              <Heading1 className="print-title text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3">
+              <h1 className="print-title text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3">
                 {title}
-              </Heading1>
-              <p className="print-subtitle text-[var(--text-secondary)] text-base leading-relaxed">
+              </h1>
+              <p className="print-subtitle text-slate-400 text-base leading-relaxed">
                 {subtitle}
               </p>
-              <div className="border-divider border-b border-[var(--border-subtle)] mt-8" />
+              <div className="border-divider border-b border-[#1F2937] mt-8" />
             </div>
 
             {/* Document Content Sections */}
@@ -230,26 +230,26 @@ export default function LegalLayout({
             </div>
 
             {/* Document Footer */}
-            <div className="border-divider border-t border-[var(--border-subtle)] mt-16 pt-10">
-              <div className="bg-[var(--bg-inset)] border border-[var(--border-default)] rounded-[var(--radius-lg)] p-6 mb-8 text-center no-print">
+            <div className="border-divider border-t border-[#1F2937] mt-16 pt-10">
+              <div className="bg-[#0A0E1A]/40 border border-[#1F2937]/50 rounded-2xl p-6 mb-8 text-center no-print">
                 <p className="text-sm font-semibold text-white mb-2">Questions about this policy?</p>
-                <p className="text-xs text-[var(--text-secondary)] mb-4">Our legal team is here to assist with any queries under the DPDP Act 2023 or standard practices.</p>
+                <p className="text-xs text-slate-400 mb-4">Our legal team is here to assist with any queries under the DPDP Act 2023 or standard practices.</p>
                 <a
                   href="mailto:legal@flowshieldai.com"
-                  className="inline-block text-xs font-mono bg-[var(--color-primary-muted)] hover:bg-[var(--bg-highlight)] text-[var(--text-gold)] border border-[var(--color-primary-border)] px-4 py-2 rounded-xl transition-all"
+                  className="inline-block text-xs font-mono bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-xl transition-all"
                 >
                   Contact legal@flowshieldai.com
                 </a>
               </div>
               
               <div className="no-print">
-                <Label className="mb-4 block">Other Legal Documents</Label>
+                <h5 className="text-white text-xs font-bold uppercase tracking-wider mb-4 font-mono">Other Legal Documents</h5>
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
                   {legalLinks.map((link) => (
                     <Link
                       key={link.name}
                       to={link.path}
-                      className="text-[var(--text-gold)] hover:underline hover:text-white transition-colors"
+                      className="text-blue-500 hover:underline hover:text-blue-400 transition-colors"
                     >
                       {link.name}
                     </Link>

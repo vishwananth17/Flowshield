@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { 
   ShieldAlert, 
-  Clock, 
+  Search, 
+  ShieldCheck,
+  Zap,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  UserCheck
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { AlertDrawer } from '@/components/AlertDrawer';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Heading1, Caption, Label } from '@/components/ui/Typography';
 
 export const AlertsPage: React.FC = () => {
   const { alerts, stats, fetchAlerts, fetchStats, bulkAction } = useAlertStore();
@@ -18,9 +20,14 @@ export const AlertsPage: React.FC = () => {
   const [severityFilter, setSeverityFilter] = useState('all');
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+
   useEffect(() => {
     fetchAlerts(activeTab, severityFilter);
     fetchStats();
+    setCurrentPage(1);
   }, [activeTab, severityFilter]);
 
   const toggleSelect = (id: string) => {
@@ -39,187 +46,313 @@ export const AlertsPage: React.FC = () => {
     }
   };
 
-  const getSeverityBadge = (severity: string) => {
+  const getSeverityStyles = (severity: string) => {
     switch (severity) {
-      case 'critical': 
-        return <Badge variant="danger" dot pulse>CRITICAL</Badge>;
-      case 'high': 
-        return <Badge variant="warning" dot>HIGH</Badge>;
-      case 'medium': 
-        return <Badge variant="gold" dot>MEDIUM</Badge>;
-      default: 
-        return <Badge variant="default" dot>LOW</Badge>;
+      case 'critical': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'high': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+      case 'medium': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      default: return 'bg-slate-500/10 text-slate-400 border-white/5';
+    }
+  };
+
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'in_review': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+      case 'resolved': return 'bg-green-500/10 text-green-400 border-green-500/20';
+      default: return 'bg-slate-500/10 text-slate-500 border-white/5';
     }
   };
 
   return (
-    <div className="flex-grow space-y-6 text-left font-body">
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0A0C10]">
       {/* Header & Stats Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--border-subtle)] gap-4">
-        <div>
-          <Heading1>Security & Fraud Alerts</Heading1>
-          <Caption className="mt-1 block">Review and resolve automated transaction warnings.</Caption>
+      <div className="px-8 pt-8 pb-4 border-b border-slate-800 bg-slate-900/20">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">Alert Center</h1>
+            <p className="text-slate-500 text-sm">Monitor and triage flagged transactions in real-time.</p>
+          </div>
+          <div className="flex gap-4">
+             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4 min-w-[200px]">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                  <ShieldAlert size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Critical Alerts</p>
+                  <p className="text-xl font-black text-white">{stats?.critical || 0}</p>
+                </div>
+             </div>
+             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4 min-w-[200px]">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Resolution Time</p>
+                  <p className="text-xl font-black text-white">{stats?.avg_resolution_time_minutes || 0}m</p>
+                </div>
+             </div>
+          </div>
         </div>
-        
-        <div className="flex gap-3">
-          <Card padding="sm" className="flex items-center gap-3 min-w-[170px]">
-            <div className="w-8 h-8 rounded bg-[var(--bg-inset)] border border-[var(--border-default)] flex items-center justify-center text-[var(--color-danger)]">
-              <ShieldAlert size={16} />
-            </div>
-            <div>
-              <Label className="block text-[var(--text-muted)] text-[9px]">Critical Warnings</Label>
-              <span className="text-lg font-bold text-white leading-none">{stats?.critical || 0}</span>
-            </div>
-          </Card>
-          
-          <Card padding="sm" className="flex items-center gap-3 min-w-[170px]">
-            <div className="w-8 h-8 rounded bg-[var(--bg-inset)] border border-[var(--border-default)] flex items-center justify-center text-[var(--text-gold)]">
-              <Clock size={16} />
-            </div>
-            <div>
-              <Label className="block text-[var(--text-muted)] text-[9px]">Avg. Resolution</Label>
-              <span className="text-lg font-bold text-white leading-none">{stats?.avg_resolution_time_minutes || 0}m</span>
-            </div>
-          </Card>
-        </div>
-      </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-center py-2 gap-4">
-        <div className="flex gap-1 bg-[var(--bg-inset)] p-1 rounded-[var(--radius-md)] border border-[var(--border-default)] w-full sm:w-auto overflow-x-auto">
-          {['open', 'in_review', 'resolved', 'all'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 text-xs font-mono font-bold uppercase rounded transition-colors whitespace-nowrap ${
-                activeTab === tab
-                  ? 'bg-[var(--color-primary)] text-[var(--text-inverse)] font-extrabold'
-                  : 'text-[var(--text-secondary)] hover:text-white'
-              }`}
+        {/* Sticky Filter Bar */}
+        <div className="flex justify-between items-center py-2">
+          <div className="flex gap-1">
+            {['open', 'in_review', 'resolved', 'false_positive', 'all'].map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveTab(t)}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${
+                  activeTab === t 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {t.replace('_', ' ')}
+                {t === 'open' && stats?.open ? (
+                  <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
+                    {stats.open}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
+              <input 
+                placeholder="Search tx ID, merchant..."
+                className="bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 w-64 transition-all"
+              />
+            </div>
+            <select 
+              value={severityFilter}
+              onChange={(e) => setSeverityFilter(e.target.value)}
+              className="bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              {tab.replace('_', ' ')}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <select
-            value={severityFilter}
-            onChange={e => setSeverityFilter(e.target.value)}
-            className="bg-[var(--bg-inset)] border border-[var(--border-default)] text-xs font-mono text-[var(--text-primary)] rounded-[var(--radius-md)] px-3 py-2.5 focus:outline-none focus:border-[var(--color-primary)] transition-colors h-11"
-          >
-            <option value="all">All Severities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-          
-          {selectedAlerts.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('resolve')}
-              >
-                Resolve Selected
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => handleBulkAction('dismiss')}
-              >
-                Dismiss
-              </Button>
-            </div>
-          )}
+              <option value="all">All Severities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Alerts Table */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-lg)] overflow-hidden">
-        <table className="w-full text-xs text-left">
-          <thead className="text-[10px] font-mono text-[var(--text-muted)] uppercase bg-[var(--bg-inset)] border-b border-[var(--border-default)]">
-            <tr>
-              <th className="p-4 w-10">
-                <input
-                  type="checkbox"
-                  onChange={e => {
-                    if (e.target.checked) setSelectedAlerts(alerts.map(a => a.id));
-                    else setSelectedAlerts([]);
-                  }}
-                  checked={selectedAlerts.length > 0 && selectedAlerts.length === alerts.length}
-                  className="h-3.5 w-3.5 bg-black border-[var(--border-default)] rounded cursor-pointer"
-                />
-              </th>
-              <th className="p-4">Alert ID</th>
-              <th className="p-4">Type</th>
-              <th className="p-4">Severity</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Created</th>
-              <th className="p-4 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border-subtle)]">
-            {alerts.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-[var(--text-muted)] font-mono text-xs">
-                  No active warnings. System running normally.
-                </td>
-              </tr>
-            ) : (
-              alerts.map(alert => (
-                <tr key={alert.id} className="hover:bg-[var(--bg-highlight)] transition-colors">
-                  <td className="p-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedAlerts.includes(alert.id)}
-                      onChange={() => toggleSelect(alert.id)}
-                      className="h-3.5 w-3.5 bg-black border-[var(--border-default)] rounded cursor-pointer"
-                    />
-                  </td>
-                  <td className="p-4 font-mono font-bold text-white">
-                    {alert.id.substring(0, 14)}...
-                  </td>
-                  <td className="p-4 text-[var(--text-primary)] font-medium">
-                    {alert.title || alert.type}
-                  </td>
-                  <td className="p-4">
-                    {getSeverityBadge(alert.severity)}
-                  </td>
-                  <td className="p-4">
-                    <Badge variant="outline">
-                      {alert.status}
-                    </Badge>
-                  </td>
-                  <td className="p-4 font-mono text-[var(--text-muted)] text-[10px]">
-                    {new Date(alert.created_at).toLocaleTimeString()}
-                  </td>
-                  <td className="p-4 text-right">
-                    <Button
-                      onClick={() => setSelectedAlertId(alert.id)}
-                      variant="ghost"
-                      size="xs"
-                    >
-                      Inspect
-                    </Button>
+      {/* Main Table Area */}
+      <div className="flex-1 overflow-auto relative p-8">
+        {/* Bulk Action Bar */}
+        {selectedAlerts.length > 0 && (
+          <div className="absolute top-4 left-8 right-8 bg-blue-600 text-white p-4 rounded-xl flex justify-between items-center z-10 animate-in slide-in-from-top duration-300">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                {selectedAlerts.length}
+              </div>
+              <span className="font-bold tracking-tight">Alerts Selected</span>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => handleBulkAction('resolved')}
+                className="bg-white text-blue-600 font-bold px-4 py-2 rounded-lg text-sm hover:bg-slate-100 transition-all"
+              >
+                Mark Resolved
+              </button>
+              <button 
+                onClick={() => handleBulkAction('false_positive')}
+                className="bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-blue-800 transition-all border border-blue-500/50"
+              >
+                False Positive
+              </button>
+              <button 
+                onClick={() => setSelectedAlerts([])}
+                className="text-white/80 hover:text-white px-4 py-2 text-sm font-bold"
+              >
+                Deselect All
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+          {/* Pagination helper calculations */}
+          {(() => {
+            const totalItems = alerts.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedAlerts = alerts.slice(startIndex, startIndex + itemsPerPage);
+
+            return (
+              <>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-900/80 border-b border-slate-800">
+                      <th className="p-4 w-12 text-center">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-slate-700 bg-slate-950 checked:bg-blue-500 focus:ring-offset-slate-900"
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedAlerts(alerts.map(a => a.id));
+                            else setSelectedAlerts([]);
+                          }}
+                        />
+                      </th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Severity</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Alert Title</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Merchant</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Tx Amount</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Score</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Inception</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {paginatedAlerts.length > 0 ? (
+                      paginatedAlerts.map((alert) => (
+                        <tr 
+                          key={alert.id}
+                          onClick={() => setSelectedAlertId(alert.id)}
+                          className="group hover:bg-blue-500/5 transition-all cursor-pointer"
+                        >
+                          <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedAlerts.includes(alert.id)}
+                        onChange={() => toggleSelect(alert.id)}
+                        className="rounded border-slate-700 bg-slate-950 checked:bg-blue-500"
+                      />
+                    </td>
+                    <td className="p-4">
+                      <div className={`px-2 py-1 rounded text-[10px] font-black border flex items-center gap-1.5 w-fit uppercase ${getSeverityStyles(alert.severity)}`}>
+                        {alert.severity === 'critical' && <Zap size={10} className="fill-current animate-pulse" />}
+                        {alert.severity}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-white font-bold group-hover:text-blue-400 transition-colors">{alert.title}</span>
+                        <span className="text-slate-500 text-[11px] truncate max-w-[240px]">{alert.description}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className="text-slate-300 font-medium">{alert.merchant_name}</span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className="text-white font-black">{alert.currency} {alert.amount}</span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              Number(alert.risk_score || 0) >= 0.8 ? 'bg-red-500' : 
+                              Number(alert.risk_score || 0) >= 0.5 ? 'bg-amber-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${Math.min(Number(alert.risk_score || 0) * 100, 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 font-mono">{(Number(alert.risk_score || 0) * 100).toFixed(0)}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="text-slate-500 text-[11px] font-medium">{new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </td>
+                    <td className="p-4 text-right">
+                       <div className="flex items-center justify-end gap-3">
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border ${getStatusStyles(alert.status)}`}>
+                             {alert.status === 'open' && <AlertCircle size={10} />}
+                             {alert.status === 'in_review' && <UserCheck size={10} className="animate-pulse" />}
+                             {alert.status === 'resolved' && <CheckCircle size={10} />}
+                             {alert.status.replace('_', ' ')}
+                          </div>
+                          <button 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setSelectedAlertId(alert.id);
+                             }}
+                             className="bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold px-3 py-1 rounded text-[10px] uppercase tracking-wider border border-slate-700 transition-all"
+                          >
+                             Open
+                          </button>
+                       </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="p-20 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-20 h-20 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-700">
+                        <ShieldCheck size={40} />
+                      </div>
+                      <div className="max-w-xs mx-auto">
+                        <h3 className="text-lg font-bold text-white mb-1">Clear Horizon</h3>
+                        <p className="text-sm text-slate-500">No transactions currently match your verification criteria. Your platform detection engine is running flawlessly.</p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              )}
+                    </tbody>
+                  </table>
+
+                  {/* Pagination Controls */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-800 gap-4">
+                    <div className="text-xs text-slate-400 font-medium">
+                      Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'border border-slate-800 bg-slate-950 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
       </div>
 
+      {/* Alert Drawer Overlay */}
       {selectedAlertId && (
-        <AlertDrawer 
-          alertId={selectedAlertId}
-          isOpen={!!selectedAlertId}
-          onClose={() => setSelectedAlertId(null)}
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-in fade-in duration-300"
+          onClick={() => setSelectedAlertId(null)}
         />
       )}
+      <AlertDrawer 
+        alertId={selectedAlertId} 
+        onClose={() => setSelectedAlertId(null)} 
+      />
     </div>
   );
-}
+};
 
 export default AlertsPage;
+
