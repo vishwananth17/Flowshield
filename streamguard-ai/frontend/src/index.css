@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,32 +6,45 @@
 
 @layer base {
   :root {
-    --bg-primary: #0B0F17;       /* Dark obsidian */
-    --bg-secondary: #131924;     /* Card background */
-    --bg-tertiary: #1C2433;      /* Elevated hover / input */
-    --bg-elevated: #222C3D;
+    /* Backgrounds */
+    --bg-primary: #0A0E1A;       /* Deep navy — main background */
+    --bg-secondary: #0F172A;     /* Slate 900 — Card backgrounds */
+    --bg-tertiary: #1E293B;      /* Slate 800 — Input fields, hover states */
+    --bg-elevated: #111827;      /* Modals, dropdowns */
 
-    --accent-blue: #2563EB;      /* Clean Royal Blue */
-    --accent-blue-hover: #1D4ED8;
-    --accent-emerald: #10B981;
-    --accent-red: #EF4444;
-    --accent-amber: #F59E0B;
+    /* Brand */
+    --accent-blue: #3B82F6;      /* Blue 500 */
+    --accent-blue-bright: #60A5FA;
+    --accent-emerald: #10B981;   /* Emerald 500 */
+    --accent-red: #EF4444;       /* Red 500 */
+    --accent-amber: #F59E0B;     /* Amber 500 */
+    --accent-purple: #8B5CF6;    /* Violet 500 */
 
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
+    /* Text */
+    --text-primary: #F8FAFC;     /* Slate 50 */
+    --text-secondary: #94A3B8;   /* Slate 400 */
+    --text-muted: #64748B;       /* Slate 500 */
 
-    --border-primary: #1E293B;
+    /* Borders */
+    --border-primary: #1E293B;   /* Slate 800 */
+    --border-accent: #3B82F6;
 
-    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* Status */
+    --status-safe: #10B981;
+    --status-suspicious: #F59E0B;
+    --status-fraud: #EF4444;
+    --status-review: #8B5CF6;
+
+    --font-display: 'Space Grotesk', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Space Grotesk', sans-serif;
     
-    --background: 222 47% 6%;
+    /* Shadcn defaults - Dark Mode */
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -46,7 +59,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 }
 
@@ -54,43 +67,53 @@
   * {
     @apply border-border;
   }
-  html, body, #root {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-body;
     background-color: var(--bg-primary);
     color: var(--text-primary);
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-white font-semibold;
-  }
-
-  /* Custom dark scrollbars */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0B0F17;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #1E293B;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #334155;
+    @apply font-display tracking-tight text-white;
   }
 }
 
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  .bg-glass {
+    @apply bg-opacity-70 backdrop-blur-md;
   }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
+
+  .slide-in {
+    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pulse-fraud {
+    animation: pulseFraud 2s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulseFraud {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
