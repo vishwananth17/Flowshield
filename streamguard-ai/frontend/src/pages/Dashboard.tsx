@@ -10,10 +10,7 @@ import {
   ArrowDownRight,
   Download,
   CheckCircle2,
-  Play,
-  RotateCcw,
-  SlidersHorizontal,
-  ExternalLink
+  Play
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/transactionStore';
@@ -86,7 +83,7 @@ export default function Dashboard() {
 
   const stats = [
     { 
-      title: `TRANSACTIONS (${timeRange.toUpperCase()})`, 
+      title: `Transactions (${timeRange.toUpperCase()})`, 
       value: statsData?.total_analyzed?.toLocaleString() || '0', 
       trend: '+0.0%', 
       isUp: true, 
@@ -95,7 +92,7 @@ export default function Dashboard() {
       badgeBg: 'bg-blue-500/10 border-blue-500/20'
     },
     { 
-      title: 'FLAGGED ALERTS', 
+      title: 'Flagged Alerts', 
       value: statsData?.fraud_blocked?.toLocaleString() || '0', 
       trend: (statsData?.total_analyzed && statsData.total_analyzed > 0) 
         ? `${((statsData.fraud_blocked / statsData.total_analyzed) * 100).toFixed(1)}%` 
@@ -106,7 +103,7 @@ export default function Dashboard() {
       badgeBg: 'bg-red-500/10 border-red-500/20'
     },
     { 
-      title: 'PROTECTED VOLUME', 
+      title: 'Protected Volume', 
       value: `$${statsData?.total_volume?.toLocaleString() || '0'}`, 
       trend: '+0.0%', 
       isUp: true, 
@@ -115,7 +112,7 @@ export default function Dashboard() {
       badgeBg: 'bg-emerald-500/10 border-emerald-500/20'
     },
     { 
-      title: 'INFERENCE LATENCY', 
+      title: 'Inference Latency', 
       value: `${Math.round(statsData?.avg_latency_ms || 0)}ms`, 
       trend: '-0.0%', 
       isUp: true, 
@@ -139,19 +136,19 @@ export default function Dashboard() {
       {/* Top Header & Range Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1E293B] pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Analytics & Risk Dashboard</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">Analytics & Risk Dashboard</h1>
           <p className="text-slate-400 text-xs mt-1">Monitor real-time payment risk, analyze chargeback trends, and manage dispute evidence.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-[#101623] border border-[#1E293B] p-1 rounded-lg flex items-center shadow-xs">
+          <div className="bg-[#131924] border border-[#1E293B] p-1 rounded-md flex items-center">
             {timeRanges.map((range) => (
               <button
                 key={range.value}
                 onClick={() => setTimeRange(range.value)}
-                className={`px-3 py-1 rounded-md text-xs font-semibold font-mono transition-all ${
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                   timeRange === range.value 
-                    ? 'bg-blue-600 text-white shadow-xs' 
+                    ? 'bg-blue-600 text-white font-semibold' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -163,22 +160,22 @@ export default function Dashboard() {
           <button 
             disabled={isDownloading}
             onClick={handleDownload}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all font-semibold text-xs shadow-xs"
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-md transition-colors font-medium text-xs shadow-xs"
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-            <span>EXPORT REPORT</span>
+            <span>Export Report</span>
           </button>
         </div>
       </div>
 
       {/* Telemetry Bar */}
-      <div className="flex flex-wrap items-center justify-between bg-[#101623] px-4 py-3 rounded-lg border border-[#1E293B] text-xs">
+      <div className="flex flex-wrap items-center justify-between bg-[#131924] px-4 py-2.5 rounded-md border border-[#1E293B] text-xs">
         <div className="flex items-center space-x-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-mono font-semibold text-slate-300 uppercase text-[11px]">REAL-TIME MONITOR ACTIVE</span>
+          <span className="font-medium text-slate-300">Real-Time Monitor Active</span>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -198,10 +195,10 @@ export default function Dashboard() {
                 setIsSimulating(false);
               }
             }}
-            className="flex items-center space-x-1.5 text-slate-400 hover:text-white font-mono font-semibold text-[11px] transition-colors"
+            className="flex items-center space-x-1.5 text-slate-400 hover:text-white font-medium text-xs transition-colors"
           >
             {isSimulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 text-blue-400" />}
-            <span>SIMULATE TEST TRANSACTIONS</span>
+            <span>Simulate Test Transactions</span>
           </button>
           
           <button 
@@ -219,10 +216,10 @@ export default function Dashboard() {
                 setIsCheckingHealth(false);
               }
             }}
-            className="flex items-center space-x-1.5 text-slate-400 hover:text-white font-mono font-semibold text-[11px] transition-colors"
+            className="flex items-center space-x-1.5 text-slate-400 hover:text-white font-medium text-xs transition-colors"
           >
             {isCheckingHealth ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 text-amber-400" />}
-            <span>SYSTEM STATUS</span>
+            <span>System Status</span>
           </button>
         </div>
       </div>
@@ -232,18 +229,18 @@ export default function Dashboard() {
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <Card key={i} className="bg-[#101623] border-[#1E293B] hover:border-slate-700 transition-colors">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider">{stat.title}</span>
-                  <div className={`p-2 rounded-lg border ${stat.badgeBg}`}>
+            <Card key={i} className="bg-[#131924] border-[#1E293B] hover:border-slate-700 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-slate-400">{stat.title}</span>
+                  <div className={`p-1.5 rounded border ${stat.badgeBg}`}>
                     <Icon className={`h-4 w-4 ${stat.iconColor}`} />
                   </div>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-bold font-mono text-white tracking-tight">{stat.value}</span>
+                  <span className="text-2xl font-bold text-white tracking-tight">{stat.value}</span>
                 </div>
-                <div className="mt-3 flex items-center text-xs font-mono text-slate-500">
+                <div className="mt-2 flex items-center text-xs text-slate-500">
                   <span className={`flex items-center font-medium ${stat.isUp ? 'text-emerald-400' : 'text-slate-400'}`}>
                     {stat.isUp ? <ArrowUpRight className="h-3.5 w-3.5 mr-0.5" /> : <ArrowDownRight className="h-3.5 w-3.5 mr-0.5" />}
                     {stat.trend}
@@ -259,36 +256,36 @@ export default function Dashboard() {
       {/* Real-time Streams */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Transaction Stream */}
-        <Card className="col-span-2 bg-[#101623] border-[#1E293B]">
-          <CardHeader className="border-b border-[#1E293B] py-4 px-5 flex flex-row items-center justify-between">
+        <Card className="col-span-2 bg-[#131924] border-[#1E293B]">
+          <CardHeader className="border-b border-[#1E293B] py-3.5 px-5 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold text-white flex items-center">
               <Activity className="h-4 w-4 mr-2 text-blue-400" />
               Real-Time Transaction Feed
             </CardTitle>
-            <span className="text-[11px] font-mono text-slate-500">{recentTransactions.length} events logged</span>
+            <span className="text-xs text-slate-400">{recentTransactions.length} events logged</span>
           </CardHeader>
-          <CardContent className="p-0 min-h-[320px] max-h-[420px] overflow-y-auto">
+          <CardContent className="p-0 min-h-[300px] max-h-[400px] overflow-y-auto">
             {recentTransactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Loader2 className="h-7 w-7 text-blue-500 animate-spin mb-3 opacity-60" />
-                <p className="text-xs font-mono font-medium text-slate-400">Waiting for events...</p>
-                <p className="text-[11px] text-slate-500 mt-1">Transactions will stream here automatically in real-time</p>
+                <Loader2 className="h-6 w-6 text-blue-500 animate-spin mb-3 opacity-60" />
+                <p className="text-xs font-medium text-slate-400">Waiting for events...</p>
+                <p className="text-xs text-slate-500 mt-1">Transactions will stream here automatically in real-time</p>
               </div>
             ) : (
-              <div className="divide-y divide-[#1E293B] text-left text-xs font-mono">
+              <div className="divide-y divide-[#1E293B] text-left text-xs">
                 {recentTransactions.slice(0, 10).map((tx: any) => (
-                  <div key={tx.id} className="p-4 hover:bg-[#161F30] transition-colors flex items-center justify-between">
+                  <div key={tx.id} className="p-3.5 hover:bg-[#1A2234] transition-colors flex items-center justify-between">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-white">{tx.merchant_name || 'Store'}</span>
-                        <span className="text-[10px] text-slate-500">{(tx.id || '').substring(0, 12)}...</span>
+                        <span className="font-semibold text-white">{tx.merchant_name || 'Store'}</span>
+                        <span className="text-xs text-slate-500 font-mono">{(tx.id || '').substring(0, 12)}...</span>
                       </div>
-                      <span className="text-[10px] text-slate-400">{tx.channel || 'gateway'} • {tx.created_at ? new Date(tx.created_at).toLocaleTimeString() : 'just now'}</span>
+                      <span className="text-xs text-slate-400">{tx.channel || 'gateway'} • {tx.created_at ? new Date(tx.created_at).toLocaleTimeString() : 'just now'}</span>
                     </div>
                     <div className="text-right flex items-center space-x-3">
                       <div>
-                        <span className="font-bold text-white block">{tx.currency} {tx.amount}</span>
-                        <span className={`text-[10px] font-bold ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                        <span className="font-semibold text-white block">{tx.currency} {tx.amount}</span>
+                        <span className={`text-xs font-semibold ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
                           {(tx.risk_label || 'SAFE').toUpperCase()}
                         </span>
                       </div>
@@ -301,8 +298,8 @@ export default function Dashboard() {
         </Card>
         
         {/* Risk Alerts */}
-        <Card className="bg-[#101623] border-[#1E293B]">
-          <CardHeader className="border-b border-[#1E293B] py-4 px-5">
+        <Card className="bg-[#131924] border-[#1E293B]">
+          <CardHeader className="border-b border-[#1E293B] py-3.5 px-5">
             <CardTitle className="text-sm font-semibold text-white flex items-center">
               <ShieldAlert className="h-4 w-4 mr-2 text-red-400" />
               Recent Risk Alerts
@@ -310,11 +307,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-5">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+              <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
               </div>
-              <p className="text-xs font-semibold text-white">ALL CLEAR</p>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">No anomalous patterns flagged in the last hour</p>
+              <p className="text-xs font-semibold text-white">All Clear</p>
+              <p className="text-xs text-slate-500 mt-1 max-w-xs">No anomalous patterns flagged in the last hour</p>
             </div>
           </CardContent>
         </Card>
