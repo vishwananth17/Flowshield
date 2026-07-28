@@ -187,11 +187,10 @@ async def process_shopify_order(
             id=uuid.uuid4(),
             org_id=org.id,
             transaction_id=tx_record.id,
-            alert_type="shopify_fraud_alert",
             severity="CRITICAL" if fraud_result.risk_score >= 0.85 else "HIGH",
             title=f"Shopify Order {order_name} Flagged ({fraud_result.risk_label.upper()})",
             description=f"Automated risk score {int(fraud_result.risk_score * 100)}/100 detected. Reasons: {', '.join(fraud_result.reasons[:2])}",
-            status="OPEN",
+            status="open",
             created_at=datetime.now(UTC)
         )
         db.add(alert_record)
