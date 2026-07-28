@@ -97,7 +97,7 @@ def create_application() -> FastAPI:
     async def index_root():
         return {
             "name": "Flowshield AI Commercial Gateway",
-            "version": "1.0.1",
+            "version": "1.0.2-live",
             "status": "operational",
             "environment": settings.environment
         }
