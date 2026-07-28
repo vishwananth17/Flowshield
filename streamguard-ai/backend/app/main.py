@@ -76,13 +76,15 @@ def create_application() -> FastAPI:
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         import traceback
-        logger.error(f"GLOBAL_CRASH: {str(exc)} | TRACE: {traceback.format_exc()}")
+        tb_str = traceback.format_exc()
+        logger.error(f"GLOBAL_CRASH: {str(exc)} | TRACE: {tb_str}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "error": {
                     "code": "INTERNAL_ERROR",
-                    "message": "An unexpected error occurred. Please contact support.",
+                    "message": str(exc),
+                    "traceback": tb_str[-1000:],
                     "request_id": request.state.request_id if hasattr(request.state, "request_id") else ""
                 }
             }
