@@ -240,7 +240,10 @@ async def process_shopify_order(
             "created_at": tx_record.created_at.isoformat()
         }
     }
-    await ws_manager.broadcast_json(ws_event)
+    try:
+        await ws_manager.broadcast(str(org.id), ws_event)
+    except Exception as e:
+        logger.warning(f"WebSocket broadcast skipped: {e}")
 
     return {
         "status": "success",
