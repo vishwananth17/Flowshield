@@ -102,23 +102,21 @@ class FraudDetectionService:
             # Instantiate BotDetector
             bot_detector = BotDetector(redis_client)
 
-            # 3. Compute fraud-type specific features in parallel
-            stolen_card_f, chargeback_f, ato_f, refund_f, promo_f, bot_f = await asyncio.gather(
-                compute_stolen_card_features(customer_id, org_id_str, tx_dict, redis_client),
-                compute_chargeback_features(customer_id, customer_email, tx_dict, redis_client, db),
-                compute_ato_features(customer_id, org_id_str, tx_dict, db),
-                compute_refund_features(customer_id, customer_email, device_hash, org_id_str, tx_dict, redis_client, db),
-                compute_promo_abuse_features(tx_dict, org_id_str, redis_client),
-                bot_detector.analyze_request(request, org_id_str) if request is not None else asyncio.sleep(0, result={
-                    "is_bot_user_agent": int(tx.metadata.get("is_bot_user_agent", 0)),
-                    "requests_per_minute": int(tx.metadata.get("requests_per_minute", 1)),
-                    "identical_body_count": int(tx.metadata.get("identical_body_count", 1)),
-                    "interval_regularity": float(tx.metadata.get("interval_regularity", 0.0)),
-                    "missing_browser_headers": int(tx.metadata.get("missing_browser_headers", 0)),
-                    "is_bot_attack": int(tx.metadata.get("is_bot_attack", 0)),
-                    "fraud_type_hint": None
-                })
-            )
+            # 3. Compute fraud-type specific features sequentially (prevents asyncpg concurrent session errors)
+            stolen_card_f = await compute_stolen_card_features(customer_id, org_id_str, tx_dict, redis_client)
+            chargeback_f = await compute_chargeback_features(customer_id, customer_email, tx_dict, redis_client, db)
+            ato_f = await compute_ato_features(customer_id, org_id_str, tx_dict, db)
+            refund_f = await compute_refund_features(customer_id, customer_email, device_hash, org_id_str, tx_dict, redis_client, db)
+            promo_f = await compute_promo_abuse_features(tx_dict, org_id_str, redis_client)
+            bot_f = await (bot_detector.analyze_request(request, org_id_str) if request is not None else asyncio.sleep(0, result={
+                "is_bot_user_agent": int(tx.metadata.get("is_bot_user_agent", 0)),
+                "requests_per_minute": int(tx.metadata.get("requests_per_minute", 1)),
+                "identical_body_count": int(tx.metadata.get("identical_body_count", 1)),
+                "interval_regularity": float(tx.metadata.get("interval_regularity", 0.0)),
+                "missing_browser_headers": int(tx.metadata.get("missing_browser_headers", 0)),
+                "is_bot_attack": int(tx.metadata.get("is_bot_attack", 0)),
+                "fraud_type_hint": None
+            }))
 
             # Combine all features
             features.update(stolen_card_f)
