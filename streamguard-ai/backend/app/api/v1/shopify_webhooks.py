@@ -195,6 +195,23 @@ async def process_shopify_order(
         )
         db.add(alert_record)
         alert_created = True
+        
+        # Dispatch instant email alert to organization email / admin
+        from app.services.email import email_service
+        notify_email = customer_email or getattr(org, "billing_email", None) or "admin@flowshield.ai"
+        asyncio.create_task(
+            email_service.send_fraud_alert_email(
+                to_email=notify_email,
+                tx_id=str(tx_record.id),
+                external_id=order_name,
+                amount=str(total_price),
+                currency=analyze_req.currency,
+                merchant_name=analyze_req.merchant.name,
+                risk_score=fraud_result.risk_score,
+                risk_label=fraud_result.risk_label,
+                reasons=fraud_result.reasons
+            )
+        )
 
     # 5. Automatically create/update Integration record if shop_domain is provided
     if shop_domain:
