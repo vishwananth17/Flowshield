@@ -1,7 +1,7 @@
 import logging
 import json
 from datetime import datetime, UTC
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
