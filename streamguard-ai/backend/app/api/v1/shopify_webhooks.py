@@ -9,6 +9,7 @@ from typing import Annotated, Optional
 from decimal import Decimal
 
 from fastapi import APIRouter, Header, Request, HTTPException, Depends, Query, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -269,16 +270,25 @@ async def shopify_order_webhook(
     x_shopify_hmac: Optional[str] = Header(alias="X-Shopify-Hmac-Sha256", default=None),
 ):
     """Receives Shopify order webhooks, runs full ML fraud scoring, and stores real-time telemetry."""
-    payload = await request.json()
-    org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain)
-    
-    result = await process_shopify_order(
-        payload=payload,
-        db=db,
-        org=org,
-        shop_domain=x_shopify_shop_domain
-    )
-    return result
+    try:
+        payload = await request.json()
+        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain)
+        
+        result = await process_shopify_order(
+            payload=payload,
+            db=db,
+            org=org,
+            shop_domain=x_shopify_shop_domain
+        )
+        return result
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"SHOPIFY_WEBHOOK_ERROR: {e}\n{tb}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "error_message": str(e), "traceback": tb[-1000:]}
+        )
 
 
 @router.post("/test", status_code=200)
