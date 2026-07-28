@@ -1,4 +1,7 @@
 import socket
+import sys
+
+sys.dont_write_bytecode = True
 
 # Force IPv4 resolution first to prevent ENETUNREACH / NameResolutionError on IPv6-disabled hosts (e.g. Render/Docker)
 orig_getaddrinfo = socket.getaddrinfo
