@@ -42,7 +42,14 @@ export default function PlatformDetectResult({
     }
     setLoading(true);
     try {
-      const res = await api.get(`/integrations/shopify/oauth/start?shop=${encodeURIComponent(shopifyShop)}`);
+      let cleanShop = shopifyShop.trim().toLowerCase();
+      if (cleanShop.startsWith('https://')) cleanShop = cleanShop.replace('https://', '');
+      if (cleanShop.startsWith('http://')) cleanShop = cleanShop.replace('http://', '');
+      cleanShop = cleanShop.replace(/\/$/, '');
+      if (!cleanShop.endsWith('.myshopify.com')) {
+        cleanShop = `${cleanShop}.myshopify.com`;
+      }
+      const res = await api.get(`/integrations/shopify/oauth/start?shop=${encodeURIComponent(cleanShop)}`);
       if (res.data?.auth_url) {
         window.location.href = res.data.auth_url;
       } else {
