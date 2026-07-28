@@ -12,7 +12,12 @@ async def compute_refund_features(
 ) -> dict:
     # 1. Customer-level refund rate
     refund_key = f"refund_history:{org_id}:{customer_email}"
-    refund_data = await redis_client.get(refund_key)
+    refund_data = None
+    try:
+        if redis_client:
+            refund_data = await redis_client.get(refund_key)
+    except Exception:
+        refund_data = None
     customer_refund_rate = 0.0
     customer_refund_count = 0
     if refund_data:

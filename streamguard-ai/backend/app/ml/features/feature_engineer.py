@@ -56,66 +56,65 @@ class UnifiedFeatureEngineer:
 
     async def _get_redis_velocity(self, customer_id: str, current_time: int) -> Dict[str, Any]:
         """Fetches sliding window aggregates using Redis Sorted Sets."""
-        p = self.redis.pipeline()
-        
-        # Keys
-        cust_tx_key = f"tx_vel:customer:{customer_id}"
-        cust_amt_key = f"amt_vel:customer:{customer_id}"
-        cust_merch_key = f"merch_vel:customer:{customer_id}"
-        cust_dev_key = f"dev_vel:customer:{customer_id}"
-        
-        # Prune elements older than 24 hours
-        cutoff_24h = current_time - 86400
-        p.zremrangebyscore(cust_tx_key, 0, cutoff_24h)
-        p.zremrangebyscore(cust_amt_key, 0, cutoff_24h)
-        p.zremrangebyscore(cust_merch_key, 0, cutoff_24h)
-        p.zremrangebyscore(cust_dev_key, 0, cutoff_24h)
-        
-        # 1 Hour range queries
-        cutoff_1h = current_time - 3600
-        p.zcount(cust_tx_key, cutoff_1h, current_time)
-        p.zrangebyscore(cust_amt_key, cutoff_1h, current_time)
-        p.zrangebyscore(cust_merch_key, cutoff_1h, current_time)
-        
-        # 24 Hour range queries
-        p.zcount(cust_tx_key, cutoff_24h, current_time)
-        p.zrangebyscore(cust_amt_key, cutoff_24h, current_time)
-        p.zrangebyscore(cust_merch_key, cutoff_24h, current_time)
-        p.zcard(cust_dev_key)
-        
-        # 5 Min merchant count
-        cutoff_5m = current_time - 300
-        p.zrangebyscore(cust_merch_key, cutoff_5m, current_time)
-        
-        # Execute pipeline
-        results = await p.execute()
-        
-        # Parse output
-        tx_count_1h = results[4]
-        amt_logs_1h = results[5]
-        merch_list_1h = results[6]
-        
-        tx_count_24h = results[7]
-        amt_logs_24h = results[8]
-        merch_list_24h = results[9]
-        distinct_devices_24h = results[10]
-        
-        merch_list_5m = results[11]
-        
-        # Helper to decode bytes if needed
-        def decode_val(v):
-            if isinstance(v, bytes):
-                return v.decode('utf-8')
-            return str(v)
+        try:
+            p = self.redis.pipeline()
+            cust_tx_key = f"tx_vel:customer:{customer_id}"
+            cust_amt_key = f"amt_vel:customer:{customer_id}"
+            cust_merch_key = f"merch_vel:customer:{customer_id}"
+            cust_dev_key = f"dev_vel:customer:{customer_id}"
+            
+            cutoff_24h = current_time - 86400
+            p.zremrangebyscore(cust_tx_key, 0, cutoff_24h)
+            p.zremrangebyscore(cust_amt_key, 0, cutoff_24h)
+            p.zremrangebyscore(cust_merch_key, 0, cutoff_24h)
+            p.zremrangebyscore(cust_dev_key, 0, cutoff_24h)
+            
+            cutoff_1h = current_time - 3600
+            p.zcount(cust_tx_key, cutoff_1h, current_time)
+            p.zrangebyscore(cust_amt_key, cutoff_1h, current_time)
+            p.zrangebyscore(cust_merch_key, cutoff_1h, current_time)
+            
+            p.zcount(cust_tx_key, cutoff_24h, current_time)
+            p.zrangebyscore(cust_amt_key, cutoff_24h, current_time)
+            p.zrangebyscore(cust_merch_key, cutoff_24h, current_time)
+            p.zcard(cust_dev_key)
+            
+            cutoff_5m = current_time - 300
+            p.zrangebyscore(cust_merch_key, cutoff_5m, current_time)
+            
+            results = await p.execute()
+            
+            tx_count_1h = results[4]
+            amt_logs_1h = results[5]
+            merch_list_1h = results[6]
+            
+            tx_count_24h = results[7]
+            amt_logs_24h = results[8]
+            merch_list_24h = results[9]
+            distinct_devices_24h = results[10]
+            merch_list_5m = results[11]
+            
+            def decode_val(v):
+                if isinstance(v, bytes):
+                    return v.decode('utf-8')
+                return str(v)
 
-        # Calculate sums (Redis values are stored as stringified float representations like "amount:txn_id")
-        amt_sum_1h = sum(float(decode_val(x).split(':')[0]) for x in amt_logs_1h)
-        amt_sum_24h = sum(float(decode_val(x).split(':')[0]) for x in amt_logs_24h)
-        
-        # Unpack distinct merchants
-        distinct_merch_1h = len(set(decode_val(x) for x in merch_list_1h))
-        distinct_merch_24h = len(set(decode_val(x) for x in merch_list_24h))
-        distinct_merch_5m = len(set(decode_val(x) for x in merch_list_5m))
+            amt_sum_1h = sum(float(decode_val(x).split(':')[0]) for x in amt_logs_1h)
+            amt_sum_24h = sum(float(decode_val(x).split(':')[0]) for x in amt_logs_24h)
+            
+            distinct_merch_1h = len(set(decode_val(x) for x in merch_list_1h))
+            distinct_merch_24h = len(set(decode_val(x) for x in merch_list_24h))
+            distinct_merch_5m = len(set(decode_val(x) for x in merch_list_5m))
+        except Exception as e:
+            logger.warning(f"Redis velocity fallback active: {e}")
+            tx_count_1h = 1
+            tx_count_24h = 1
+            amt_sum_1h = 0.0
+            amt_sum_24h = 0.0
+            distinct_merch_1h = 1
+            distinct_merch_24h = 1
+            distinct_devices_24h = 1
+            distinct_merch_5m = 1
         
         # Velocity ratio Calculations
         tx_velocity_ratio = tx_count_1h / (tx_count_24h + 1)

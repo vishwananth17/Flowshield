@@ -11,7 +11,12 @@ async def compute_chargeback_features(
     transaction: dict, redis_client, db_session=None
 ) -> dict:
     history_key = f"dispute_history:{customer_email}"
-    history_raw = await redis_client.get(history_key)
+    history_raw = None
+    try:
+        if redis_client:
+            history_raw = await redis_client.get(history_key)
+    except Exception:
+        history_raw = None
     dispute_rate = 0.0
     prior_dispute_count = 0
 

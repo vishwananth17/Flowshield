@@ -16,23 +16,29 @@ async def compute_promo_abuse_features(
     ip_hash = hashlib.sha256(ip.encode()).hexdigest() if ip else ""
     card_hash = hashlib.sha256(card_last4.encode()).hexdigest() if card_last4 else ""
 
-    # How many accounts have used this device?
     device_key = f"device_accounts:{org_id}:{device_hash}" if device_hash else None
     device_account_count = 0
-    if device_key:
-        device_account_count = int(await redis_client.get(device_key) or 0)
+    try:
+        if device_key and redis_client:
+            device_account_count = int(await redis_client.get(device_key) or 0)
+    except Exception:
+        device_account_count = 0
 
-    # How many accounts have used this IP?
     ip_key = f"ip_accounts:{org_id}:{ip_hash}" if ip_hash else None
     ip_account_count = 0
-    if ip_key:
-        ip_account_count = int(await redis_client.get(ip_key) or 0)
+    try:
+        if ip_key and redis_client:
+            ip_account_count = int(await redis_client.get(ip_key) or 0)
+    except Exception:
+        ip_account_count = 0
 
-    # How many accounts have used this card?
     card_key = f"card_accounts:{org_id}:{card_hash}" if card_hash else None
     card_account_count = 0
-    if card_key:
-        card_account_count = int(await redis_client.get(card_key) or 0)
+    try:
+        if card_key and redis_client:
+            card_account_count = int(await redis_client.get(card_key) or 0)
+    except Exception:
+        card_account_count = 0
 
     # Is the email sequential/patterned?
     email = transaction.get("customer_email") or transaction.get("customer", {}).get("email") or ""
