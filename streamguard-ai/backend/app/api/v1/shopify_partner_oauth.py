@@ -184,7 +184,6 @@ async def partner_oauth_callback(
             integ.last_event_at = datetime.now(UTC)
         else:
             new_integ = Integration(
-                id=uuid.uuid4(),
                 org_id=org.id,
                 platform="shopify",
                 connection_method="no_code_oauth",
