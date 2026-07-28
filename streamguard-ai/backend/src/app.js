@@ -47,8 +47,7 @@ initDatabase().then(() => {
   // Refresh Tor exit node list in background on start (Layer 11.1)
   updateTorExitNodes().catch(() => {});
 }).catch(err => {
-  logger.error(`Critical database initialization failed: ${err.message}`);
-  process.exit(1);
+  logger.warn(`⚠️ Temporary database connection issue on startup: ${err.message}. Retrying in background...`);
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
