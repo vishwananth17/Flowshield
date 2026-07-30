@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
+        neon_url = "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
+        if not v or "postgres:postgres" in v or "postgresql+asyncpg://postgres@" in v or "postgresql://postgres@" in v:
+            return neon_url
+
         if isinstance(v, str):
             # Standardize protocol first
             if v.startswith("postgres://"):
@@ -31,27 +35,29 @@ class Settings(BaseSettings):
             elif v.startswith("postgresql://") and "+asyncpg" not in v:
                 v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
                 
-            # If we are running in the cloud (Render, Railway, or PORT binding is present)
+            # If default unconfigured postgres user is specified, override with Neon URL
+            if "postgresql+asyncpg://postgres:" in v or "postgresql+asyncpg://postgres@" in v:
+                return neon_url
+
+            # If running in cloud environment (Render / Docker)
             import os
             is_cloud = os.environ.get("RENDER") or os.environ.get("PORT")
             if is_cloud:
                 try:
                     from urllib.parse import urlparse
-                    # Replace protocol with standard HTTP schema for clean URL parsing
                     clean_url = v.replace("postgresql+asyncpg://", "http://", 1).replace("postgresql://", "http://", 1)
                     parsed = urlparse(clean_url)
                     hostname = parsed.hostname
+                    username = parsed.username
                     
-                    # Direct check for local loopback / docker compose placeholders
-                    if not hostname or "localhost" in hostname or "127.0.0.1" in hostname or hostname == "db" or hostname == "localhost":
-                        return "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
+                    # If default postgres user or local/docker host, use Neon DB
+                    if username == "postgres" or not hostname or "localhost" in hostname or "127.0.0.1" in hostname or hostname == "db":
+                        return neon_url
                     
-                    # Check if DNS resolves. If DNS resolution fails, fall back to Neon
                     import socket
                     socket.gethostbyname(hostname)
                 except Exception:
-                    # DNS lookup failed or parsing failed, fall back to live Neon instance
-                    return "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
+                    return neon_url
         return v
     redis_url: str = Field(default="redis://localhost:6380/0", alias="REDIS_URL")
 
