@@ -82,9 +82,12 @@ async def resolve_organization_from_request(
     db: AsyncSession,
     api_key: Optional[str] = None,
     x_api_key: Optional[str] = None,
-    shop_domain: Optional[str] = None
+    shop_domain: Optional[str] = None,
+    payload: Optional[dict] = None
 ) -> tuple[Organization, Optional[ApiKey]]:
-    """Resolves Organization using API key or shop domain."""
+    """Resolves Organization using API key, shop domain, customer email, or fallback."""
+    from app.models.user import User
+
     key_str = api_key or x_api_key
     if key_str:
         key_hash = hash_api_key(key_str.strip())
@@ -96,12 +99,21 @@ async def resolve_organization_from_request(
             if org:
                 return org, api_key_obj
 
-    if shop_domain:
-        # Check if an integration exists for this shop
+    # Extract shop domain from payload if omitted in header
+    domain = shop_domain
+    if not domain and payload:
+        domain = payload.get("shop_domain") or payload.get("domain")
+        if not domain and payload.get("order_status_url"):
+            import urllib.parse
+            parsed = urllib.parse.urlparse(payload.get("order_status_url"))
+            domain = parsed.netloc
+
+    if domain:
+        clean_domain = domain.replace("https://", "").replace("http://", "").split("/")[0]
         integ_res = await db.execute(
             select(Integration).where(
                 Integration.platform == "shopify",
-                Integration.store_url.ilike(f"%{shop_domain}%")
+                Integration.store_url.ilike(f"%{clean_domain}%")
             )
         )
         integ = integ_res.scalar_one_or_none()
@@ -111,7 +123,20 @@ async def resolve_organization_from_request(
             if org:
                 return org, None
 
-    # Fallback to latest active organization if any exists
+    # Check if payload customer/contact email matches a registered user's organization
+    if payload:
+        cust = payload.get("customer") or {}
+        email = cust.get("email") or payload.get("email") or payload.get("contact_email")
+        if email:
+            user_res = await db.execute(select(User).where(User.email.ilike(email.strip())))
+            matched_user = user_res.scalar_one_or_none()
+            if matched_user:
+                org_res = await db.execute(select(Organization).where(Organization.id == matched_user.org_id))
+                org = org_res.scalar_one_or_none()
+                if org:
+                    return org, None
+
+    # Fallback to latest organization if any exists
     org_res = await db.execute(select(Organization).order_by(Organization.created_at.desc()).limit(1))
     default_org = org_res.scalar_one_or_none()
     if default_org:
@@ -336,7 +361,7 @@ async def shopify_order_webhook(
     """Receives Shopify order webhooks, runs full ML fraud scoring, and stores real-time telemetry."""
     try:
         payload = await request.json()
-        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain)
+        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain, payload=payload)
         
         result = await process_shopify_order(
             payload=payload,

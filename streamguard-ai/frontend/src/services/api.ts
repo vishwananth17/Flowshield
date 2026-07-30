@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const defaultApiUrl = isLocal ? 'http://localhost:8000' : 'https://flowshield-backend-ani8.onrender.com';
+const defaultApiUrl = isLocal ? 'http://localhost:8000' : 'https://flowshield-stdr.onrender.com';
 let rawApiUrl = import.meta.env.VITE_API_URL || defaultApiUrl;
 
-// If Vercel env variables point to the unconfigured custom domain, fallback to active Render URL
-if (rawApiUrl.includes('api.flowshieldai.com')) {
-  rawApiUrl = 'https://flowshield-backend-ani8.onrender.com';
+// If Vercel env variables point to the unconfigured custom domain or old backend, fallback to active Render URL
+if (rawApiUrl.includes('api.flowshieldai.com') || rawApiUrl.includes('flowshield-backend-ani8')) {
+  rawApiUrl = 'https://flowshield-stdr.onrender.com';
 }
 
 export const API_BASE_URL: string = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;

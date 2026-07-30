@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useAlertStore } from '../stores/alertStore';
 import { useTransactionStore } from '../stores/transactionStore';
-import { toast } from 'sonner';
+import { API_BASE_URL } from '../services/api';
 
 export const useWebSocket = () => {
     const addAlertFromSocket = useAlertStore(state => state.addAlertFromSocket);
@@ -10,12 +10,9 @@ export const useWebSocket = () => {
     const { accessToken } = useAuthStore();
 
     useEffect(() => {
-        // Derive WebSocket URL from same source as api.ts (VITE_API_URL → Render cloud)
-        const baseUrl = (import.meta.env.VITE_API_URL as string) ||
-            'https://api.flowshieldai.com';
-        // Strip /api/v1 suffix to get the root host for the WS path
-        const wsBase = baseUrl.replace(/\/api\/v1$/, '').replace(/^https?:\/\//, '');
-        const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+        // Derive WebSocket URL from API_BASE_URL (flowshield-stdr.onrender.com)
+        const wsBase = API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/^https?:\/\//, '');
+        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss' : 'ws';
         const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
             
         const ws = new WebSocket(wsUrl);
