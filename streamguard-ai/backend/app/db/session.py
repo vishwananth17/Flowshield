@@ -9,8 +9,20 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+NEON_DATABASE_URL = "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
+
+db_url = settings.database_url
+if not db_url or any(k in db_url.lower() for k in ["postgres", "render.com", "localhost", "127.0.0.1"]):
+    db_url = NEON_DATABASE_URL
+
+if not db_url.startswith("postgresql+asyncpg://"):
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(
-    settings.database_url,
+    db_url,
     echo=settings.debug,
     pool_pre_ping=True,
     pool_size=10,
