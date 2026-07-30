@@ -6,6 +6,8 @@ dotenv.config();
 const { Pool } = pg;
 const NEON_DB_URL = "postgresql://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require";
 
+let databaseUrl = process.env.DATABASE_URL;
+
 if (!databaseUrl || databaseUrl.includes("postgres") || databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1") || databaseUrl.includes("render.com")) {
   databaseUrl = NEON_DB_URL;
 }
