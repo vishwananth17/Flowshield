@@ -25,39 +25,16 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
         neon_url = "postgresql+asyncpg://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?ssl=require"
-        if not v or "postgres:postgres" in v or "postgresql+asyncpg://postgres@" in v or "postgresql://postgres@" in v:
+        
+        # If database_url is missing, empty, or contains default postgres user / render internal / localhost, force Neon Cloud DB
+        if not v or any(term in str(v).lower() for term in ["postgres", "render.com", "localhost", "127.0.0.1", "db"]):
             return neon_url
 
         if isinstance(v, str):
-            # Standardize protocol first
             if v.startswith("postgres://"):
                 v = v.replace("postgres://", "postgresql+asyncpg://", 1)
             elif v.startswith("postgresql://") and "+asyncpg" not in v:
                 v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
-                
-            # If default unconfigured postgres user is specified, override with Neon URL
-            if "postgresql+asyncpg://postgres:" in v or "postgresql+asyncpg://postgres@" in v:
-                return neon_url
-
-            # If running in cloud environment (Render / Docker)
-            import os
-            is_cloud = os.environ.get("RENDER") or os.environ.get("PORT")
-            if is_cloud:
-                try:
-                    from urllib.parse import urlparse
-                    clean_url = v.replace("postgresql+asyncpg://", "http://", 1).replace("postgresql://", "http://", 1)
-                    parsed = urlparse(clean_url)
-                    hostname = parsed.hostname
-                    username = parsed.username
-                    
-                    # If default postgres user or local/docker host, use Neon DB
-                    if username == "postgres" or not hostname or "localhost" in hostname or "127.0.0.1" in hostname or hostname == "db":
-                        return neon_url
-                    
-                    import socket
-                    socket.gethostbyname(hostname)
-                except Exception:
-                    return neon_url
         return v
     redis_url: str = Field(default="redis://localhost:6380/0", alias="REDIS_URL")
 
