@@ -47,10 +47,9 @@ def validate_all_secrets():
             os.environ["RAZORPAY_WEBHOOK_SECRET"] = "rzp_webhook_secret_" + secrets.token_hex(4)
             logger.warning("Generated fallback RAZORPAY_WEBHOOK_SECRET for non-production environment.")
 
-        if not os.getenv("DATABASE_URL") or len(os.getenv("DATABASE_URL")) < 20:
-            # Fallback to local SQLite URL
-            os.environ["DATABASE_URL"] = "sqlite:///./sql_app.db"
-            logger.warning("Fallback to local SQLite database in development.")
+        if not os.getenv("DATABASE_URL") or len(os.getenv("DATABASE_URL")) < 20 or "postgres" in os.getenv("DATABASE_URL", "").lower():
+            os.environ["DATABASE_URL"] = "postgresql://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
+            logger.warning("Configured Neon Cloud Database for environment.")
 
         if not os.getenv("REDIS_URL") or len(os.getenv("REDIS_URL")) < 10:
             os.environ["REDIS_URL"] = "redis://localhost:6379/0"

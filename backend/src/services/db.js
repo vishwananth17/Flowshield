@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const { Pool } = pg;
-let databaseUrl = process.env.DATABASE_URL;
+const NEON_DB_URL = "postgresql://neondb_owner:npg_0nCK9awveMNl@ep-wild-shadow-amh6uy2c.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require";
+
+if (!databaseUrl || databaseUrl.includes("postgres") || databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1") || databaseUrl.includes("render.com")) {
+  databaseUrl = NEON_DB_URL;
+}
 
 if (databaseUrl && databaseUrl.startsWith("postgresql")) {
   // Strip out ssl/sslmode query params so pg doesn't parse them as strings and override our SSL object
@@ -13,8 +17,8 @@ if (databaseUrl && databaseUrl.startsWith("postgresql")) {
 }
 
 const poolConfig = {
-  connectionString: databaseUrl || "postgresql://localhost:5432/flowshield",
-  statement_timeout: 30000, // 30 seconds (Layer 12.2 query timeout)
+  connectionString: databaseUrl,
+  statement_timeout: 30000,
   connectionTimeoutMillis: 5000,
 };
 
