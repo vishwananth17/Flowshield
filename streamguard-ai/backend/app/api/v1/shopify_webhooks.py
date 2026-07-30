@@ -44,6 +44,40 @@ def verify_shopify_hmac(body_bytes: bytes, hmac_header: str, secret: str) -> boo
     return hmac.compare_digest(computed_hmac, hmac_header)
 
 
+async def tag_shopify_order(
+    shop_domain: str,
+    access_token: str,
+    shopify_order_id: str,
+    risk_score: float,
+    risk_label: str
+):
+    """Calls Shopify Admin REST API to automatically tag high-risk orders with FlowShield risk telemetry."""
+    if not shop_domain or not access_token or not shopify_order_id:
+        return
+    import httpx
+    tag_str = f"FlowShield: Risk {int(risk_score * 100)}/100 ({risk_label.upper()})"
+    url = f"https://{shop_domain.replace('https://', '').strip('/')}/admin/api/2024-01/orders/{shopify_order_id}.json"
+    headers = {
+        "X-Shopify-Access-Token": access_token,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "order": {
+            "id": shopify_order_id,
+            "tags": tag_str
+        }
+    }
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            res = await client.put(url, json=payload, headers=headers)
+            if res.status_code in [200, 201]:
+                logger.info(f"✅ Shopify Order {shopify_order_id} tagged successfully: '{tag_str}'")
+            else:
+                logger.warning(f"Shopify Tagging API responded with status {res.status_code}")
+    except Exception as e:
+        logger.error(f"Failed to tag Shopify order {shopify_order_id}: {e}")
+
+
 async def resolve_organization_from_request(
     db: AsyncSession,
     api_key: Optional[str] = None,
@@ -225,6 +259,17 @@ async def process_shopify_order(
         if integ:
             integ.last_event_at = datetime.now(UTC)
             integ.status = "active"
+            # Trigger automated active defense order tagging in Shopify Admin
+            if integ.access_token and fraud_result.risk_score >= 0.70:
+                asyncio.create_task(
+                    tag_shopify_order(
+                        shop_domain=shop_domain,
+                        access_token=integ.access_token,
+                        shopify_order_id=order_id,
+                        risk_score=fraud_result.risk_score,
+                        risk_label=fraud_result.risk_label
+                    )
+                )
         else:
             new_integ = Integration(
                 id=uuid.uuid4(),

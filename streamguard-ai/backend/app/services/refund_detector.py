@@ -50,12 +50,14 @@ async def compute_refund_features(
         except Exception as e:
             logger.error(f"Error checking refund history from DB: {e}")
 
-    # 2. Device-level refund rate
     device_refund_count = 0
-    if device_hash:
-        device_refund_key = f"device_refunds:{org_id}:{device_hash}"
-        device_refund_val = await redis_client.get(device_refund_key)
-        device_refund_count = int(device_refund_val) if device_refund_val else 0
+    try:
+        if device_hash and redis_client:
+            device_refund_key = f"device_refunds:{org_id}:{device_hash}"
+            device_refund_val = await redis_client.get(device_refund_key)
+            device_refund_count = int(device_refund_val) if device_refund_val else 0
+    except Exception:
+        device_refund_count = 0
 
     # 3. High refund category
     HIGH_REFUND_CATEGORIES = {

@@ -34,20 +34,20 @@ class PlanLimits:
 PLAID_TIERS: Dict[PlanTier, PlanLimits] = {
     PlanTier.FREE: PlanLimits(
         name="Free Sandbox",
-        monthly_requests=1_000,
-        overage_inr_per_1k=500.0, # High cost to encourage upgrade
-        ensemble_layers=["HardRules"], # Low compute cost
-        has_shap=False,
-        has_webhooks=False,
-        retention_days=7,
+        monthly_requests=10_000,
+        overage_inr_per_1k=500.0,
+        ensemble_layers=["HardRules", "MVIForest", "XGBoost"],
+        has_shap=True,
+        has_webhooks=True,
+        retention_days=30,
         support_tier="community"
     ),
     PlanTier.BUILDER: PlanLimits(
         name="Developer Builder",
         monthly_requests=25_000,
-        overage_inr_per_1k=49.0, # Competitive with global giants (approx. $0.60)
-        ensemble_layers=["HardRules", "MVIForest"], # Anomaly protection
-        has_shap=True, # Market differentiator
+        overage_inr_per_1k=49.0,
+        ensemble_layers=["HardRules", "MVIForest", "XGBoost"],
+        has_shap=True,
         has_webhooks=True,
         retention_days=30,
         support_tier="email"
@@ -55,8 +55,8 @@ PLAID_TIERS: Dict[PlanTier, PlanLimits] = {
     PlanTier.GROWTH: PlanLimits(
         name="Growth Scale",
         monthly_requests=100_000,
-        overage_inr_per_1k=29.0, # Volume discount
-        ensemble_layers=["HardRules", "MVIForest", "XGBoost"], # Full global oracle
+        overage_inr_per_1k=29.0,
+        ensemble_layers=["HardRules", "MVIForest", "XGBoost"],
         has_shap=True,
         has_webhooks=True,
         retention_days=90,

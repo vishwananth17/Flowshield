@@ -1,5 +1,6 @@
 import hmac
 import secrets
+# pyrefly: ignore [missing-import]
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -17,6 +18,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     }
 
     async def dispatch(self, request: Request, call_next):
+        
         # 1. Exempt safe methods
         if request.method in self.SAFE_METHODS:
             response = await call_next(request)

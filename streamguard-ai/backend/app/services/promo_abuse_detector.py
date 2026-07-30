@@ -54,16 +54,19 @@ async def compute_promo_abuse_features(
         except Exception:
             pass
 
-    # Update counters (increment device/IP/card usage)
-    if device_key:
-        await redis_client.incr(device_key)
-        await redis_client.expire(device_key, 86400 * 30)
-    if ip_key:
-        await redis_client.incr(ip_key)
-        await redis_client.expire(ip_key, 86400 * 30)
-    if card_key:
-        await redis_client.incr(card_key)
-        await redis_client.expire(card_key, 86400 * 30)
+    try:
+        if redis_client:
+            if device_key:
+                await redis_client.incr(device_key)
+                await redis_client.expire(device_key, 86400 * 30)
+            if ip_key:
+                await redis_client.incr(ip_key)
+                await redis_client.expire(ip_key, 86400 * 30)
+            if card_key:
+                await redis_client.incr(card_key)
+                await redis_client.expire(card_key, 86400 * 30)
+    except Exception:
+        pass
 
     return {
         "device_account_count": device_account_count,

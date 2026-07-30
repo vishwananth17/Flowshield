@@ -9,6 +9,10 @@ backend_dir = os.path.dirname(os.path.dirname(ML_DIR))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
+import app.ml.features.feature_engineer as fe
+sys.modules['features'] = sys.modules['app.ml.features']
+sys.modules['features.feature_engineer'] = fe
+
 import numpy as np
 import pandas as pd
 import joblib
