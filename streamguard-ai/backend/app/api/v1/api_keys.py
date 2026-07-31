@@ -38,13 +38,18 @@ async def list_api_keys(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
 ) -> list[ApiKeyOut]:
-    result = await db.execute(
-        select(ApiKey).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True)).order_by(ApiKey.created_at.desc())
-    )
-    return result.scalars().all()
+    try:
+        result = await db.execute(
+            select(ApiKey).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True)).order_by(ApiKey.created_at.desc())
+        )
+        return result.scalars().all()
+    except Exception as e:
+        logger.error(f"Failed to list api keys: {e}")
+        return []
 
 from sqlalchemy import func
 from app.core.plan_limits import get_limit
+from app.models.organization import Organization
 
 @router.post("", response_model=ApiKeyCreateResponse, summary="Create a new API key")
 async def create_api_key(
@@ -52,48 +57,51 @@ async def create_api_key(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
 ) -> ApiKeyCreateResponse:
-    # Plan limit enforcement
-    plan = user.organization.plan or "free"
-    limit = get_limit(plan, "api_keys")
-    
-    if limit != -1: # -1 means unlimited
-        count_res = await db.execute(
-            select(func.count(ApiKey.id)).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True))
-        )
-        active_count = count_res.scalar() or 0
-        if active_count >= limit:
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "error": {
-                        "code": "PLAN_LIMIT",
-                        "message": f"Your plan ({plan}) allows a maximum of {limit} active API keys. Please upgrade to Growth or Enterprise for more.",
-                        "upgrade_url": "/billing"
-                    }
-                }
+    try:
+        org = await db.get(Organization, user.org_id)
+        plan = (org.plan if org else "free") or "free"
+        limit = get_limit(plan, "api_keys")
+        
+        if limit != -1: # -1 means unlimited
+            count_res = await db.execute(
+                select(func.count(ApiKey.id)).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True))
             )
+            active_count = count_res.scalar() or 0
+            if active_count >= limit:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Your plan ({plan.upper()}) allows a maximum of {limit} active API key(s). Please upgrade to Growth or Enterprise for more."
+                )
 
-    env = body.environment.lower()
-    if env not in ["live", "test"]:
-        env = "live"
-    
-    raw_key, prefix_display, key_hash = generate_api_key(env)
-    new_key = ApiKey(
-        org_id=user.org_id,
-        name=body.name.strip(),
-        key_hash=key_hash,
-        key_prefix=prefix_display[:20],
-        environment=env,
-        created_by=user.id,
-    )
-    db.add(new_key)
-    await db.commit()
-    await db.refresh(new_key)
+        env = body.environment.lower()
+        if env not in ["live", "test"]:
+            env = "live"
+        
+        raw_key, prefix_display, key_hash = generate_api_key(env)
+        new_key = ApiKey(
+            org_id=user.org_id,
+            name=body.name.strip() or "Default Node Key",
+            key_hash=key_hash,
+            key_prefix=prefix_display[:20],
+            environment=env,
+            created_by=user.id,
+        )
+        db.add(new_key)
+        await db.commit()
+        await db.refresh(new_key)
 
-    return ApiKeyCreateResponse(
-        raw_key=raw_key,
-        api_key=ApiKeyOut.model_validate(new_key),
-    )
+        return ApiKeyCreateResponse(
+            raw_key=raw_key,
+            api_key=ApiKeyOut.model_validate(new_key),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to create api key: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate key: {str(e)}"
+        )
 
 @router.delete("/{key_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Revoke an API key")
 async def revoke_api_key(

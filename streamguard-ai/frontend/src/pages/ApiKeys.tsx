@@ -49,7 +49,8 @@ export default function ApiKeys() {
       toast.success('Encryption node generated successfully');
     } catch (e: any) {
       console.error(e);
-      toast.error(e.response?.data?.error?.message || 'Failed to generate key');
+      const msg = e.response?.data?.detail || e.response?.data?.error?.message || 'Failed to generate key';
+      toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   };
 
