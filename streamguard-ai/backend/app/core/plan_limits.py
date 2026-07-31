@@ -1,8 +1,8 @@
 PLAN_LIMITS = {
     "free": {
         "requests": 1000,
-        "api_keys": 1,
-        "webhooks": 0,
+        "api_keys": 5,
+        "webhooks": 2,
         "history_days": 7,
         "ml_enabled": True,
         "analytics": True,
@@ -10,8 +10,8 @@ PLAN_LIMITS = {
     },
     "basic": {
         "requests": 25000,
-        "api_keys": 3,
-        "webhooks": 1,
+        "api_keys": 20,
+        "webhooks": 5,
         "history_days": 30,
         "ml_enabled": True,
         "analytics": True,
@@ -19,8 +19,8 @@ PLAN_LIMITS = {
     },
     "standard": {
         "requests": 100000,
-        "api_keys": 10,
-        "webhooks": 5,
+        "api_keys": 50,
+        "webhooks": 15,
         "history_days": 90,
         "ml_enabled": True,
         "analytics": True,
