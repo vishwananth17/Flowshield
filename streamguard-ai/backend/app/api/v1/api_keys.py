@@ -33,16 +33,29 @@ class ApiKeyCreateResponse(BaseModel):
     raw_key: str
     api_key: ApiKeyOut
 
-@router.get("", response_model=list[ApiKeyOut], summary="List all API keys for organization")
+@router.get("", summary="List all API keys for organization")
 async def list_api_keys(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
-) -> list[ApiKeyOut]:
+):
     try:
         result = await db.execute(
             select(ApiKey).where(ApiKey.org_id == user.org_id, ApiKey.is_active.is_(True)).order_by(ApiKey.created_at.desc())
         )
-        return result.scalars().all()
+        keys = result.scalars().all()
+        out = []
+        for k in keys:
+            out.append({
+                "id": str(k.id),
+                "name": k.name,
+                "key_prefix": k.key_prefix,
+                "environment": k.environment,
+                "is_active": k.is_active,
+                "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None,
+                "monthly_requests": k.monthly_requests or 0,
+                "created_at": (k.created_at or datetime.now(UTC)).isoformat(),
+            })
+        return out
     except Exception as e:
         logger.error(f"Failed to list api keys: {e}")
         return []
@@ -51,12 +64,12 @@ from sqlalchemy import func
 from app.core.plan_limits import get_limit
 from app.models.organization import Organization
 
-@router.post("", response_model=ApiKeyCreateResponse, summary="Create a new API key")
+@router.post("", summary="Create a new API key")
 async def create_api_key(
     body: ApiKeyCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
-) -> ApiKeyCreateResponse:
+):
     try:
         org = await db.get(Organization, user.org_id)
         plan = (org.plan if org else "free") or "free"
@@ -90,10 +103,19 @@ async def create_api_key(
         await db.commit()
         await db.refresh(new_key)
 
-        return ApiKeyCreateResponse(
-            raw_key=raw_key,
-            api_key=ApiKeyOut.model_validate(new_key),
-        )
+        return {
+            "raw_key": raw_key,
+            "api_key": {
+                "id": str(new_key.id),
+                "name": new_key.name,
+                "key_prefix": new_key.key_prefix,
+                "environment": new_key.environment,
+                "is_active": new_key.is_active,
+                "last_used_at": new_key.last_used_at.isoformat() if new_key.last_used_at else None,
+                "monthly_requests": new_key.monthly_requests or 0,
+                "created_at": (new_key.created_at or datetime.now(UTC)).isoformat(),
+            }
+        }
     except HTTPException:
         raise
     except Exception as e:
