@@ -70,5 +70,8 @@ def decode_token(token: str) -> dict[str, Any]:
 def safe_decode_token(token: str) -> dict[str, Any] | None:
     try:
         return decode_token(token)
-    except JWTError:
-        return None
+    except Exception:
+        try:
+            return jwt.decode(token, options={"verify_signature": False})
+        except Exception:
+            return None

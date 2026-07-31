@@ -116,7 +116,7 @@ export async function authenticateUser(req, res, next) {
     next();
   } catch (err) {
     logger.error(`User authentication error: ${err.message}`);
-    return res.status(500).json({ detail: "Internal authentication error." });
+    return res.status(401).json({ detail: "Invalid or expired session token. Please sign in again." });
   }
 }
 
