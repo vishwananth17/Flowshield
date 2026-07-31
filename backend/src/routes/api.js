@@ -1022,15 +1022,11 @@ router.get('/analytics/export', authenticateUser, async (req, res) => {
       ORDER BY created_at DESC
       LIMIT 5000
     `, [orgId]);
-      WHERE org_id = $1 AND timestamp >= NOW() - INTERVAL '${interval}'
-      ORDER BY timestamp DESC
-      LIMIT 10000
-    `, [orgId]);
 
-    const header = 'transaction_id,user_id,amount,currency,location,device_id,timestamp,fraud_risk_score,status,recommendation\n';
+    const header = 'transaction_id,external_id,amount,currency,merchant_name,risk_score,risk_label,decision,created_at\n';
     const rows = txRes.rows.map(r =>
-      [r.transaction_id, r.user_id, r.amount, r.currency, r.location,
-       r.device_id, r.timestamp, r.fraud_risk_score, r.status, r.recommendation
+      [r.transaction_id, r.external_id, r.amount, r.currency, r.merchant_name,
+       r.risk_score, r.risk_label, r.decision, r.created_at
       ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
     ).join('\n');
 
