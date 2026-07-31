@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="Flowshield AI Architecture Diagram">
+  <defs>
+    <linearGradient id="box-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0C1425"/>
+      <stop offset="100%" stop-color="#141F36"/>
+    </linearGradient>
+
+    <linearGradient id="gold-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#9A7C24" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <filter id="box-glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <style>
+      @keyframes dashFlow {
+        from { stroke-dashoffset: 40; }
+        to { stroke-dashoffset: 0; }
+      }
+      .flow-path {
+        stroke-dasharray: 8 6;
+        animation: dashFlow 1.2s infinite linear;
+      }
+      @keyframes greenPacket {
+        0% { offset-distance: 0%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { offset-distance: 100%; opacity: 0; }
+      }
+      .node-card {
+        transition: transform 0.3s ease;
+      }
+      .node-card:hover {
+        transform: translateY(-3px);
+      }
+    </style>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="320" rx="12" fill="#060B18" stroke="#1E293B" stroke-width="1.5"/>
+
+  <!-- Connecting Stream Lines -->
+  <!-- Line 1: SDK -> FastAPI -->
+  <path d="M 170 120 L 260 120" stroke="#3B82F6" stroke-width="2.5" fill="none" class="flow-path"/>
+  
+  <!-- Line 2: FastAPI -> Kafka -->
+  <path d="M 420 120 L 510 120" stroke="#D4AF37" stroke-width="2.5" fill="none" class="flow-path"/>
+
+  <!-- Line 3: Kafka -> ML Ensemble -->
+  <path d="M 670 120 L 760 120" stroke="#EF4444" stroke-width="2.5" fill="none" class="flow-path"/>
+
+  <!-- Line 4: ML Ensemble -> Postgres -->
+  <path d="M 860 170 L 860 220 L 610 220" stroke="#10B981" stroke-width="2.5" fill="none" class="flow-path"/>
+
+  <!-- Line 5: Postgres -> WebSocket -> Dashboard -->
+  <path d="M 510 240 L 420 240" stroke="#3B82F6" stroke-width="2.5" fill="none" class="flow-path"/>
+  <path d="M 260 240 L 170 240" stroke="#10B981" stroke-width="2.5" fill="none" class="flow-path"/>
+
+  <!-- Flow Data Packets -->
+  <circle cx="215" cy="120" r="4" fill="#3B82F6">
+    <animate attributeName="cx" values="170;260" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="465" cy="120" r="4" fill="#D4AF37">
+    <animate attributeName="cx" values="420;510" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="715" cy="120" r="4" fill="#EF4444">
+    <animate attributeName="cx" values="670;760" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="215" cy="240" r="4" fill="#10B981">
+    <animate attributeName="cx" values="260;170" dur="1.5s" begin="1.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Node 1: Client SDK / Webhook -->
+  <g transform="translate(30, 70)" class="node-card">
+    <rect width="140" height="100" rx="10" fill="url(#box-bg)" stroke="#3B82F6" stroke-width="1.5" stroke-opacity="0.6"/>
+    <text x="70" y="38" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#3B82F6" text-anchor="middle">CLIENT / SDK</text>
+    <text x="70" y="60" font-family="sans-serif" font-size="11" fill="#94A3B8" text-anchor="middle">flowshield.js</text>
+    <text x="70" y="76" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">Shopify Webhooks</text>
+  </g>
+
+  <!-- Node 2: FastAPI Gateway -->
+  <g transform="translate(260, 70)" class="node-card">
+    <rect width="160" height="100" rx="10" fill="url(#box-bg)" stroke="#009688" stroke-width="1.5" stroke-opacity="0.6"/>
+    <text x="80" y="35" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#009688" text-anchor="middle">FastAPI Gateway</text>
+    <text x="80" y="56" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">HMAC &amp; JWT Auth</text>
+    <text x="80" y="72" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Rate Limiting (Redis)</text>
+    <text x="80" y="88" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">17-Layer Security</text>
+  </g>
+
+  <!-- Node 3: Apache Kafka Queue -->
+  <g transform="translate(510, 70)" class="node-card">
+    <rect width="160" height="100" rx="10" fill="url(#box-bg)" stroke="#D4AF37" stroke-width="1.5" stroke-opacity="0.6"/>
+    <text x="80" y="35" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#D4AF37" text-anchor="middle">Kafka Pipeline</text>
+    <text x="80" y="56" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Velocity Buffer</text>
+    <text x="80" y="72" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">60+ Feature Matrix</text>
+    <text x="80" y="88" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">Async Stream</text>
+  </g>
+
+  <!-- Node 4: Hybrid ML Ensemble -->
+  <g transform="translate(760, 70)" class="node-card">
+    <rect width="200" height="100" rx="10" fill="url(#box-bg)" stroke="#EF4444" stroke-width="1.5" stroke-opacity="0.7" filter="url(#box-glow)"/>
+    <text x="100" y="32" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#EF4444" text-anchor="middle">HYBRID ML ENSEMBLE</text>
+    <text x="100" y="52" font-family="sans-serif" font-size="10" font-weight="600" fill="#F8FAFC" text-anchor="middle">MVIForest + XGBoost</text>
+    <text x="100" y="68" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">SHAP TreeExplainer</text>
+    <text x="100" y="86" font-family="monospace" font-size="10" fill="#10B981" text-anchor="middle">SLA: &lt; 50ms Inference</text>
+  </g>
+
+  <!-- Node 5: PostgreSQL Telemetry DB -->
+  <g transform="translate(510, 190)" class="node-card">
+    <rect width="160" height="90" rx="10" fill="url(#box-bg)" stroke="#4169E1" stroke-width="1.5" stroke-opacity="0.6"/>
+    <text x="80" y="32" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#4169E1" text-anchor="middle">PostgreSQL (Neon)</text>
+    <text x="80" y="52" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Tenant RLS Isolation</text>
+    <text x="80" y="68" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">7 Relational Tables</text>
+  </g>
+
+  <!-- Node 6: WebSocket Streaming Engine -->
+  <g transform="translate(260, 190)" class="node-card">
+    <rect width="160" height="90" rx="10" fill="url(#box-bg)" stroke="#8B5CF6" stroke-width="1.5" stroke-opacity="0.6"/>
+    <text x="80" y="32" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#8B5CF6" text-anchor="middle">WebSocket Broadcast</text>
+    <text x="80" y="52" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">FastAPI ConnectionMgr</text>
+    <text x="80" y="68" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">Live Events Feed</text>
+  </g>
+
+  <!-- Node 7: React 19 Dashboard Workstation -->
+  <g transform="translate(30, 190)" class="node-card">
+    <rect width="140" height="90" rx="10" fill="url(#box-bg)" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.7"/>
+    <text x="70" y="32" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#10B981" text-anchor="middle">REACT DASHBOARD</text>
+    <text x="70" y="52" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Transaction Drawer</text>
+    <text x="70" y="68" font-family="sans-serif" font-size="10" fill="#64748B" text-anchor="middle">Dispute Workstation</text>
+  </g>
+</svg>

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300" role="img" aria-label="Flowshield AI Performance Metrics Chart">
+  <defs>
+    <linearGradient id="green-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+
+    <linearGradient id="red-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DC2626"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+
+    <linearGradient id="gold-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9A7C24"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </linearGradient>
+
+    <linearGradient id="blue-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+
+    <style>
+      @keyframes growBar1 { from { width: 0px; } to { width: 450px; } }
+      @keyframes growBar2 { from { width: 0px; } to { width: 30px; } }
+      @keyframes growBar3 { from { width: 0px; } to { width: 480px; } }
+      @keyframes growBar4 { from { width: 0px; } to { width: 220px; } }
+      .bar-1 { animation: growBar1 1.2s forwards ease-out; }
+      .bar-2 { animation: growBar2 1.2s 0.2s forwards ease-out; }
+      .bar-3 { animation: growBar3 1.2s 0.4s forwards ease-out; }
+      .bar-4 { animation: growBar4 1.2s 0.6s forwards ease-out; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="300" rx="12" fill="#060B18" stroke="#1E293B" stroke-width="1.5"/>
+
+  <!-- Legend Header -->
+  <text x="35" y="42" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">ML Ensemble Performance Benchmarks</text>
+  <text x="765" y="42" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#64748B" text-anchor="end">Trained on 250,000 Indian transactions · 6 fraud types</text>
+  <line x1="35" y1="58" x2="765" y2="58" stroke="#1E293B" stroke-width="1"/>
+
+  <!-- Metric 1: Fraud Detection Rate -->
+  <g transform="translate(35, 80)">
+    <text x="0" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8">Fraud Detection Rate</text>
+    <rect x="200" y="8" width="450" height="20" rx="6" fill="#131F33"/>
+    <rect x="200" y="8" width="450" height="20" rx="6" fill="url(#green-bar)" class="bar-1"/>
+    <text x="665" y="24" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#10B981">94.2%</text>
+  </g>
+
+  <!-- Metric 2: False Positive Rate -->
+  <g transform="translate(35, 130)">
+    <text x="0" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8">False Positive Rate</text>
+    <rect x="200" y="8" width="450" height="20" rx="6" fill="#131F33"/>
+    <rect x="200" y="8" width="30" height="20" rx="6" fill="url(#red-bar)" class="bar-2"/>
+    <text x="245" y="24" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#EF4444">1.8% (Target &lt; 2%)</text>
+  </g>
+
+  <!-- Metric 3: Model Accuracy ROC AUC -->
+  <g transform="translate(35, 180)">
+    <text x="0" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8">ROC AUC Score</text>
+    <rect x="200" y="8" width="450" height="20" rx="6" fill="#131F33"/>
+    <rect x="200" y="8" width="480" height="20" rx="6" fill="url(#gold-bar)" class="bar-3"/>
+    <text x="695" y="24" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#D4AF37">0.9970</text>
+  </g>
+
+  <!-- Metric 4: Inference Latency -->
+  <g transform="translate(35, 230)">
+    <text x="0" y="22" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#94A3B8">Avg Latency (p95)</text>
+    <rect x="200" y="8" width="450" height="20" rx="6" fill="#131F33"/>
+    <rect x="200" y="8" width="220" height="20" rx="6" fill="url(#blue-bar)" class="bar-4"/>
+    <line x1="650" y1="2" x2="650" y2="32" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="650" y="44" font-family="sans-serif" font-size="9" fill="#F59E0B" text-anchor="middle">500ms SLA</text>
+    <text x="435" y="24" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#3B82F6">43ms</text>
+  </g>
+</svg>
