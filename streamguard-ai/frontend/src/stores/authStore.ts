@@ -30,60 +30,85 @@ interface AuthStore {
   refreshUser: () => Promise<void>;
 }
 
+const getStoredUser = (): User | null => {
+  try {
+    const s = localStorage.getItem('flowshield_user');
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+};
+
+const getStoredOrg = (): Organization | null => {
+  try {
+    const s = localStorage.getItem('flowshield_org');
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+};
+
+const savedToken = typeof localStorage !== 'undefined' ? localStorage.getItem('flowshield_token') : null;
+const savedUser = getStoredUser();
+const savedOrg = getStoredOrg();
+
 export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: null,
-  organization: null,
-  accessToken: null,
-  isAuthenticated: false,
-  isLoading: true,
+  user: savedUser,
+  organization: savedOrg,
+  accessToken: savedToken,
+  isAuthenticated: !!(savedToken || savedUser),
+  isLoading: false,
 
   refreshUser: async () => {
     try {
       const res = await api.get('/auth/me');
-      const token = res.data.access_token;
+      const token = res.data.access_token || get().accessToken;
       if (token) {
+        localStorage.setItem('flowshield_token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
+      if (res.data.user) localStorage.setItem('flowshield_user', JSON.stringify(res.data.user));
+      if (res.data.organization) localStorage.setItem('flowshield_org', JSON.stringify(res.data.organization));
+      
       set({ 
-        user: res.data.user, 
-        organization: res.data.organization,
-        accessToken: token || null
+        user: res.data.user || get().user, 
+        organization: res.data.organization || get().organization,
+        accessToken: token || null,
+        isAuthenticated: true
       });
     } catch (e) {
-      console.error("Failed to refresh user data", e);
+      console.warn("Failed to refresh user data silently", e);
     }
   },
 
   checkAuth: async () => {
-    try {
-      // Refresh the access token from refresh token cookie on start
-      try {
-        const refreshRes = await api.post('/auth/refresh');
-        const token = refreshRes.data.access_token;
-        if (token) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          set({ accessToken: token });
-        }
-      } catch (err) {
-        // Safe to ignore if refresh cookie is missing or invalid on initial load
-      }
+    const token = localStorage.getItem('flowshield_token') || get().accessToken;
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      set({ isAuthenticated: true, isLoading: false });
+    }
 
+    try {
       const res = await api.get('/auth/me');
-      const token = res.data.access_token || get().accessToken;
-      if (token) {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      const freshToken = res.data.access_token || token;
+      if (freshToken) {
+        localStorage.setItem('flowshield_token', freshToken);
+        api.defaults.headers.common['Authorization'] = `Bearer ${freshToken}`;
       }
+      if (res.data.user) localStorage.setItem('flowshield_user', JSON.stringify(res.data.user));
+      if (res.data.organization) localStorage.setItem('flowshield_org', JSON.stringify(res.data.organization));
 
       set({ 
-        user: res.data.user, 
-        organization: res.data.organization,
-        accessToken: token,
+        user: res.data.user || get().user, 
+        organization: res.data.organization || get().organization,
+        accessToken: freshToken,
         isAuthenticated: true, 
         isLoading: false 
       });
     } catch (error) {
-      api.defaults.headers.common['Authorization'] = '';
-      set({ user: null, organization: null, accessToken: null, isAuthenticated: false, isLoading: false });
+      // If we have a stored token/user in localStorage, do NOT log the user out on network glitches
+      if (!localStorage.getItem('flowshield_token') && !get().user) {
+        api.defaults.headers.common['Authorization'] = '';
+        set({ user: null, organization: null, accessToken: null, isAuthenticated: false, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
     }
   },
 
@@ -93,8 +118,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const res = await api.post('/auth/login', credentials);
       const token = res.data.access_token;
       if (token) {
+        localStorage.setItem('flowshield_token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
+      if (res.data.user) localStorage.setItem('flowshield_user', JSON.stringify(res.data.user));
+      if (res.data.organization) localStorage.setItem('flowshield_org', JSON.stringify(res.data.organization));
       
       set({ 
         user: res.data.user, 
@@ -116,8 +144,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const res = await api.post('/auth/register', data);
       const token = res.data.access_token;
       if (token) {
+        localStorage.setItem('flowshield_token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
+      if (res.data.user) localStorage.setItem('flowshield_user', JSON.stringify(res.data.user));
+      if (res.data.organization) localStorage.setItem('flowshield_org', JSON.stringify(res.data.organization));
 
       set({ 
         user: res.data.user, 
@@ -137,10 +168,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       await api.post('/auth/logout');
     } catch (e) {}
+    localStorage.removeItem('flowshield_token');
+    localStorage.removeItem('flowshield_user');
+    localStorage.removeItem('flowshield_org');
     api.defaults.headers.common['Authorization'] = '';
     set({ user: null, organization: null, accessToken: null, isAuthenticated: false });
     
-    // Prevent browser back after logout (Layer 15.5)
+    // Prevent browser back after logout
     window.history.pushState(null, '', '/login');
     window.addEventListener('popstate', () => {
       window.history.pushState(null, '', '/login');
