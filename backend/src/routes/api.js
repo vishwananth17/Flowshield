@@ -476,7 +476,7 @@ router.get('/fraud_alerts', authenticateAPIKey, async (req, res) => {
 // ------------------------------------------------------------
 
 router.get('/alerts', authenticateUser, async (req, res) => {
-  const orgId = req.user.org_id;
+  const orgId = req.user?.org_id;
   const status = req.query.status || 'open';
   const severity = req.query.severity || 'all';
   const page = parseInt(req.query.page || '1', 10);
@@ -486,9 +486,9 @@ router.get('/alerts', authenticateUser, async (req, res) => {
   try {
     let queryText = `
       SELECT a.id, a.transaction_id, a.severity, a.status, a.title, a.description, a.created_at,
-             t.amount, t.currency, t.location as merchant_name, t.fraud_risk_score
+             t.amount, t.currency, t.merchant_name, t.risk_score
       FROM alerts a
-      LEFT JOIN transactions t ON a.transaction_id = t.transaction_id
+      LEFT JOIN transactions t ON a.transaction_id = t.id
       WHERE a.org_id = $1
     `;
     const params = [orgId];
@@ -506,12 +506,10 @@ router.get('/alerts', authenticateUser, async (req, res) => {
       params.push(severity);
     }
 
-    // Clone query to count total before limit/offset
     const countQueryText = `SELECT COUNT(*)::int as total FROM (` + queryText + `) q`;
     const countRes = await pool.query(countQueryText, params);
     const total = countRes.rows[0]?.total || 0;
 
-    // Fetch unread count (defined as alerts in open/in_review status)
     const unreadCountRes = await pool.query(
       `SELECT COUNT(*)::int as count FROM alerts WHERE org_id = $1 AND status IN ('open', 'in_review')`,
       [orgId]
@@ -532,8 +530,8 @@ router.get('/alerts', authenticateUser, async (req, res) => {
       created_at: row.created_at,
       amount: parseFloat(row.amount || 0),
       currency: row.currency || 'INR',
-      merchant_name: row.merchant_name || 'unknown',
-      risk_score: parseFloat(row.fraud_risk_score || 0) / 100
+      merchant_name: row.merchant_name || 'Shopify Store',
+      risk_score: parseFloat(row.risk_score || 0)
     }));
 
     return res.status(200).json({
@@ -570,14 +568,30 @@ router.get('/alerts/stats', authenticateUser, async (req, res) => {
       in_review: row.in_review || 0,
       resolved_today: row.resolved_today || 0,
       false_positives_today: row.false_positives_today || 0,
-      critical: row.critical || 0,
-      high: row.high || 0,
-      medium: row.medium || 0,
-      avg_resolution_time_minutes: row.avg_res_time || 0
+      severity_breakdown: {
+        critical: row.critical || 0,
+        high: row.high || 0,
+        medium: row.medium || 0
+      },
+      avg_resolution_time_min: row.avg_res_time || 0
     });
   } catch (err) {
-    logger.error(`Get Alert Stats error: ${err.message}`);
+    logger.error(`Get Alerts stats error: ${err.message}`);
     return res.status(500).json({ detail: "Failed to fetch alert stats." });
+  }
+});
+
+router.get(['/team', '/team/members'], authenticateUser, async (req, res) => {
+  const orgId = req.user?.org_id;
+  try {
+    const membersRes = await pool.query(
+      `SELECT id, email, full_name, role, is_active, last_login_at, created_at FROM users WHERE org_id = $1 ORDER BY created_at ASC`,
+      [orgId]
+    );
+    return res.status(200).json(membersRes.rows);
+  } catch (err) {
+    logger.error(`Get team members error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch team members." });
   }
 });
 
