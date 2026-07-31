@@ -70,9 +70,9 @@ export function deepScanAndSanitize(obj, path = '') {
       throw new Error(`SQL Injection keywords detected in field: ${path}`);
     }
 
-    // 2. PII Check (Layer 5.2)
+    // 2. PII Check (Layer 5.2) - allow standard email fields
     const piiType = scanForPII(obj);
-    if (piiType) {
+    if (piiType && !path.toLowerCase().includes('email')) {
       throw new Error(`PII pattern (${piiType}) detected in unencrypted parameter: ${path}`);
     }
 
