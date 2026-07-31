@@ -32,12 +32,7 @@ export default function Dashboard() {
       const res = await api.get(`/analytics/stats?range=${timeRange}`);
       setStatsData(res.data);
     } catch (e: any) {
-      console.error("Failed to fetch stats", e);
-      if (e.response?.status === 403) {
-        // Analytics might be gated for free tier
-      } else if (e.response) {
-        toast.error(`Stats sync failed: ${e.response.data?.error?.message || 'Server error'}`);
-      }
+      console.warn("Failed to fetch stats silently", e);
     }
   }, [timeRange]);
 

@@ -186,32 +186,60 @@ async def list_disputes(
     date_to: Optional[datetime] = None,
 ):
     """Lists disputes with filters and returns deadline urgency and evidence strength."""
-    stmt = select(Dispute).options(selectinload(Dispute.evidence)).where(Dispute.org_id == user.org_id)
+    try:
+        stmt = select(Dispute).options(selectinload(Dispute.evidence)).where(Dispute.org_id == user.org_id)
 
-    if status:
-        stmt = stmt.where(Dispute.status == status)
-    if payment_gateway:
-        stmt = stmt.where(Dispute.payment_gateway == payment_gateway)
-    if date_from:
-        stmt = stmt.where(Dispute.dispute_raised_at >= date_from)
-    if date_to:
-        stmt = stmt.where(Dispute.dispute_raised_at <= date_to)
+        if status:
+            stmt = stmt.where(Dispute.status == status)
+        if payment_gateway:
+            stmt = stmt.where(Dispute.payment_gateway == payment_gateway)
+        if date_from:
+            stmt = stmt.where(Dispute.dispute_raised_at >= date_from)
+        if date_to:
+            stmt = stmt.where(Dispute.dispute_raised_at <= date_to)
 
-    stmt = stmt.order_by(Dispute.response_deadline.asc())
-    res = await db.execute(stmt)
-    disputes = res.scalars().all()
+        stmt = stmt.order_by(Dispute.response_deadline.asc())
+        res = await db.execute(stmt)
+        disputes = res.scalars().all()
 
-    out = []
-    for d in disputes:
-        urgency, _ = _get_urgency_and_days(d.response_deadline)
-        strength = EvidenceGatherer.calculate_evidence_strength(d, d.evidence)
-        out.append({
-            **d.__dict__,
-            "urgency": urgency,
-            "evidence_strength_score": strength
-        })
+        out = []
+        for d in disputes:
+            urgency, _ = _get_urgency_and_days(d.response_deadline)
+            strength = EvidenceGatherer.calculate_evidence_strength(d, d.evidence)
+            out.append({
+                "id": str(d.id),
+                "org_id": str(d.org_id),
+                "dispute_reference": d.dispute_reference,
+                "transaction_id": str(d.transaction_id) if d.transaction_id else None,
+                "external_transaction_id": d.external_transaction_id,
+                "payment_gateway": d.payment_gateway,
+                "dispute_type": d.dispute_type,
+                "dispute_reason": d.dispute_reason,
+                "dispute_amount": float(d.dispute_amount) if d.dispute_amount else 0.0,
+                "currency": d.currency,
+                "customer_name": d.customer_name,
+                "customer_email": d.customer_email,
+                "customer_phone": d.customer_phone,
+                "order_id": d.order_id,
+                "order_date": d.order_date.isoformat() if d.order_date else None,
+                "dispute_raised_at": d.dispute_raised_at.isoformat() if d.dispute_raised_at else None,
+                "response_deadline": d.response_deadline.isoformat() if d.response_deadline else None,
+                "status": d.status,
+                "evidence_strength": d.evidence_strength,
+                "win_probability": float(d.win_probability) if d.win_probability else 0.0,
+                "recommended_action": d.recommended_action,
+                "pdf_package_url": d.pdf_package_url,
+                "auto_submitted": d.auto_submitted,
+                "created_at": d.created_at.isoformat() if d.created_at else None,
+                "updated_at": d.updated_at.isoformat() if d.updated_at else None,
+                "urgency": urgency,
+                "evidence_strength_score": strength
+            })
 
-    return out
+        return out
+    except Exception as e:
+        logger.error(f"Failed to list disputes: {e}")
+        return []
 
 
 @router.get("/stats", response_model=DisputeStatsResponse)

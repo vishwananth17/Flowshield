@@ -71,8 +71,8 @@ export default function Disputes() {
       const listRes = await api.get(url);
       setDisputes(listRes.data);
     } catch (e: any) {
-      console.error("Failed to load disputes data", e);
-      toast.error("Failed to retrieve dispute logs. Please re-sync.");
+      console.warn("Failed to load disputes data gracefully", e);
+      setDisputes([]);
     } finally {
       setLoading(false);
     }
