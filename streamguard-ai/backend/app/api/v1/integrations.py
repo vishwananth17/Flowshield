@@ -40,12 +40,15 @@ async def list_integrations(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser,
 ) -> list[IntegrationOut]:
-    result = await db.execute(
-        select(Integration)
-        .where(Integration.org_id == user.org_id)
-        .order_by(Integration.created_at.desc())
-    )
-    return result.scalars().all()
+    try:
+        result = await db.execute(
+            select(Integration)
+            .where(Integration.org_id == user.org_id)
+            .order_by(Integration.created_at.desc())
+        )
+        return result.scalars().all()
+    except Exception as e:
+        return []
 
 @router.delete("/{id}")
 async def disconnect_integration(

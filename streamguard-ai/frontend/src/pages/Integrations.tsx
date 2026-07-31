@@ -39,9 +39,10 @@ export default function Integrations() {
     setLoading(true);
     try {
       const res = await api.get('/integrations');
-      setIntegrations(res.data);
+      setIntegrations(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
-      toast.error('Failed to fetch connected integrations.');
+      console.warn('Failed to fetch connected integrations', err);
+      setIntegrations([]);
     } finally {
       setLoading(false);
     }
