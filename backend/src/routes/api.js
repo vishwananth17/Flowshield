@@ -448,6 +448,32 @@ router.post('/transactions/simulate', authenticateUser, async (req, res) => {
   }
 });
 
+router.get('/transactions', authenticateUser, async (req, res) => {
+  const orgId = req.user?.org_id;
+  const limit = Math.min(parseInt(req.query.limit || '100', 10), 1000);
+  try {
+    const txRes = await pool.query(
+      `SELECT id, external_id, amount, currency, merchant_name, merchant_category,
+              card_last_four, card_type, customer_id, customer_ip, customer_country, customer_city,
+              device_fingerprint, channel, risk_score, risk_label, decision, created_at
+       FROM transactions
+       WHERE org_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [orgId, limit]
+    );
+    const rows = txRes.rows.map(r => ({
+      ...r,
+      amount: parseFloat(r.amount || 0),
+      risk_score: parseFloat(r.risk_score || 0)
+    }));
+    return res.status(200).json(rows);
+  } catch (err) {
+    logger.error(`Get transactions error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to fetch transactions." });
+  }
+});
+
 router.get('/fraud_alerts', authenticateAPIKey, async (req, res) => {
   let limit = parseInt(req.query.limit || '50', 10);
   limit = Math.min(limit, 1000); // Enforce statement limits (Layer 12.3)
