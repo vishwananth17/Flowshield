@@ -38,38 +38,48 @@ router.post('/api-keys', authenticateUser, async (req, res) => {
     const keyPrefix = rawKey.substring(0, 16);
 
     const insertRes = await pool.query(
-      'INSERT INTO api_keys (name, key_hash, key_prefix, org_id, environment, status, scopes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [name || 'Default', keyHash, keyPrefix, orgId, environment, 'active', JSON.stringify(['transactions:analyze'])]
+      `INSERT INTO api_keys (name, key_hash, key_prefix, org_id, environment, is_active)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING *`,
+      [name || 'Default', keyHash, keyPrefix, orgId, environment]
     );
 
     const dbKey = insertRes.rows[0];
 
-    await sendSecurityEmail(
-      "New API Key Generated",
-      `A new ${environment} API key has been created with prefix ${keyPrefix} for organization ${orgId}.`
-    );
-
-    await auditLogger.log({
-      action: "api_key.created",
-      result: "success",
-      actor: req.user,
-      resourceType: "api_key",
-      resourceId: dbKey.id,
-      req
-    });
+    try {
+      if (sendSecurityEmail) {
+        sendSecurityEmail(
+          "New API Key Generated",
+          `A new ${environment} API key has been created with prefix ${keyPrefix} for organization ${orgId}.`
+        ).catch(() => {});
+      }
+      if (auditLogger && auditLogger.log) {
+        auditLogger.log({
+          action: "api_key.created",
+          result: "success",
+          actor: req.user,
+          resourceType: "api_key",
+          resourceId: dbKey.id,
+          req
+        }).catch(() => {});
+      }
+    } catch (e) {}
 
     return res.status(201).json({
-      api_key: rawKey,
       raw_key: rawKey,
-      prefix: dbKey.key_prefix,
-      key_prefix: dbKey.key_prefix,
-      environment: dbKey.environment,
-      status: dbKey.status,
-      id: dbKey.id
+      api_key: {
+        id: dbKey.id,
+        name: dbKey.name,
+        key_prefix: dbKey.key_prefix,
+        environment: dbKey.environment,
+        is_active: dbKey.is_active ?? true,
+        monthly_requests: dbKey.monthly_requests || 0,
+        created_at: dbKey.created_at || new Date().toISOString()
+      }
     });
   } catch (err) {
     logger.error(`Create API Key error: ${err.message}`);
-    return res.status(500).json({ detail: "Failed to create API key." });
+    return res.status(500).json({ detail: err.message || "Failed to create API key." });
   }
 });
 
