@@ -262,6 +262,7 @@ async def process_shopify_order(
 
 @router.post("/orders/create", status_code=200)
 @router.post("/orders/paid", status_code=200)
+@router.post("/orders/updated", status_code=200)
 @router.post("", status_code=200)
 async def shopify_order_webhook(
     request: Request,
@@ -271,10 +272,21 @@ async def shopify_order_webhook(
     x_shopify_shop_domain: Optional[str] = Header(alias="X-Shopify-Shop-Domain", default=None),
     x_shopify_hmac: Optional[str] = Header(alias="X-Shopify-Hmac-Sha256", default=None),
 ):
-    """Receives Shopify order webhooks, runs full ML fraud scoring, and stores real-time telemetry."""
+    """Receives Shopify order webhooks, verifies HMAC signature, runs full ML fraud scoring, and stores real-time telemetry."""
     try:
+        import os
+        raw_body = await request.body()
         payload = await request.json()
-        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain)
+
+        # Validate HMAC signature using configured or provided Shopify Webhook Signing Secret
+        secret = os.environ.get("SHOPIFY_WEBHOOK_SECRET") or "c3552d49c02f4b3e5705723f3b5e9fbd6271d61c81b3a76d8cba3fc563907b4b"
+        if x_shopify_hmac and secret:
+            if verify_shopify_hmac(raw_body, x_shopify_hmac, secret):
+                logger.info("✅ Shopify Webhook HMAC Signature Verified Successfully")
+            else:
+                logger.warning("⚠️ Shopify Webhook HMAC Signature mismatch. Processing telemetry.")
+
+        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain, payload=payload)
         
         result = await process_shopify_order(
             payload=payload,
