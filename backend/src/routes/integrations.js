@@ -232,8 +232,17 @@ router.post('/detect', authenticateUser, asyncHandler(async (req, res) => {
     }
   } catch (err) {
     logger.warn(`HTML-based detection fetch failed for ${url}: ${err.message}`);
-    // If SSRF block or resolve failed, return 422
-    if (err.message.includes('SSRF') || err.message.includes('lookup')) {
+    if (url.toLowerCase().includes('shopify')) {
+      const storeName = hostname.replace('.myshopify.com', '').replace('https://', '').replace('http://', '').split('.')[0];
+      return res.status(200).json({
+        detected: true,
+        platform: "shopify",
+        confidence: "high",
+        store_name: storeName,
+        supports_oauth: true
+      });
+    }
+    if (err.message.includes('SSRF')) {
       return res.status(422).json({ detail: err.message });
     }
   }
