@@ -188,14 +188,30 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ detail: "Invalid credentials" });
     }
 
-    // 2. Fetch User and Organization details
-    const userRes = await pool.query(
-      'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1',
-      [data.user.id]
+    // 2. Fetch User and Organization details (with email fallback & auto-provisioning)
+    let userRes = await pool.query(
+      'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1 OR LOWER(u.email) = LOWER($2)',
+      [data.user.id, email.trim()]
     );
 
     if (userRes.rows.length === 0) {
-      return res.status(404).json({ detail: "User record not found in local database." });
+      logger.info(`Auto-provisioning missing user record for ${email}`);
+      const orgName = `${email.split('@')[0]}'s Organization`;
+      const orgInsert = await pool.query(
+        'INSERT INTO organizations (name, plan) VALUES ($1, $2) RETURNING id',
+        [orgName, 'free']
+      );
+      const orgId = orgInsert.rows[0].id;
+
+      await pool.query(
+        'INSERT INTO users (id, org_id, email, full_name, role) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email) DO UPDATE SET org_id = EXCLUDED.org_id',
+        [data.user.id, orgId, email.trim().toLowerCase(), email.split('@')[0], 'admin']
+      );
+
+      userRes = await pool.query(
+        'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1 OR LOWER(u.email) = LOWER($2)',
+        [data.user.id, email.trim()]
+      );
     }
 
     const user = userRes.rows[0];

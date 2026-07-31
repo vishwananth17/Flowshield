@@ -1128,5 +1128,30 @@ router.post('/transactions/analyze-light', async (req, res) => {
   });
 });
 
+// Waitlist Ingestion Endpoint (Public)
+router.post('/waitlist', async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: { message: "Valid email address is required." } });
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS waitlist (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await pool.query(
+      `INSERT INTO waitlist (email) VALUES ($1) ON CONFLICT (email) DO NOTHING`,
+      [email.trim().toLowerCase()]
+    );
+    return res.status(200).json({ status: "success", message: "Joined waitlist successfully!" });
+  } catch (err) {
+    logger.error(`Waitlist insertion error: ${err.message}`);
+    return res.status(200).json({ status: "success", message: "Joined waitlist successfully!" });
+  }
+});
+
 export default router;
 
