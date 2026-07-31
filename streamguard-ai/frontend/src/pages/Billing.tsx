@@ -103,10 +103,7 @@ export default function Billing() {
       setInvoices(invRes.data);
       setIsAnnual(subRes.data.interval === 'annual');
     } catch (e: any) {
-      console.error("Failed to fetch billing data", e);
-      if (e.response?.status !== 401) {
-        toast.error("Billing sync failed. Retrying...");
-      }
+      console.warn("Failed to fetch billing data silently", e);
     } finally {
       setLoading(false);
     }

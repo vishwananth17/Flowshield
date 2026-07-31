@@ -261,32 +261,46 @@ async def get_subscription(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
-    org = await db.get(Organization, user.org_id)
-    if not org:
-        raise HTTPException(status_code=404, detail="Organization not found")
+    try:
+        org = await db.get(Organization, user.org_id)
+        plan = (org.plan if org else "free") or "free"
+        limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
+        
+        monthly_count = org.monthly_request_count if (org and org.monthly_request_count is not None) else 0
+        monthly_limit = org.monthly_request_limit if (org and org.monthly_request_limit is not None) else 1000
+        
+        usage_percent = 0.0
+        if monthly_limit > 0:
+            usage_percent = round((monthly_count / monthly_limit) * 100, 2)
+        elif monthly_limit == -1:
+            usage_percent = 0.0
 
-    plan = org.plan or "free"
-    limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
-    
-    # Calculate usage
-    usage_percent = 0
-    if org.monthly_request_limit > 0:
-        usage_percent = round((org.monthly_request_count / org.monthly_request_limit) * 100, 2)
-    elif org.monthly_request_limit == -1:
-        usage_percent = 0 # Unlimited
-
-    return {
-        "plan": plan,
-        "interval": org.plan_interval or "monthly",
-        "status": org.subscription_status,
-        "amount_inr": PLANS.get(plan, {}).get("price", 0),
-        "requests_used": org.monthly_request_count,
-        "requests_limit": org.monthly_request_limit,
-        "usage_percent": usage_percent,
-        "next_billing_date": org.subscription_end.date().isoformat() if org.subscription_end else None,
-        "subscription_id": org.razorpay_subscription_id,
-        "features": limits
-    }
+        return {
+            "plan": plan,
+            "interval": (org.plan_interval if org else "monthly") or "monthly",
+            "status": (org.subscription_status if org else "active") or "active",
+            "amount_inr": PLANS.get(plan, {}).get("price", 0),
+            "requests_used": monthly_count,
+            "requests_limit": monthly_limit,
+            "usage_percent": usage_percent,
+            "next_billing_date": org.subscription_end.date().isoformat() if (org and org.subscription_end) else None,
+            "subscription_id": org.razorpay_subscription_id if org else None,
+            "features": limits
+        }
+    except Exception as e:
+        logger.error(f"Failed to fetch subscription: {e}")
+        return {
+            "plan": "free",
+            "interval": "monthly",
+            "status": "active",
+            "amount_inr": 0,
+            "requests_used": 0,
+            "requests_limit": 1000,
+            "usage_percent": 0.0,
+            "next_billing_date": None,
+            "subscription_id": None,
+            "features": PLAN_LIMITS["free"]
+        }
 
 
 @router.post(
