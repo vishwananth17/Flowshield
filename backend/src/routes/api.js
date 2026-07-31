@@ -84,30 +84,37 @@ router.post('/api-keys', authenticateUser, async (req, res) => {
 });
 
 router.get('/api-keys', authenticateUser, async (req, res) => {
-  const orgId = req.user.org_id;
+  const orgId = req.user?.org_id;
+  if (!orgId) return res.status(200).json([]);
   try {
     const keysRes = await pool.query(
-      "SELECT id, name, key_prefix, environment, created_at, last_used_at, status FROM api_keys WHERE org_id = $1 AND is_active = true ORDER BY created_at DESC",
+      "SELECT id, name, key_prefix, environment, created_at, last_used_at, is_active FROM api_keys WHERE org_id = $1 AND is_active = true ORDER BY created_at DESC",
       [orgId]
     );
     return res.status(200).json(keysRes.rows);
   } catch (err) {
     logger.error(`Get API Keys error: ${err.message}`);
-    return res.status(500).json({ detail: "Failed to fetch API keys." });
+    return res.status(200).json([]);
   }
 });
 
 router.delete('/api-keys/:id', authenticateUser, async (req, res) => {
   const { id } = req.params;
-  const orgId = req.user.org_id;
+  const orgId = req.user?.org_id;
   try {
     const deleteRes = await pool.query(
-      "UPDATE api_keys SET is_active = false, status = 'revoked' WHERE id = $1 AND org_id = $2 RETURNING *",
+      "UPDATE api_keys SET is_active = false WHERE id = $1 AND org_id = $2 RETURNING *",
       [id, orgId]
     );
     if (deleteRes.rows.length === 0) {
       return res.status(404).json({ detail: "API key not found." });
     }
+    return res.status(204).send();
+  } catch (err) {
+    logger.error(`Delete API Key error: ${err.message}`);
+    return res.status(500).json({ detail: "Failed to revoke API key." });
+  }
+});
     
     const dbKey = deleteRes.rows[0];
     await sendSecurityEmail(
