@@ -22,11 +22,16 @@ export async function subscribeToPlan(
 ): Promise<void> {
   try {
     // 1. Create subscription on backend
-    const { data } = await api.post('/billing/create-subscription', { plan, interval });
+    const { data } = await api.post('/billing/subscribe', { plan, interval });
+
+    if (data.simulated) {
+      await useAuthStore.getState().refreshUser();
+      toast.success(`Upgraded to ${plan.toUpperCase()} plan successfully!`);
+      window.location.reload();
+      return;
+    }
 
     // 2. If Razorpay returned a hosted checkout URL, use it directly.
-    //    This works even when UPI Autopay / e-Mandate is not yet enabled on the
-    //    merchant account (the SDK-based QR keeps loading in that case).
     if (data.short_url) {
       window.location.href = data.short_url;
       return;

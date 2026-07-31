@@ -47,11 +47,38 @@ async def validate_url_for_ssrf(url: str) -> Tuple[bool, str, str]:
         return False, f"URL validation failed: {str(e)}", ""
 
 async def detect_platform(url: str) -> Dict[str, Any]:
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
+    clean_url = url.strip().lower()
+    if not clean_url.startswith("http://") and not clean_url.startswith("https://"):
+        clean_url = "https://" + clean_url
+
+    try:
+        parsed_temp = urllib.parse.urlparse(clean_url)
+        host_temp = (parsed_temp.hostname or "").lower()
+        if host_temp.endswith(".myshopify.com"):
+            store_name = host_temp.replace(".myshopify.com", "")
+            return {
+                "detected": True,
+                "platform": "shopify",
+                "confidence": "high",
+                "store_name": store_name,
+                "supports_oauth": True
+            }
+    except Exception:
+        pass
         
-    is_valid, error_msg, normalized_url = await validate_url_for_ssrf(url)
+    is_valid, error_msg, normalized_url = await validate_url_for_ssrf(clean_url)
     if not is_valid:
+        # Fallback check for myshopify strings in raw url if DNS resolution fails
+        if "myshopify.com" in clean_url:
+            raw_host = clean_url.replace("https://", "").replace("http://", "").split("/")[0]
+            store_name = raw_host.replace(".myshopify.com", "")
+            return {
+                "detected": True,
+                "platform": "shopify",
+                "confidence": "high",
+                "store_name": store_name,
+                "supports_oauth": True
+            }
         return {
             "detected": False,
             "platform": "unknown",
