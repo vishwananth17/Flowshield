@@ -444,7 +444,7 @@ router.post('/transactions/simulate', authenticateUser, async (req, res) => {
     return res.status(200).json({ status: "simulation_triggered", count });
   } catch (err) {
     logger.error(`Simulation error: ${err.message}`);
-    return res.status(500).json({ detail: "Simulation sequence failed." });
+    return res.status(500).json({ detail: err.message || "Simulation sequence failed." });
   }
 });
 
