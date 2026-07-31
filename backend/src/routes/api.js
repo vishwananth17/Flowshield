@@ -359,19 +359,9 @@ router.post(['/analyze_transaction', '/transactions/analyze'], authenticateAPIKe
     } catch (e) {}
 
     return res.status(200).json(responsePayload);
-      action: "transaction.analyzed",
-      result: "success",
-      resourceType: "transaction",
-      resourceId: transactionId,
-      metadata: { fraud_risk_score: score, decision: status },
-      req
-    });
-
-    return res.status(200).json(responsePayload);
-
   } catch (err) {
     logger.error(`Analyze transaction error: ${err.message}`);
-    return res.status(500).json({ detail: "Failed to evaluate transaction." });
+    return res.status(500).json({ detail: err.message || "Failed to evaluate transaction." });
   }
 });
 
