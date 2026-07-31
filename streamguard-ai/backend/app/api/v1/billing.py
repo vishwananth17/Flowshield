@@ -64,11 +64,8 @@ class EnterpriseContactRequest(BaseModel):
     monthly_volume: str
     message: str
 
-@router.post(
-    "/subscribe", 
-    summary="Initiate Subscription",
-    description="Provision a checkout session for recurring organization plan upgrades."
-)
+@router.post("/subscribe", summary="Initiate Subscription")
+@router.post("/create-subscription", summary="Initiate Subscription")
 async def create_subscription(
     req: SubscriptionRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
