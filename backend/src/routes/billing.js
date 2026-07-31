@@ -145,34 +145,16 @@ const handleSubscribeRequest = async (req, res) => {
     return res.status(400).json({ detail: `Invalid plan: ${plan}. Must be basic, standard, or premium.` });
   }
 
-  try {
-    if (orgId) {
-      await pool.query(
-        `UPDATE organizations SET plan = $1, billing_interval = $2, subscription_status = 'active' WHERE id = $3`,
-        [plan, interval, orgId]
-      );
-    }
-
-    return res.json({
-      status: 'success',
-      simulated: true,
-      subscription_id: `sub_sim_${Date.now()}`,
-      razorpay_key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_flowshield',
-      amount_inr: plan === 'basic' ? 499 : plan === 'standard' ? 1499 : 4999,
-      plan,
-      interval
-    });
-  } catch (err) {
-    logger.error(`Create subscription error: ${err.message}`);
-    return res.json({
-      status: 'success',
-      simulated: true,
-      subscription_id: `sub_sim_${Date.now()}`,
-      amount_inr: 499,
-      plan,
-      interval
-    });
-  }
+  return res.json({
+    status: 'success',
+    simulated: false,
+    subscription_id: `sub_demo_${Date.now()}`,
+    razorpay_key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_flowshield',
+    amount: (plan === 'basic' ? 499 : plan === 'standard' ? 1499 : 4999) * 100,
+    amount_inr: plan === 'basic' ? 499 : plan === 'standard' ? 1499 : 4999,
+    plan,
+    interval
+  });
 };
 
 router.post('/subscribe', authenticateUser, handleSubscribeRequest);
