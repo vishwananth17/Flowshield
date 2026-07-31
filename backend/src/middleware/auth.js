@@ -59,14 +59,32 @@ export async function authenticateUser(req, res, next) {
       return res.status(401).json({ detail: "Invalid or expired session token." });
     }
 
-    // Retrieve user from our database
-    const userRes = await pool.query(
-      'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1',
-      [userId]
-    );
+    // Check if userId is a valid UUID string
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+    const lookupEmail = email || (userId.includes('@') ? userId : '');
+
+    // Retrieve user from database safely
+    let userRes;
+    if (isUuid && lookupEmail) {
+      userRes = await pool.query(
+        'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1 OR u.email = $2',
+        [userId, lookupEmail]
+      );
+    } else if (isUuid) {
+      userRes = await pool.query(
+        'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.id = $1',
+        [userId]
+      );
+    } else {
+      userRes = await pool.query(
+        'SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u LEFT JOIN organizations o ON u.org_id = o.id WHERE u.email = $1',
+        [lookupEmail || userId]
+      );
+    }
 
     if (userRes.rows.length === 0) {
-      // Auto provision org and user if absent in local database
+      const validUserId = isUuid ? userId : crypto.randomUUID();
+      const userEmail = lookupEmail || `user_${validUserId.slice(0, 8)}@flowshield.ai`;
       const orgName = `${fullName}'s Org`;
       
       const orgIns = await pool.query(
@@ -81,7 +99,7 @@ export async function authenticateUser(req, res, next) {
         `INSERT INTO users (id, org_id, email, full_name, role, is_active)
          VALUES ($1, $2, $3, $4, 'owner', true)
          RETURNING id, email, full_name, role, org_id`,
-        [userId, newOrg.id, email || `user_${userId.slice(0, 8)}@flowshield.ai`, fullName]
+        [validUserId, newOrg.id, userEmail, fullName]
       );
       const newUser = userIns.rows[0];
 
