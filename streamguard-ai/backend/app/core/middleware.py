@@ -58,6 +58,8 @@ def get_cors_origins() -> list[str]:
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "https://flowshield-ai.vercel.app",
+        "https://flowshield-git-main-vishwananth17s-projects.vercel.app",
+        "https://flowshield-ftyprvsiy-vishwananth17s-projects.vercel.app",
         "https://flowshieldai.com",
         "https://www.flowshieldai.com",
         "https://api.flowshieldai.com"
