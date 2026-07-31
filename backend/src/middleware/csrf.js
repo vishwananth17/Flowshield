@@ -18,6 +18,10 @@ const CSRF_EXEMPT_PATHS = [
   // Shopify webhook exempt
   '/api/v1/integrations/shopify/webhook',
   '/integrations/shopify/webhook',
+  '/api/v1/webhooks/shopify',
+  '/webhooks/shopify',
+  '/api/v1/webhooks/shopify/orders/create',
+  '/webhooks/shopify/orders/create',
   // Analyze-light client script endpoint exempt
   '/api/v1/transactions/analyze-light',
   '/transactions/analyze-light',
