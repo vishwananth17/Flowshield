@@ -10,19 +10,22 @@ export const useWebSocket = () => {
     const { accessToken } = useAuthStore();
 
     useEffect(() => {
+        const token = accessToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('flowshield_token') : '');
+        if (!token) return;
+
         // Derive WebSocket URL from API_BASE_URL (flowshield-stdr.onrender.com)
         const wsBase = API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/^https?:\/\//, '');
         const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss' : 'ws';
-        const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws${accessToken ? `?token=${accessToken}` : ''}`;
+        const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws?token=${token}`;
             
         const ws = new WebSocket(wsUrl);
         
         ws.onmessage = (event) => {
             try {
                 const payload = JSON.parse(event.data);
-                if (payload.type === 'new_alert') {
-                    const alert = payload.alert;
-                    addAlertFromSocket(alert);
+                if (payload.type === 'new_alert' || payload.type === 'NEW_ALERT') {
+                    const alert = payload.alert || payload.data;
+                    if (alert) addAlertFromSocket(alert);
                     
                     // Toast notifications disabled for a cleaner developer experience
                     /*
