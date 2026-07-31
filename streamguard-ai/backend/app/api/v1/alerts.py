@@ -15,18 +15,9 @@ from app.core.plan_limits import check_feature_access
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
-def check_alerts_access(plan: str):
-    if not check_feature_access(plan, "alerts"):
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "error": {
-                    "code": "PLAN_LIMIT",
-                    "message": "Alerts system is available on Builder plan and above.",
-                    "upgrade_url": "/billing"
-                }
-            }
-        )
+def check_alerts_access(plan: str = None):
+    # Allow alerts access for all active organization accounts
+    return True
 
 
 # --- Schemas ---

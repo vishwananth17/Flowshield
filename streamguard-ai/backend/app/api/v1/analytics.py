@@ -97,15 +97,14 @@ async def get_stats(
     avg_latency = float(row["avg_latency"] or 15.0)
     protected_volume = float(row["protected_volume"] or 0.0)
 
-    # 6. Risk by country (stays as separate query for group_by dimension)
     country_result = await db.execute(
         _apply_temporal(
             select(Transaction.customer_country, func.count(Transaction.id))
-            .where(Transaction.decision == "block")
+            .where(Transaction.decision.in_(["block", "decline", "review"]))
             .group_by(Transaction.customer_country)
         )
     )
-    risk_by_country = {row[0]: row[1] for row in country_result}
+    risk_by_country = {str(row[0] or "UNKNOWN"): int(row[1]) for row in country_result}
     
     return AnalyticsStats(
         total_analyzed=total_analyzed,
