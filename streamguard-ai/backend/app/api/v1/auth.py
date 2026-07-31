@@ -184,35 +184,49 @@ async def login(
 @router.post(
     "/refresh", 
     summary="Session Rotation",
-    description="Rotates the current JWT session. This endpoint consumes the refresh cookie and provisions a new authenticated state."
+    description="Rotates the current JWT session. Accepts refresh cookie or Bearer access token."
 )
 async def refresh_session(
     request: Request,
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, str]:
+) -> dict[str, Any]:
     token = request.cookies.get(REFRESH_COOKIE)
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing refresh token")
+        # Fallback to Authorization Bearer header token if cookie is blocked
+        auth_header = request.headers.get("authorization") or ""
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:].strip()
+            
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing session token")
+
     payload = safe_decode_token(token)
-    if not payload or payload.get("type") != "refresh":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
     sub = payload.get("sub")
     if not sub:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
+
     try:
         user_id = uuid.UUID(sub)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
 
     result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
+    access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)
     await db.commit()
-    return {"status": "ok"}
+
+    return {
+        "status": "ok",
+        "access_token": access
+    }
 
 
 @router.post(

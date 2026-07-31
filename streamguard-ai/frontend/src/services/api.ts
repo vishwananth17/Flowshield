@@ -27,6 +27,10 @@ api.interceptors.request.use((config) => {
   )) {
     config.headers['X-CSRF-Token'] = getCsrfToken();
   }
+  const token = localStorage.getItem('flowshield_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -51,14 +55,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
       originalRequest._retry = true;
       try {
-        await api.post('/auth/refresh');
-        return api(originalRequest);
-      } catch (e) {
-        localStorage.removeItem('flowshield_token');
-        // Only redirect if we are on a protected dashboard route
-        if (!isPublicPage && window.location.pathname.startsWith('/dashboard')) {
-          window.location.href = '/login?expired=true';
+        const refreshRes = await api.post('/auth/refresh');
+        if (refreshRes.data?.access_token) {
+          localStorage.setItem('flowshield_token', refreshRes.data.access_token);
+          originalRequest.headers['Authorization'] = `Bearer ${refreshRes.data.access_token}`;
+          return api(originalRequest);
         }
+      } catch (e) {
+        console.warn("Session refresh attempt failed gracefully", e);
         return Promise.reject(e);
       }
     }
