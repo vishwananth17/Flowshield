@@ -46,13 +46,9 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // 1. Silent failure for non-critical network errors (e.g. cold starts)
+    // 1. Silent handling for background network cold starts
     if (!error.response) {
-      console.warn("⚠️ Network Latency/Cold Start detected at", originalRequest.url);
-      // Suppress toast for background/GET requests to avoid annoying the user
-      if (originalRequest.method !== 'get') {
-        toast.error("Low-level connection error. Re-syncing...");
-      }
+      console.warn("⚠️ Network Latency/Cold Start detected at", originalRequest?.url);
     }
 
     // 2. Handle 401 Unauthorized Smarter
