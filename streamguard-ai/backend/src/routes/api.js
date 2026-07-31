@@ -109,31 +109,29 @@ router.delete('/api-keys/:id', authenticateUser, async (req, res) => {
     if (deleteRes.rows.length === 0) {
       return res.status(404).json({ detail: "API key not found." });
     }
-    return res.status(204).send();
-  } catch (err) {
-    logger.error(`Delete API Key error: ${err.message}`);
-    return res.status(500).json({ detail: "Failed to revoke API key." });
-  }
-});
-    
     const dbKey = deleteRes.rows[0];
-    await sendSecurityEmail(
-      "API Key Revoked",
-      `API key with ID ${id} and prefix ${dbKey.key_prefix} has been revoked for organization ${orgId}.`
-    );
-
-    await auditLogger.log({
-      action: "api_key.revoked",
-      result: "success",
-      actor: req.user,
-      resourceType: "api_key",
-      resourceId: id,
-      req
-    });
+    try {
+      if (sendSecurityEmail) {
+        sendSecurityEmail(
+          "API Key Revoked",
+          `API key with ID ${id} and prefix ${dbKey.key_prefix} has been revoked for organization ${orgId}.`
+        ).catch(() => {});
+      }
+      if (auditLogger && auditLogger.log) {
+        auditLogger.log({
+          action: "api_key.revoked",
+          result: "success",
+          actor: req.user,
+          resourceType: "api_key",
+          resourceId: id,
+          req
+        }).catch(() => {});
+      }
+    } catch (e) {}
 
     return res.status(200).json({ detail: "API key successfully revoked." });
   } catch (err) {
-    logger.error(`Revoke API Key error: ${err.message}`);
+    logger.error(`Delete API Key error: ${err.message}`);
     return res.status(500).json({ detail: "Failed to revoke API key." });
   }
 });
