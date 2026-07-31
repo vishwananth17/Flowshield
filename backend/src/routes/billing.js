@@ -62,8 +62,11 @@ router.get('/config-status', authenticateUser, async (req, res) => {
 // GET /billing/subscription
 // ─────────────────────────────────────────────
 router.get('/subscription', authenticateUser, async (req, res) => {
-  const orgId = req.user.org_id;
   try {
+    const orgId = req.user?.org_id;
+    if (!orgId) {
+      return res.status(401).json({ detail: 'Unauthorized. User or Organization missing.' });
+    }
     // Get org plan info
     const orgRes = await pool.query(
       `SELECT plan, subscription_id, subscription_status, next_billing_date, amount_inr, billing_interval
@@ -115,8 +118,9 @@ router.get('/subscription', authenticateUser, async (req, res) => {
 // GET /billing/invoices
 // ─────────────────────────────────────────────
 router.get('/invoices', authenticateUser, async (req, res) => {
-  const orgId = req.user.org_id;
   try {
+    const orgId = req.user?.org_id;
+    if (!orgId) return res.json([]);
     const result = await pool.query(
       `SELECT id, created_at AS date, amount_inr AS amount, status, payment_method AS method
        FROM billing_invoices WHERE org_id = $1 ORDER BY created_at DESC LIMIT 20`,

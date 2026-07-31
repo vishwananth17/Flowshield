@@ -41,18 +41,39 @@ export async function authenticateUser(req, res, next) {
     );
 
     if (userRes.rows.length === 0) {
-      // User is authenticated in Supabase but not yet synchronized in our DB
-      // We can extract metadata and dynamically sync them
+      // User is authenticated in Supabase but not yet synchronized in our DB - Auto provision org and user
       const email = sbUser.email || '';
-      const fullName = sbUser.user_metadata?.full_name || '';
+      const fullName = sbUser.user_metadata?.full_name || 'Flowshield User';
+      const orgName = `${fullName}'s Org`;
       
-      req.tempUser = {
-        id: sbUser.id,
-        email: email,
-        fullName: fullName
+      // 1. Create Organization
+      const orgIns = await pool.query(
+        `INSERT INTO organizations (name, plan, subscription_status)
+         VALUES ($1, 'free', 'active')
+         RETURNING id, name, plan`,
+        [orgName]
+      );
+      const newOrg = orgIns.rows[0];
+
+      // 2. Create User
+      const userIns = await pool.query(
+        `INSERT INTO users (id, org_id, email, full_name, role, is_active)
+         VALUES ($1, $2, $3, $4, 'owner', true)
+         RETURNING id, email, full_name, role, org_id`,
+        [sbUser.id, newOrg.id, email, fullName]
+      );
+      const newUser = userIns.rows[0];
+
+      req.user = {
+        id: newUser.id,
+        email: newUser.email,
+        fullName: newUser.full_name,
+        role: newUser.role,
+        org_id: newUser.org_id,
+        orgName: newOrg.name,
+        orgPlan: newOrg.plan
       };
-      
-      // Let it pass but flag it so routing can handle registration finalization
+
       return next();
     }
 
