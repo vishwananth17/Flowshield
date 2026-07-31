@@ -70,11 +70,24 @@ def create_application() -> FastAPI:
     app.include_router(api_router, prefix="/api/v1")
 
     @app.middleware("http")
-    async def add_process_time_header(request: Request, call_next):
-        start_time = time.perf_counter()
-        response = await call_next(request)
-        process_time = time.perf_counter() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
+    async def dynamic_cors_and_timing_middleware(request: Request, call_next):
+        origin = request.headers.get("origin")
+        
+        # Handle OPTIONS preflight requests immediately with 204
+        if request.method == "OPTIONS":
+            response = Response(status_code=204)
+        else:
+            start_time = time.perf_counter()
+            response = await call_next(request)
+            process_time = time.perf_counter() - start_time
+            response.headers["X-Process-Time"] = str(process_time)
+            
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, X-API-Key"
+            
         return response
 
     @app.exception_handler(Exception)

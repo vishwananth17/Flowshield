@@ -32,9 +32,10 @@ export default function Login() {
       await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      const msg = err.response 
-        ? (err.response.data?.detail || err.response.data?.error?.message || 'Invalid email or password')
-        : 'Network Error: Backend is currently unreachable. Please check your connection or redeploy.';
+      const msg = err.response?.data?.detail 
+        || err.response?.data?.error?.message 
+        || (err.message && !err.message.includes('Network') ? err.message : null)
+        || 'Invalid email or password. Please verify your credentials.';
       setError(msg);
     } finally {
       setIsLoading(false);
