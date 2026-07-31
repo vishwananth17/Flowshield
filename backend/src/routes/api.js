@@ -365,6 +365,89 @@ router.post(['/analyze_transaction', '/transactions/analyze'], authenticateAPIKe
   }
 });
 
+router.post('/transactions/simulate', authenticateUser, async (req, res) => {
+  const count = parseInt(req.query.count || '5', 10);
+  const orgId = req.user?.org_id;
+  if (!orgId) return res.status(401).json({ detail: "Unauthorized" });
+
+  try {
+    const scenarios = [
+      { amount: 49.99, email: 'legit.user@gmail.com', country: 'IN', label: 'legit', score: 0.08, dec: 'approve' },
+      { amount: 12500, email: 'bot_998877@tempmail.com', country: 'RU', label: 'fraud', score: 0.94, dec: 'decline' },
+      { amount: 850, email: 'john.doe@yahoo.com', country: 'IN', label: 'review', score: 0.62, dec: 'review' }
+    ];
+
+    for (let i = 0; i < Math.min(count, 15); i++) {
+      const scene = scenarios[i % scenarios.length];
+      const txUuid = crypto.randomUUID();
+      const extId = `SIM-${txUuid.substring(0, 8).toUpperCase()}`;
+
+      const insertRes = await pool.query(
+        `INSERT INTO transactions (
+          id, org_id, external_id, amount, currency, merchant_name, merchant_category,
+          card_last_four, card_type, customer_id, customer_ip, customer_country, customer_city,
+          device_fingerprint, channel, risk_score, risk_label, decision, created_at
+        ) VALUES ($1, $2, $3, $4, 'INR', 'Simulated Store', '5411', '4242', 'credit_card', $5, '127.0.0.1', $6, 'Bengaluru', $7, 'web', $8, $9, $10, NOW())
+        RETURNING *`,
+        [txUuid, orgId, extId, scene.amount, scene.email, scene.country, `fp_${txUuid.substring(0, 6)}`, scene.score, scene.label, scene.dec]
+      );
+
+      const dbTx = insertRes.rows[0];
+      broadcastToOrg(orgId, {
+        type: 'new_transaction',
+        data: {
+          id: dbTx.id,
+          external_id: dbTx.external_id,
+          amount: parseFloat(dbTx.amount),
+          currency: dbTx.currency,
+          merchant_name: dbTx.merchant_name,
+          risk_score: parseFloat(dbTx.risk_score),
+          risk_label: dbTx.risk_label,
+          decision: dbTx.decision,
+          created_at: dbTx.created_at
+        }
+      });
+
+      if (scene.score >= 0.50) {
+        const alertId = crypto.randomUUID();
+        const severity = scene.score > 0.85 ? 'CRITICAL' : 'HIGH';
+        const title = `Suspicious Transaction Flagged (${scene.label.toUpperCase()})`;
+        const description = `Transaction of INR ${scene.amount} flagged with risk score of ${Math.round(scene.score * 100)}/100.`;
+
+        try {
+          await pool.query(
+            `INSERT INTO alerts (id, org_id, transaction_id, severity, status, title, description, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+            [alertId, orgId, dbTx.id, severity, 'open', title, description]
+          );
+        } catch (e) {}
+
+        broadcastToOrg(orgId, {
+          type: 'new_alert',
+          alert: {
+            id: alertId,
+            transaction_id: dbTx.id,
+            severity,
+            status: 'open',
+            title,
+            description,
+            created_at: new Date().toISOString(),
+            amount: parseFloat(scene.amount),
+            currency: 'INR',
+            merchant_name: 'Simulated Store',
+            risk_score: scene.score
+          }
+        });
+      }
+    }
+
+    return res.status(200).json({ status: "simulation_triggered", count });
+  } catch (err) {
+    logger.error(`Simulation error: ${err.message}`);
+    return res.status(500).json({ detail: "Simulation sequence failed." });
+  }
+});
+
 router.get('/fraud_alerts', authenticateAPIKey, async (req, res) => {
   let limit = parseInt(req.query.limit || '50', 10);
   limit = Math.min(limit, 1000); // Enforce statement limits (Layer 12.3)

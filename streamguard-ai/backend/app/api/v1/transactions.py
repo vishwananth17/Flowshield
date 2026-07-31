@@ -202,6 +202,7 @@ async def get_transaction_detail(
     include_in_schema=False
 )
 async def simulate_traffic(
+    request: Request,
     auth: AnalyzeAuthDep,
     db: Annotated[AsyncSession, Depends(get_db)],
     count: int = Query(5, ge=1, le=20)
@@ -227,9 +228,9 @@ async def simulate_traffic(
             channel="web"
         )
         
-        # We call the internal logic
-        await analyze_transaction(tx_req, db, auth)
-        await asyncio.sleep(0.5) # Space them out for the websocket effect
+        # We call the internal logic safely
+        await analyze_transaction(tx_req, request, db, auth)
+        await asyncio.sleep(0.2)
         
     return {"status": "simulation_triggered", "count": count}
 
