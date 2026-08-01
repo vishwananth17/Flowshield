@@ -14,8 +14,14 @@ async def consume():
     consumer = AIOKafkaConsumer(
         TOPIC,
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-        group_id="streamguard_workers",
-        value_deserializer=lambda v: json.loads(v.decode('utf-8'))
+        group_id="flowshield-consumers",
+        value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+        fetch_max_wait_ms=10,
+        fetch_min_bytes=1,
+        max_poll_interval_ms=300000,
+        session_timeout_ms=30000,
+        heartbeat_interval_ms=3000,
+        auto_offset_reset="latest"
     )
     
     await consumer.start()

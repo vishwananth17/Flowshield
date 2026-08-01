@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { 
   Activity, 
@@ -14,6 +14,32 @@ import { useTransactionStore } from '@/stores/transactionStore';
 
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+
+const TransactionRow = React.memo(({ tx }: { tx: any }) => {
+  const isNew = Date.now() - new Date(tx.created_at || Date.now()).getTime() < 3000;
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className={`p-4 transition-all duration-500 flex items-center justify-between ${
+        isNew ? 'bg-amber-500/10 border-l-2 border-amber-400' : 'hover:bg-[#1F2937]/30'
+      }`}
+    >
+      <div>
+        <p className="text-sm font-medium text-white">{tx.merchant_name || 'Simulated Store'}</p>
+        <p className="text-xs text-gray-400 font-mono mt-1">{(tx.id || tx.external_id || '').substring(0, 13)}...</p>
+      </div>
+      <div className="text-right flex items-center space-x-4">
+        <div className="text-right">
+          <p className="text-sm font-bold text-white">{tx.currency || 'INR'} {tx.amount}</p>
+          <p className={`text-xs mt-1 font-medium ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
+            {(tx.risk_label || 'legit').toUpperCase()}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState<any>(null);
@@ -328,26 +354,8 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="divide-y divide-[#1F2937]/50 w-full overflow-hidden">
-                {recentTransactions.slice(0, 10).map((tx: any) => (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    key={tx.id} 
-                    className="p-4 hover:bg-[#1F2937]/30 transition-colors flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-white">{tx.merchant_name || 'Unknown'}</p>
-                      <p className="text-xs text-gray-400 font-mono mt-1">{(tx.id || '').substring(0, 13)}...</p>
-                    </div>
-                    <div className="text-right flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-white">{tx.currency} {tx.amount}</p>
-                        <p className={`text-xs mt-1 font-medium ${tx.risk_label === 'fraud' ? 'text-red-400' : tx.risk_label === 'review' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                          {(tx.risk_label || 'unknown').toUpperCase()}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
+                {recentTransactions.slice(0, 10).map((tx: any, index: number) => (
+                  <TransactionRow key={tx.id || tx.external_id || index} tx={tx} />
                 ))}
               </div>
             )}

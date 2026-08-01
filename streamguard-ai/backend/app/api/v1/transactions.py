@@ -95,15 +95,15 @@ async def analyze_transaction(
             _background_tasks.add(shadow_task)
             shadow_task.add_done_callback(_background_tasks.discard)
 
-        # 6. WebSocket Broadcast (Dashboard Live Feed)
-        try:
-            await ws_manager.broadcast(str(auth.org_id), {
+        # 6. WebSocket Broadcast & Kafka Streaming (Non-blocking async tasks for < 100ms response)
+        ws_task = asyncio.create_task(
+            ws_manager.broadcast(str(auth.org_id), {
                 "type": "new_transaction",
                 "org_id": str(auth.org_id),
                 "data": {
                     "id": str(internal_id),
                     "external_id": body.transaction_id,
-                    "merchant_name": body.merchant.name,
+                    "merchant_name": body.merchant.name if body.merchant else "",
                     "amount": float(body.amount),
                     "currency": body.currency,
                     "risk_score": float(result.risk_score),
@@ -112,8 +112,24 @@ async def analyze_transaction(
                     "created_at": datetime.now(UTC).isoformat()
                 }
             })
-        except Exception as e:
-            logger.warning(f"WebSocket broadcast failed for org {auth.org_id}: {e}")
+        )
+        _background_tasks.add(ws_task)
+        ws_task.add_done_callback(_background_tasks.discard)
+
+        kafka_task = asyncio.create_task(
+            kafka_streamer.emit_transaction({
+                "id": str(internal_id),
+                "external_id": body.transaction_id,
+                "amount": float(body.amount),
+                "currency": body.currency,
+                "org_id": str(auth.org_id),
+                "risk_score": float(result.risk_score),
+                "risk_label": result.risk_label,
+                "created_at": datetime.now(UTC).isoformat()
+            })
+        )
+        _background_tasks.add(kafka_task)
+        kafka_task.add_done_callback(_background_tasks.discard)
 
         return {
             "transaction_id": str(internal_id),

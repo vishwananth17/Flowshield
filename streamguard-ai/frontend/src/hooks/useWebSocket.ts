@@ -55,6 +55,20 @@ export const useWebSocket = () => {
             } catch (err) {
                 console.error("WS message error", err);
             }
+        let reconnectTimer: NodeJS.Timeout | null = null;
+
+        ws.onclose = () => {
+            reconnectTimer = setTimeout(() => {
+                // Trigger reconnection by state refresh if token is present
+                if (localStorage.getItem('flowshield_token')) {
+                    const wsUrlRetry = `${wsProtocol}://${wsBase}/api/v1/feed/ws?token=${token}`;
+                    new WebSocket(wsUrlRetry);
+                }
+            }, 1000);
+        };
+
+        ws.onerror = () => {
+            try { ws.close(); } catch(e) {}
         };
 
         // Ping interval mechanism to keep connection alive across proxy layers like Railway
@@ -65,6 +79,7 @@ export const useWebSocket = () => {
         }, 30000);
 
         return () => {
+            if (reconnectTimer) clearTimeout(reconnectTimer);
             clearInterval(pingInterval);
             ws.close();
         };

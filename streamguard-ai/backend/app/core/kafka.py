@@ -22,12 +22,15 @@ class KafkaStreamer:
         try:
             self.producer = AIOKafkaProducer(
                 bootstrap_servers=servers,
-                value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                linger_ms=0,
+                acks=1,
+                compression_type=None
             )
             # Upstash Kafka can sometimes hang on start() if unreachable, 
             # so we enforce a strict 5 second timeout to ensure graceful degradation.
             await asyncio.wait_for(self.producer.start(), timeout=5.0)
-            logger.info("AIOKafka producer connected successfully.")
+            logger.info("AIOKafka producer connected successfully with zero-linger fast dispatch.")
         except asyncio.TimeoutError:
             logger.error("Kafka connection timed out. Degraded mode active.")
             self.producer = None
@@ -44,7 +47,7 @@ class KafkaStreamer:
         if not self.producer:
             return
         try:
-            await self.producer.send_and_wait(self.topic, tx_data)
+            await self.producer.send(self.topic, tx_data)
         except Exception as e:
             logger.error(f"Kafka message emit failed: {e}")
 
