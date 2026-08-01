@@ -19,6 +19,7 @@ export const useWebSocket = () => {
         const wsUrl = `${wsProtocol}://${wsBase}/api/v1/feed/ws?token=${token}`;
             
         const ws = new WebSocket(wsUrl);
+        let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
         
         ws.onmessage = (event) => {
             try {
@@ -26,40 +27,16 @@ export const useWebSocket = () => {
                 if (payload.type === 'new_alert' || payload.type === 'NEW_ALERT') {
                     const alert = payload.alert || payload.data;
                     if (alert) addAlertFromSocket(alert);
-                    
-                    // Toast notifications disabled for a cleaner developer experience
-                    /*
-                    if (alert.severity === 'critical' || alert.severity === 'high') {
-                        toast.error(`New ${alert.severity} alert: ${alert.title}`, {
-                            description: alert.description,
-                            action: {
-                                label: 'Review',
-                                onClick: () => window.location.href = '/dashboard/alerts'
-                            },
-                        });
-                        
-                        // play sound if critical
-                        if (alert.severity === 'critical') {
-                            const audio = new Audio('/alert.mp3');
-                            audio.play().catch(() => {});
-                        }
-                    } else {
-                        toast(`New Alert: ${alert.title}`, {
-                            description: alert.description
-                        });
-                    }
-                    */
                 } else if (payload.type === 'new_transaction') {
                     addTransactionFromSocket(payload.data);
                 }
             } catch (err) {
                 console.error("WS message error", err);
             }
-        let reconnectTimer: NodeJS.Timeout | null = null;
+        };
 
         ws.onclose = () => {
             reconnectTimer = setTimeout(() => {
-                // Trigger reconnection by state refresh if token is present
                 if (localStorage.getItem('flowshield_token')) {
                     const wsUrlRetry = `${wsProtocol}://${wsBase}/api/v1/feed/ws?token=${token}`;
                     new WebSocket(wsUrlRetry);
@@ -71,7 +48,7 @@ export const useWebSocket = () => {
             try { ws.close(); } catch(e) {}
         };
 
-        // Ping interval mechanism to keep connection alive across proxy layers like Railway
+        // Ping interval mechanism to keep connection alive across proxy layers
         const pingInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'ping' }));
@@ -85,4 +62,3 @@ export const useWebSocket = () => {
         };
     }, [addAlertFromSocket, addTransactionFromSocket, accessToken]);
 };
-

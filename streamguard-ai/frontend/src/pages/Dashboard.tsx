@@ -1,19 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { motion, type Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Activity, 
   ShieldAlert, 
-  DollarSign, 
-  Clock, 
   Zap, 
   ArrowUpRight, 
-  ArrowDownRight 
+  ArrowDownRight,
+  Loader2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/transactionStore';
-
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 const TransactionRow = React.memo(({ tx }: { tx: any }) => {
   const isNew = Date.now() - new Date(tx.created_at || Date.now()).getTime() < 3000;
