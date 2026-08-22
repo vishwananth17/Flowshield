@@ -79,167 +79,192 @@ export default function Transactions() {
   };
 
   return (
-    <div className="space-y-6 relative">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 relative font-sans text-xs">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Transactions Feed</h1>
-          <p className="text-gray-400 mt-1">Live monitoring of your transaction stream</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-white tracking-tight">Live Transactions Feed</h1>
+            <span className="text-[10px] font-mono uppercase bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 px-2 py-0.5 rounded flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Event Stream Active
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Real-time inference packet inspection across connected merchant gateways.
+          </p>
         </div>
-        <div className="flex items-center space-x-3">
+
+        <div className="flex items-center space-x-2 self-start sm:self-auto">
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
             <select 
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[#1F2937] border border-[#374151] rounded-lg text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs text-slate-300 appearance-none focus:outline-none focus:border-blue-500 font-mono"
             >
               <option value="all">All Risk Levels</option>
-              <option value="fraud">Fraud</option>
-              <option value="review">Review</option>
-              <option value="safe">Safe</option>
+              <option value="fraud">Fraud (Block)</option>
+              <option value="review">Review (Flag)</option>
+              <option value="safe">Safe (Allow)</option>
             </select>
           </div>
-          <Button 
-            variant="outline" 
+          <button 
             onClick={handleExport}
-            className="text-gray-300 border-[#374151] hover:bg-[#1F2937]"
+            className="flex items-center gap-1.5 text-slate-300 border border-slate-800 bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded text-xs font-mono transition-colors"
           >
-            <Download className="mr-2 h-4 w-4" /> Export CSV
-          </Button>
+            <Download className="h-3.5 w-3.5" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2 focus-within:border-blue-500/50 transition-colors">
-        <Search className="h-4 w-4 text-gray-500 mr-3" />
+      {/* Search Bar */}
+      <div className="flex items-center bg-slate-950 border border-slate-800 rounded px-3 py-1.5 focus-within:border-blue-500/80 transition-colors">
+        <Search className="h-3.5 w-3.5 text-slate-500 mr-2.5" />
         <input 
           type="text"
-          placeholder="Search by Merchant, ID, or Reference..."
+          placeholder="Filter by Transaction ID, Merchant, or External Reference..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
+          className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-slate-500 font-mono"
         />
       </div>
 
-      <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80 overflow-hidden">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-[#1F2937]/50 border-b border-[#1F2937]/50">
+      {/* Dense Table */}
+      <div className="bg-[#0D131F] border border-slate-800 rounded overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="text-[11px] text-slate-400 uppercase font-mono bg-slate-950/80 border-b border-slate-800">
+              <tr>
+                <th className="px-3.5 py-2.5">Transaction ID</th>
+                <th className="px-3.5 py-2.5">Amount</th>
+                <th className="px-3.5 py-2.5">Merchant / Store</th>
+                <th className="px-3.5 py-2.5">Inference Score</th>
+                <th className="px-3.5 py-2.5">Decision</th>
+                <th className="px-3.5 py-2.5">Timestamp</th>
+                <th className="px-3.5 py-2.5 text-right">Forensics</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-sans">
+              {loading && filteredTransactions.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-4">Transaction ID</th>
-                  <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4">Merchant</th>
-                  <th className="px-6 py-4 text-center">Risk Analysis</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500 font-mono">
+                    Intercepting transaction telemetry stream...
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1F2937]/30">
-                {loading && filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 italic">
-                      Intercepting transaction packets...
-                    </td>
-                  </tr>
-                ) : filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                      No matches found for your current filters.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedTransactions.map((tx, idx) => (
+              ) : filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500 font-mono">
+                    No transactions match the selected filter criteria.
+                  </td>
+                </tr>
+              ) : (
+                paginatedTransactions.map((tx, idx) => {
+                  const isFraud = tx.risk_label === 'fraud' || tx.risk_score >= 0.75;
+                  const isReview = tx.risk_label === 'review' || (tx.risk_score >= 0.40 && tx.risk_score < 0.75);
+                  
+                  return (
                     <tr 
                       key={tx.id} 
                       onClick={() => setSelectedTxId(tx.id)}
-                      className={`group border-b border-[#1F2937] ${idx % 2 === 0 ? 'bg-[#0A0E1A]' : 'bg-[#111827]'} hover:bg-blue-500/5 transition-colors cursor-pointer`}
+                      className={`group hover:bg-slate-900/50 transition-colors cursor-pointer ${idx % 2 === 0 ? 'bg-[#0D131F]' : 'bg-[#0A0E1A]'}`}
                     >
-                      <td className="px-6 py-4 font-mono text-gray-300 group-hover:text-blue-400 transition-colors">
-                        {tx.external_id || tx.id.substring(0, 13)}
+                      <td className="px-3.5 py-2.5 font-mono text-slate-300 group-hover:text-blue-400 transition-colors">
+                        {tx.external_id || (tx.id ? tx.id.substring(0, 16) : 'tx_live')}
                       </td>
-                      <td className="px-6 py-4 font-medium text-white">
-                        {tx.currency} {tx.amount}
+                      <td className="px-3.5 py-2.5 font-mono font-bold text-white">
+                        {tx.currency === 'INR' ? '₹' : tx.currency || '$'}{Number(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-6 py-4 text-gray-300">
-                        {tx.merchant_name || 'Unknown'}
+                      <td className="px-3.5 py-2.5 text-slate-300 font-mono text-[11px]">
+                        {tx.merchant_name || 'store_checkout'}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 w-24">
-                          <span className="font-mono text-xs">{tx.risk_score.toFixed(2)}</span>
-                          <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                      <td className="px-3.5 py-2.5">
+                        <div className="flex items-center space-x-2 w-28 font-mono">
+                          <span className={`text-[11px] font-bold ${isFraud ? 'text-red-400' : isReview ? 'text-amber-400' : 'text-emerald-400'}`}>
+                            {Number(tx.risk_score || 0).toFixed(2)}
+                          </span>
+                          <div className="w-full bg-slate-800 h-1 rounded overflow-hidden">
                             <div 
-                              className={`h-full ${getRiskColor(tx.risk_score)}`} 
-                              style={{ width: `${Math.min(100, Math.max(0, tx.risk_score * 100))}%` }}
-                            ></div>
+                              className={`h-full ${isFraud ? 'bg-red-500' : isReview ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                              style={{ width: `${Math.min(100, Math.max(0, (tx.risk_score || 0) * 100))}%` }}
+                            />
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <Badge variant={tx.risk_label as any} pulsingDot={tx.risk_label === 'fraud' || tx.risk_label === 'review'}>
-                          {tx.risk_label.toUpperCase()}
-                        </Badge>
+                      <td className="px-3.5 py-2.5 font-mono">
+                        {isFraud ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-950/60 border border-red-800/80 text-red-400">
+                            • BLOCK
+                          </span>
+                        ) : isReview ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-950/60 border border-amber-800/80 text-amber-400">
+                            • REVIEW
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
+                            • ALLOW
+                          </span>
+                        )}
                       </td>
-                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                        {new Date(tx.created_at).toLocaleTimeString()}
+                      <td className="px-3.5 py-2.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                        {new Date(tx.created_at || Date.now()).toLocaleTimeString()}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                      <td className="px-3.5 py-2.5 text-right">
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedTxId(tx.id);
                           }}
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 font-bold text-[10px] uppercase tracking-widest"
+                          className="text-slate-400 hover:text-white bg-slate-900 hover:bg-blue-600 border border-slate-800 hover:border-blue-500 px-2 py-0.5 rounded text-[11px] font-mono transition-all"
                         >
-                          Details
-                        </Button>
+                          Inspect →
+                        </button>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-800 bg-slate-950/40 gap-3 font-mono text-[11px] text-slate-400">
+          <div>
+            Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} transactions
           </div>
-          
-          {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-[#1F2937]/80 gap-4">
-            <div className="text-xs text-gray-400 font-medium">
-              Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
-            </div>
-            <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-2.5 py-1 rounded border border-slate-800 bg-slate-900 text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-7 h-6 rounded text-xs transition-all ${
+                  currentPage === page
+                    ? 'bg-blue-600 text-white font-bold'
+                    : 'border border-slate-800 bg-slate-950 text-slate-400 hover:text-white'
+                }`}
               >
-                Previous
+                {page}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Next
-              </button>
-            </div>
+            ))}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-2.5 py-1 rounded border border-slate-800 bg-slate-900 text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              Next
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Overlay Backdrop */}
       {selectedTxId && (

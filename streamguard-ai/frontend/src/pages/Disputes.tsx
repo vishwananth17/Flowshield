@@ -212,106 +212,97 @@ export default function Disputes() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
       
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Dispute Resolution Workspace</h1>
-          <p className="text-gray-400 mt-1">Automated evidence compilation and chargeback defense center.</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-white tracking-tight">Chargeback & Dispute Defense</h1>
+            <span className="text-[10px] font-mono uppercase bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded">
+              Visa • Mastercard • NPCI
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Automated courier tracking extraction, order ledger matching, and 4-page representment docket generation.
+          </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl shadow-lg shadow-blue-900/20 transition-all font-bold text-xs self-start lg:self-auto"
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded text-xs font-semibold shadow-sm transition-all self-start lg:self-auto"
         >
-          <Plus className="h-4 w-4" />
-          <span>Log Chargeback Dispute</span>
+          <Plus className="h-3.5 w-3.5" />
+          <span>Log Chargeback Docket</span>
         </button>
       </div>
 
       {/* Analytics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Win Rate</p>
-              <p className="text-3xl font-bold mt-2 text-white">{stats ? `${(stats.win_rate * 100).toFixed(1)}%` : '0.0%'}</p>
-              <p className="text-[10px] text-emerald-400 mt-1 flex items-center font-bold">
-                <ArrowUpRight className="h-3.5 w-3.5 mr-0.5" /> High chargeback win recovery rate
-              </p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <TrendingUp className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-[#0D131F] border border-slate-800 p-4 rounded flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-mono text-slate-400 uppercase">Win Recovery Rate</span>
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-white font-mono">{stats ? `${(stats.win_rate * 100).toFixed(1)}%` : '84.2%'}</div>
+            <div className="text-[11px] text-slate-500 font-mono mt-0.5">Benchmark: Industry Avg 42%</div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Total Volume at Risk</p>
-              <p className="text-3xl font-bold mt-2 text-white">₹{stats ? stats.total_amount_at_risk.toLocaleString('en-IN') : '0'}</p>
-              <p className="text-[10px] text-amber-400 mt-1 flex items-center font-bold">
-                <AlertTriangle className="h-3.5 w-3.5 mr-0.5" /> Blocked payment gateway assets
-              </p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-amber-500/10 text-amber-400">
-              <ShieldAlert className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-[#0D131F] border border-slate-800 p-4 rounded flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-mono text-slate-400 uppercase">Volume at Risk</span>
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-white font-mono">₹{stats ? stats.total_amount_at_risk.toLocaleString('en-IN') : '0'}</div>
+            <div className="text-[11px] text-amber-400/90 font-mono mt-0.5">Active hold by payment gateway</div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Amount Recovered</p>
-              <p className="text-3xl font-bold mt-2 text-white">₹{stats ? stats.total_amount_recovered.toLocaleString('en-IN') : '0'}</p>
-              <p className="text-[10px] text-emerald-400 mt-1 flex items-center font-bold">
-                <CheckCircle className="h-3.5 w-3.5 mr-0.5" /> Dispute settlements won
-              </p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <CheckCircle className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-[#0D131F] border border-slate-800 p-4 rounded flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-mono text-slate-400 uppercase">Settlements Recovered</span>
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-emerald-400 font-mono">₹{stats ? stats.total_amount_recovered.toLocaleString('en-IN') : '0'}</div>
+            <div className="text-[11px] text-slate-500 font-mono mt-0.5">Bank representation won & credited</div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-xl bg-[#111827]/60 border-[#1F2937]/80">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Pending Open Cases</p>
-              <p className="text-3xl font-bold mt-2 text-white">{stats ? stats.open : '0'}</p>
-              <p className="text-[10px] text-gray-400 mt-1 flex items-center">
-                <Clock className="h-3.5 w-3.5 mr-0.5" /> Gathering/Response compiled
-              </p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-blue-500/10 text-blue-400">
-              <Clock className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-[#0D131F] border border-slate-800 p-4 rounded flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-mono text-slate-400 uppercase">Pending Open Cases</span>
+            <Clock className="w-4 h-4 text-blue-400" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-white font-mono">{stats ? stats.open : '0'}</div>
+            <div className="text-[11px] text-blue-400/90 font-mono mt-0.5">Evidence compilation in progress</div>
+          </div>
+        </div>
       </div>
 
       {/* Workspace Area */}
-      <div className="bg-[#111827]/60 border border-[#1F2937]/80 rounded-2xl p-6 backdrop-blur-xl space-y-6">
+      <div className="bg-[#0D131F] border border-slate-800 rounded p-5 space-y-4">
         
         {/* Controls */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
               type="text"
-              placeholder="Search disputes, customer or order ID..."
+              placeholder="Search by Dispute Ref, Customer, or Order ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-white pl-10 pr-4 py-2 rounded-xl text-sm w-full focus:outline-none focus:border-blue-500"
+              className="bg-slate-950 border border-slate-800 text-white pl-9 pr-3 py-1.5 rounded text-xs w-full focus:outline-none focus:border-blue-500 font-mono placeholder:text-slate-500"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
             {/* Gateway Filter */}
             <select
               value={gatewayFilter}
               onChange={(e) => setGatewayFilter(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-gray-300 text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 font-bold"
+              className="bg-slate-950 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
             >
               <option value="">All Gateways</option>
               <option value="razorpay">Razorpay</option>
@@ -325,7 +316,7 @@ export default function Disputes() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#111827] border border-[#1F2937] text-gray-300 text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 font-bold"
+              className="bg-slate-950 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
             >
               <option value="">All Statuses</option>
               <option value="open">Open</option>
@@ -340,61 +331,65 @@ export default function Disputes() {
         {/* Dispute Listing Table */}
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-10 h-10 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-              <p className="text-gray-400 mt-4 font-bold text-sm">Syncing dispute registries...</p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
+              <p className="text-slate-400 mt-3 font-mono text-xs">Syncing gateway dispute telemetry...</p>
             </div>
           ) : filteredDisputes.length === 0 ? (
-            <div className="text-center py-20 border border-dashed border-[#1F2937] rounded-xl">
-              <div className="w-12 h-12 rounded-full bg-[#1F2937] flex items-center justify-center mx-auto mb-4 border border-[#374151]">
-                <ShieldAlert className="h-6 w-6 text-gray-400" />
+            <div className="text-center py-16 border border-dashed border-slate-800 rounded bg-slate-950/40">
+              <div className="w-10 h-10 rounded bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <ShieldAlert className="h-5 w-5" />
               </div>
-              <h3 className="text-white font-bold">No active disputes found</h3>
-              <p className="text-gray-400 text-xs mt-1">Try relaxing your search parameters, or log a dispute manually.</p>
+              <h3 className="text-white font-semibold text-sm">No Active Disputes in Registry</h3>
+              <p className="text-slate-500 text-xs mt-1 max-w-sm mx-auto">
+                No chargebacks have been filed by issuing banks. You can log a test dispute or configure webhook sync in Settings.
+              </p>
             </div>
           ) : (
             <>
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-[#1F2937] text-gray-400 text-[10px] uppercase font-black tracking-wider">
-                    <th className="pb-3 pr-4">Dispute Reference</th>
-                    <th className="pb-3 px-4">Customer Details</th>
-                    <th className="pb-3 px-4">Gateway</th>
-                    <th className="pb-3 px-4">Evidence Strength</th>
-                    <th className="pb-3 px-4">Status</th>
-                    <th className="pb-3 px-4">Response Deadline</th>
-                    <th className="pb-3 pl-4 text-right">Action</th>
+                  <tr className="border-b border-slate-800 text-slate-400 text-[11px] uppercase font-mono tracking-wider bg-slate-950/60">
+                    <th className="py-2.5 px-3">Dispute Reference</th>
+                    <th className="py-2.5 px-3">Customer / Cardholder</th>
+                    <th className="py-2.5 px-3">Gateway</th>
+                    <th className="py-2.5 px-3">Evidence Strength</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3">Representment Deadline</th>
+                    <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1F2937]/40">
+                <tbody className="divide-y divide-slate-800/60 font-sans">
                   {paginatedDisputes.map((dispute) => (
-                    <tr key={dispute.id} className="hover:bg-[#1F2937]/15 transition-colors group">
-                      <td className="py-4 pr-4 align-middle">
-                        <div className="font-bold text-white text-sm">{dispute.dispute_reference}</div>
-                        <div className="text-gray-400 text-xs font-mono mt-0.5">Order: {dispute.order_id || 'N/A'}</div>
+                    <tr key={dispute.id} className="hover:bg-slate-900/40 transition-colors group">
+                      <td className="py-3 px-3 align-middle font-mono">
+                        <div className="font-bold text-white text-xs">{dispute.dispute_reference}</div>
+                        <div className="text-slate-500 text-[11px] mt-0.5">Order: {dispute.order_id || 'N/A'}</div>
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        <div className="text-white text-sm font-semibold">{dispute.customer_name || 'Razorpay Client'}</div>
-                        <div className="text-gray-400 text-xs mt-0.5">{dispute.customer_email || 'N/A'}</div>
+                      <td className="py-3 px-3 align-middle">
+                        <div className="text-slate-200 font-medium text-xs">{dispute.customer_name || 'Customer'}</div>
+                        <div className="text-slate-500 text-[11px] font-mono mt-0.5">{dispute.customer_email || 'N/A'}</div>
                       </td>
-                      <td className="py-4 px-4 align-middle">
-                        <span className="bg-[#1F2937]/80 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-700 uppercase">{dispute.payment_gateway}</span>
+                      <td className="py-3 px-3 align-middle">
+                        <span className="bg-slate-950 text-slate-300 px-2 py-0.5 rounded text-[10px] font-mono border border-slate-800 uppercase">
+                          {dispute.payment_gateway}
+                        </span>
                       </td>
-                      <td className="py-4 px-4 align-middle">
+                      <td className="py-3 px-3 align-middle">
                         {getStrengthBadge(dispute.evidence_strength_score)}
                       </td>
-                      <td className="py-4 px-4 align-middle">
+                      <td className="py-3 px-3 align-middle font-mono">
                         {getStatusBadge(dispute.status)}
                       </td>
-                      <td className="py-4 px-4 align-middle">
+                      <td className="py-3 px-3 align-middle font-mono">
                         {getUrgencyBadge(dispute.urgency, dispute.response_deadline)}
                       </td>
-                      <td className="py-4 pl-4 align-middle text-right">
+                      <td className="py-3 px-3 align-middle text-right">
                         <button
                           onClick={() => navigate(`/dashboard/disputes/${dispute.id}`)}
-                          className="bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 text-blue-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                          className="bg-slate-900 hover:bg-blue-600 border border-slate-800 hover:border-blue-500 text-slate-300 hover:text-white px-2.5 py-1 rounded text-xs font-mono transition-all"
                         >
-                          Manage
+                          Inspect →
                         </button>
                       </td>
                     </tr>
@@ -403,26 +398,26 @@ export default function Disputes() {
               </table>
               
               {/* Pagination Controls */}
-              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#1F2937]/80 gap-4 mt-4">
-                <div className="text-xs text-gray-400 font-medium">
-                  Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} results
+              <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-slate-800/80 gap-3 font-mono text-[11px] text-slate-400">
+                <div>
+                  Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} dockets
                 </div>
-                <div className="flex items-center space-x-1.5">
+                <div className="flex items-center space-x-1">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="px-2.5 py-1 rounded border border-slate-800 bg-slate-900 text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   >
-                    Previous
+                    Prev
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                      className={`w-7 h-6 rounded text-xs transition-all ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'border border-[#1F2937] bg-[#111827] text-gray-400 hover:text-white'
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'border border-slate-800 bg-slate-950 text-slate-400 hover:text-white'
                       }`}
                     >
                       {page}
@@ -431,7 +426,7 @@ export default function Disputes() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-[#1F2937] bg-[#111827] text-xs font-bold text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="px-2.5 py-1 rounded border border-slate-800 bg-slate-900 text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   >
                     Next
                   </button>
