@@ -27,8 +27,10 @@ import ServiceLevelAgreement from '@/pages/legal/ServiceLevelAgreement';
 import CookiePolicy from '@/pages/legal/CookiePolicy';
 import SecurityPolicy from '@/pages/legal/SecurityPolicy';
 import CookieConsent from '@/components/CookieConsent';
+import PageTitleTracker from '@/components/PageTitleTracker';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import NotFound from '@/pages/NotFound';
+import ThankYou from '@/pages/ThankYou';
 
 function App() {
   useAutoLogout();
@@ -37,10 +39,13 @@ function App() {
       <ErrorBoundary>
         <Toaster position="top-right" richColors closeButton />
         <CookieConsent />
+        <PageTitleTracker />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/welcome" element={<ThankYou />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/developers" element={<DevPortal />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

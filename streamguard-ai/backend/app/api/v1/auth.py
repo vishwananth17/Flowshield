@@ -83,38 +83,48 @@ async def register(
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> RegisterResponse:
-    org = Organization(name=body.organization_name.strip())
-    db.add(org)
-    await db.flush()
-
-    user = User(
-        org_id=org.id,
-        email=str(body.email).lower().strip(),
-        password_hash=hash_password(body.password),
-        full_name=body.full_name.strip() if body.full_name else None,
-        role="owner",
-    )
-    db.add(user)
-    await db.flush()
-
-    raw_key, prefix_display, key_hash = generate_api_key("live")
-    api_row = ApiKey(
-        org_id=org.id,
-        name="Default",
-        key_hash=key_hash,
-        key_prefix=prefix_display[:20],
-        environment="live",
-        created_by=user.id,
-    )
-    db.add(api_row)
+    normalized_email = str(body.email).lower().strip()
+    
+    # Check if user already exists
+    existing_user_stmt = select(User).where(User.email == normalized_email)
+    existing_res = await db.execute(existing_user_stmt)
+    if existing_res.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists. Please log in instead.",
+        )
 
     try:
+        org = Organization(name=body.organization_name.strip())
+        db.add(org)
+        await db.flush()
+
+        user = User(
+            org_id=org.id,
+            email=normalized_email,
+            password_hash=hash_password(body.password),
+            full_name=body.full_name.strip() if body.full_name else None,
+            role="owner",
+        )
+        db.add(user)
+        await db.flush()
+
+        raw_key, prefix_display, key_hash = generate_api_key("live")
+        api_row = ApiKey(
+            org_id=org.id,
+            name="Default",
+            key_hash=key_hash,
+            key_prefix=prefix_display[:20],
+            environment="live",
+            created_by=user.id,
+        )
+        db.add(api_row)
         await db.commit()
     except IntegrityError:
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
+            detail="An account with this email already exists. Please log in instead.",
         )
 
     await db.refresh(org)

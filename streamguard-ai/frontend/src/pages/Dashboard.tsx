@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { 
   Activity, 
   ShieldAlert, 
   Zap, 
   ArrowUpRight, 
   ArrowDownRight,
-  Loader2
+  Loader2,
+  DollarSign,
+  Clock,
+  IndianRupee
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/transactionStore';

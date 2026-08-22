@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,18 +7,18 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --bg-primary: #0A0E1A;       /* Deep navy — main background */
-    --bg-secondary: #0F172A;     /* Slate 900 — Card backgrounds */
-    --bg-tertiary: #1E293B;      /* Slate 800 — Input fields, hover states */
-    --bg-elevated: #111827;      /* Modals, dropdowns */
+    --bg-primary: #080C14;       /* Obsidian Black-Slate — main background */
+    --bg-secondary: #0D131F;     /* Deep Slate — Card backgrounds */
+    --bg-tertiary: #162032;      /* Midnight Blue-Slate — Input fields, hover states */
+    --bg-elevated: #111927;      /* Modals, dropdowns */
 
     /* Brand */
-    --accent-blue: #3B82F6;      /* Blue 500 */
-    --accent-blue-bright: #60A5FA;
+    --accent-blue: #2563EB;      /* Precision Blue 600 */
+    --accent-blue-bright: #3B82F6;
     --accent-emerald: #10B981;   /* Emerald 500 */
     --accent-red: #EF4444;       /* Red 500 */
     --accent-amber: #F59E0B;     /* Amber 500 */
-    --accent-purple: #8B5CF6;    /* Violet 500 */
+    --accent-purple: #6366F1;    /* Indigo 500 */
 
     /* Text */
     --text-primary: #F8FAFC;     /* Slate 50 */
@@ -27,24 +27,25 @@
 
     /* Borders */
     --border-primary: #1E293B;   /* Slate 800 */
-    --border-accent: #3B82F6;
+    --border-accent: #2563EB;
 
     /* Status */
     --status-safe: #10B981;
     --status-suspicious: #F59E0B;
     --status-fraud: #EF4444;
-    --status-review: #8B5CF6;
+    --status-review: #6366F1;
 
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-body: 'Space Grotesk', sans-serif;
+    /* GitHub-style Developer Typography Stack */
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     
     /* Shadcn defaults - Dark Mode */
-    --background: 222.2 84% 4.9%;
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 224 71% 6%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 224 71% 6%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -59,7 +60,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
-    --radius: 1rem;
+    --radius: 0.5rem;
   }
 }
 
@@ -67,13 +68,19 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground font-body;
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight text-white;
+  }
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
   }
 }
 
