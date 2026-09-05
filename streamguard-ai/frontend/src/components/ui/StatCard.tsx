@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from './Card';
+import { Card } from './card';
 import { useCountUp } from '@/hooks/useAnimation';
 import { ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';

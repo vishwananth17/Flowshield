@@ -24,8 +24,8 @@ import {
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

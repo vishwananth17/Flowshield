@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/StatCard';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { NativeAreaChart, NativeDonutChart } from '@/components/ui/Charts';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { Shield, ArrowRight, Activity, AlertCircle, Clock, ChevronRight } from 'lucide-react';

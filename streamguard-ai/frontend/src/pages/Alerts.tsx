@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAlertStore } from '@/stores/alertStore';
 import { AlertDrawer } from '@/components/AlertDrawer';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { StatCard } from '@/components/ui/StatCard';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActionCell } from '@/components/ui/Table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableActionCell } from '@/components/ui/table';
 import { 
   AlertTriangle, 
   CheckCircle, 

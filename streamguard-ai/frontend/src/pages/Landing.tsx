@@ -17,9 +17,9 @@ import {
   RefreshCw,
   ExternalLink
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { MotionDiv, MotionSection } from '@/components/ui/Motion';
 import EnterpriseModal from '@/components/EnterpriseModal';
 import { toast } from 'sonner';
