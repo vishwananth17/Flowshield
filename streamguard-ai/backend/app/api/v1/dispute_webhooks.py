@@ -183,6 +183,33 @@ async def razorpay_dispute_webhook(
             triggered_by="auto"
         ))
 
+        # 3b. Feed dispute into continuous learning loop if transaction matched
+        if transaction_id and matched_tx:
+            try:
+                from app.models.transaction_outcome import TransactionOutcome
+                from app.workers.feedback_learner import FeedbackLearner
+                from app.core.redis import get_redis_client
+
+                outcome = TransactionOutcome(
+                    transaction_id=transaction_id,
+                    org_id=org_id,
+                    original_decision=matched_tx.decision,
+                    original_risk_score=matched_tx.risk_score,
+                    outcome_type="dispute_filed",
+                    outcome_date=datetime.now(UTC),
+                    days_after_transaction=(datetime.now(UTC) - matched_tx.created_at).days if matched_tx.created_at else 0,
+                    outcome_source="razorpay_dispute_webhook",
+                    feedback_label=None,
+                    notes=f"Dispute ref {dispute_ref} created automatically via Razorpay webhook."
+                )
+                db.add(outcome)
+                await db.flush()
+
+                learner = FeedbackLearner(get_redis_client())
+                await learner.process_new_outcome(outcome, db=db, tx=matched_tx)
+            except Exception as e:
+                logger.warning(f"FeedbackLearner notice on webhook dispute create: {e}")
+
         # Schedule reminders
         now = datetime.now(UTC)
         reminder_configs = [
@@ -235,6 +262,40 @@ async def razorpay_dispute_webhook(
             event_description=f"Dispute resolved and marked as '{outcome}' via Razorpay webhook.",
             triggered_by="auto"
         ))
+
+        # Feed outcome into continuous learning loop if transaction is linked
+        if dispute.transaction_id:
+            try:
+                from app.models.transaction_outcome import TransactionOutcome
+                from app.workers.feedback_learner import FeedbackLearner
+                from app.core.redis import get_redis_client
+
+                tx_stmt = select(Transaction).where(Transaction.id == dispute.transaction_id)
+                tx_res = await db.execute(tx_stmt)
+                tx = tx_res.scalar_one_or_none()
+
+                outcome_type = "chargeback_received" if outcome == "lost" else ("fraud_cleared" if outcome == "won" else "dispute_resolved")
+                feedback_label = 1 if outcome == "lost" else (0 if outcome == "won" else None)
+
+                feed_outcome = TransactionOutcome(
+                    transaction_id=dispute.transaction_id,
+                    org_id=dispute.org_id,
+                    original_decision=tx.decision if tx else None,
+                    original_risk_score=tx.risk_score if tx else None,
+                    outcome_type=outcome_type,
+                    outcome_date=datetime.now(UTC),
+                    days_after_transaction=(datetime.now(UTC) - tx.created_at).days if tx and tx.created_at else 0,
+                    outcome_source="razorpay_webhook_resolution",
+                    feedback_label=feedback_label,
+                    notes=f"Dispute {dispute.dispute_reference} resolved as {outcome} via webhook."
+                )
+                db.add(feed_outcome)
+                await db.flush()
+
+                learner = FeedbackLearner(get_redis_client())
+                await learner.process_new_outcome(feed_outcome, db=db, tx=tx)
+            except Exception as e:
+                logger.warning(f"FeedbackLearner notice on webhook dispute resolution: {e}")
         
         await db.commit()
         return {"status": "success", "message": f"Dispute status updated to {outcome}"}

@@ -233,6 +233,79 @@ class TestProbabilityAndDecisionEngine(unittest.IsolatedAsyncioTestCase):
         is_high_risk = await self.mock_redis.sismember("high_risk_customers:org_test_01", "cust_bad_actor_99")
         self.assertTrue(is_high_risk)
 
+    async def test_dispute_feedback_integration(self):
+        """
+        Verify that dispute outcomes (chargeback_received on lost, fraud_cleared on won)
+        dynamically adjust customer risk profiles via FeedbackLearner.
+        """
+        from app.workers.feedback_learner import FeedbackLearner
+        from app.models.transaction_outcome import TransactionOutcome
+        from datetime import datetime, UTC
+        from unittest.mock import MagicMock
+        import uuid
+
+        learner = FeedbackLearner(self.mock_redis)
+
+        mock_tx = MagicMock()
+        mock_tx.customer_id = "cust_dispute_01"
+        mock_tx.signals_json = {}
+        mock_tx.created_at = datetime.now(UTC)
+        mock_tx.decision = "allow"
+        mock_tx.risk_score = Decimal("0.2500")
+
+        test_org_id = uuid.uuid4()
+
+        # 1. Dispute lost (chargeback confirmed -> label=1)
+        lost_outcome = TransactionOutcome(
+            id=uuid.uuid4(),
+            transaction_id=uuid.uuid4(),
+            org_id=test_org_id,
+            original_decision="allow",
+            original_risk_score=Decimal("0.2500"),
+            outcome_type="chargeback_received",
+            outcome_date=datetime.now(UTC),
+            days_after_transaction=14,
+            outcome_source="dispute_resolution",
+            feedback_label=1,
+            notes="Dispute lost by merchant."
+        )
+
+        res_lost = await learner.process_new_outcome(
+            outcome=lost_outcome,
+            db=None,
+            tx=mock_tx
+        )
+        self.assertEqual(res_lost["status"], "processed")
+        self.assertTrue(res_lost["is_fraud"])
+        self.assertIn("customer_profile", res_lost)
+        self.assertEqual(res_lost["customer_profile"]["fraud_count"], "1")
+
+        # 2. Dispute won (merchant defended successfully -> label=0)
+        won_outcome = TransactionOutcome(
+            id=uuid.uuid4(),
+            transaction_id=uuid.uuid4(),
+            org_id=test_org_id,
+            original_decision="challenge",
+            original_risk_score=Decimal("0.5500"),
+            outcome_type="fraud_cleared",
+            outcome_date=datetime.now(UTC),
+            days_after_transaction=10,
+            outcome_source="dispute_resolution",
+            feedback_label=0,
+            notes="Dispute won by merchant with delivery proof."
+        )
+
+        res_won = await learner.process_new_outcome(
+            outcome=won_outcome,
+            db=None,
+            tx=mock_tx
+        )
+        self.assertEqual(res_won["status"], "processed")
+        self.assertFalse(res_won["is_fraud"])
+        self.assertIn("customer_profile", res_won)
+        self.assertEqual(res_won["customer_profile"]["fraud_count"], "1")  # preserved from prior
+        self.assertEqual(res_won["customer_profile"]["total_transactions"], "3")
+
 
 if __name__ == "__main__":
     unittest.main()
