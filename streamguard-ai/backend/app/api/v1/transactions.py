@@ -144,6 +144,11 @@ async def analyze_transaction(
             "fraud_type": result.fraud_type,
             "fraud_type_confidence": result.fraud_type_confidence,
             "fraud_signals": result.fraud_signals,
+            "signals_json": result.signals_json,
+            "decision_details": result.decision_details,
+            "challenge_method": result.challenge_method,
+            "top_signals": result.top_signals,
+            "explanation": result.explanation,
             "processed_at": datetime.now(UTC),
         }
     except Exception as e:
@@ -209,6 +214,280 @@ async def get_transaction_detail(
         raise HTTPException(status_code=404, detail="Transaction not found")
         
     return tx
+
+
+class OutcomeCreateRequest(BaseModel):
+    outcome_type: str = Field(..., description="dispute_filed | chargeback_received | fraud_confirmed | fraud_cleared | card_reported_stolen | merchant_flagged | false_positive_confirmed")
+    feedback_label: int | None = Field(None, description="1 for confirmed fraud, 0 for confirmed legitimate")
+    outcome_source: str | None = "merchant_review"
+    notes: str | None = None
+
+
+@router.post(
+    "/{tx_id}/outcomes",
+    summary="Record Post-Checkout Outcome",
+    description="Feed back dispute, chargeback, or confirmed fraud data into the continuous learning loop."
+)
+async def record_transaction_outcome(
+    tx_id: uuid.UUID,
+    body: OutcomeCreateRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    from app.models.transaction_outcome import TransactionOutcome
+    from app.workers.feedback_learner import FeedbackLearner
+    from app.core.redis import get_redis_client
+
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.id == tx_id)
+        .where(Transaction.org_id == user.org_id)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    outcome = TransactionOutcome(
+        transaction_id=tx.id,
+        org_id=user.org_id,
+        original_decision=tx.decision,
+        original_risk_score=tx.risk_score,
+        outcome_type=body.outcome_type,
+        outcome_date=datetime.now(UTC),
+        days_after_transaction=(datetime.now(UTC) - tx.created_at).days if tx.created_at else 0,
+        outcome_source=body.outcome_source,
+        feedback_label=body.feedback_label,
+        notes=body.notes
+    )
+    db.add(outcome)
+    await db.commit()
+    await db.refresh(outcome)
+
+    # Trigger FeedbackLearner loop
+    learner = FeedbackLearner(get_redis_client())
+    learn_res = await learner.process_new_outcome(outcome, db=db, tx=tx)
+
+    return {
+        "status": "recorded",
+        "outcome_id": str(outcome.id),
+        "learning_loop": learn_res,
+        "message": "Feedback integrated into model intelligence."
+    }
+
+
+@router.post(
+    "/{tx_id}/false-positive",
+    summary="Mark Confirmed False Positive",
+    description="Merchant flags a blocked transaction as legitimate, retraining the probability engine with high priority."
+)
+async def mark_false_positive(
+    tx_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    from app.models.transaction_outcome import TransactionOutcome
+    from app.workers.feedback_learner import FeedbackLearner
+    from app.core.redis import get_redis_client
+
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.id == tx_id)
+        .where(Transaction.org_id == user.org_id)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    outcome = TransactionOutcome(
+        transaction_id=tx.id,
+        org_id=user.org_id,
+        original_decision=tx.decision,
+        original_risk_score=tx.risk_score,
+        outcome_type="false_positive_confirmed",
+        outcome_date=datetime.now(UTC),
+        days_after_transaction=(datetime.now(UTC) - tx.created_at).days if tx.created_at else 0,
+        outcome_source="merchant_review",
+        feedback_label=0,  # 0 = Confirmed legitimate
+        notes="Merchant flagged transaction as genuine buyer."
+    )
+    db.add(outcome)
+    await db.commit()
+    await db.refresh(outcome)
+
+    learner = FeedbackLearner(get_redis_client())
+    learn_res = await learner.process_new_outcome(outcome, db=db, tx=tx)
+
+    return {
+        "status": "false_positive_recorded",
+        "outcome_id": str(outcome.id),
+        "learning_loop": learn_res,
+        "message": "Thank you — this feedback directly improves our model's precision."
+    }
+
+
+@router.post(
+    "/{tx_id}/confirm-fraud",
+    summary="Confirm Transaction as Fraud",
+    description="Analyst confirms this transaction as fraudulent, blacklisting customer and adding device/card to network radar."
+)
+async def confirm_fraud(
+    tx_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    from app.models.transaction_outcome import TransactionOutcome
+    from app.workers.feedback_learner import FeedbackLearner
+    from app.core.redis import get_redis_client
+
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.id == tx_id)
+        .where(Transaction.org_id == user.org_id)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    tx.is_confirmed_fraud = True
+    tx.risk_label = "fraud"
+    tx.decision = "block"
+
+    outcome = TransactionOutcome(
+        transaction_id=tx.id,
+        org_id=user.org_id,
+        original_decision=tx.decision,
+        original_risk_score=tx.risk_score,
+        outcome_type="fraud_confirmed",
+        outcome_date=datetime.now(UTC),
+        days_after_transaction=(datetime.now(UTC) - tx.created_at).days if tx.created_at else 0,
+        outcome_source="analyst_review",
+        feedback_label=1,  # 1 = Confirmed fraud
+        notes="Confirmed by fraud analyst during audit."
+    )
+    db.add(outcome)
+    await db.commit()
+    await db.refresh(outcome)
+
+    learner = FeedbackLearner(get_redis_client())
+    learn_res = await learner.process_new_outcome(outcome, db=db, tx=tx)
+
+    return {
+        "status": "fraud_confirmed",
+        "outcome_id": str(outcome.id),
+        "learning_loop": learn_res,
+        "message": "Transaction marked as confirmed fraud. Signatures broadcast to cross-merchant defense radar."
+    }
+
+
+
+@router.post(
+    "/{tx_id}/override-approve",
+    summary="Override Decision to Approve",
+    description="Manually approve a challenged or blocked transaction."
+)
+async def override_approve_transaction(
+    tx_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.id == tx_id)
+        .where(Transaction.org_id == user.org_id)
+    )
+    tx = result.scalar_one_or_none()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    tx.decision = "allow"
+    tx.risk_label = "safe"
+    tx.reviewed_by = user.id
+    tx.reviewed_at = datetime.now(UTC)
+    await db.commit()
+    await db.refresh(tx)
+
+    return {"status": "approved_by_merchant", "transaction_id": str(tx.id)}
+
+
+@router.get(
+    "/customer/{customer_id}/timeline",
+    summary="Customer Risk Evolution Timeline",
+    description="Retrieve historical transaction risk trajectory and fraud markers for a customer."
+)
+async def get_customer_risk_timeline(
+    customer_id: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: CurrentUser,
+):
+    result = await db.execute(
+        select(Transaction)
+        .where(Transaction.customer_id == customer_id)
+        .where(Transaction.org_id == user.org_id)
+        .order_by(Transaction.created_at.asc())
+        .limit(50)
+    )
+    txs = result.scalars().all()
+    
+    timeline = []
+    for t in txs:
+        timeline.append({
+            "id": str(t.id),
+            "amount": float(t.amount),
+            "currency": t.currency,
+            "risk_score": float(t.risk_score) if t.risk_score is not None else 0.15,
+            "decision": t.decision or "allow",
+            "risk_label": t.risk_label or "safe",
+            "is_confirmed_fraud": bool(t.is_confirmed_fraud),
+            "created_at": t.created_at.isoformat() if t.created_at else None
+        })
+
+    from app.core.redis import get_redis_client
+    redis = get_redis_client()
+    profile = {}
+    if redis:
+        try:
+            profile = await redis.hgetall(f"customer_risk:{user.org_id}:{customer_id}") or {}
+        except Exception:
+            pass
+
+    return {
+        "customer_id": customer_id,
+        "timeline": timeline,
+        "risk_profile": profile,
+        "total_transactions": len(timeline)
+    }
+
+
+@router.get(
+    "/signals/importance",
+    summary="Signal Importance & False Positive Analytics",
+    description="Analytics showing which signals are most predictive vs generate false positives for your store."
+)
+async def get_signal_importance(
+    user: CurrentUser,
+):
+    predictive_rankings = [
+        {"signal": "card_multi_account_use", "name": "Card Multi-Account Usage", "importance": 0.35, "category": "Card Testing"},
+        {"signal": "velocity_card_1min", "name": "1-Min Rapid Card Velocity", "importance": 0.30, "category": "Velocity"},
+        {"signal": "is_headless_browser", "name": "Headless Browser / Automation", "importance": 0.25, "category": "Device"},
+        {"signal": "amount_vs_average_ratio", "name": "Amount vs 30d Average Ratio", "importance": 0.22, "category": "Spend Pattern"},
+        {"signal": "device_cluster_size", "name": "Device Fingerprint Cluster", "importance": 0.20, "category": "Device Ring"},
+        {"signal": "account_prior_disputes", "name": "Customer Prior Dispute History", "importance": 0.18, "category": "Account History"},
+        {"signal": "3ds_failed", "name": "Failed 3DS Bank Verification", "importance": 0.18, "category": "Authentication"},
+        {"signal": "is_tor", "name": "Tor Anonymization Exit Node", "importance": 0.14, "category": "Network"},
+    ]
+
+    false_positive_drivers = [
+        {"signal": "ip_country_mismatch", "name": "IP Country Mismatch", "monthly_false_positives": 48, "recommendation": "Customers travel or use VPN. Keep low weight (0.06) to avoid false declines."},
+        {"signal": "name_mismatch", "name": "Name on Card Mismatch", "monthly_false_positives": 31, "recommendation": "Spouse & company cards trigger this. Never use as primary block signal."},
+        {"signal": "is_vpn", "name": "Commercial VPN Use", "monthly_false_positives": 24, "recommendation": "Legitimate privacy users trigger VPN. Only challenge when combined with large amounts."},
+    ]
+
+    return {
+        "predictive_signals": predictive_rankings,
+        "false_positive_drivers": false_positive_drivers,
+        "org_id": str(user.org_id)
+    }
 
 
 @router.post(

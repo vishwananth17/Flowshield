@@ -33,6 +33,11 @@ class FraudResult:
     fraud_type: str | None = None
     fraud_type_confidence: float | None = None
     fraud_signals: dict = None
+    signals_json: dict = None
+    decision_details: dict = None
+    challenge_method: str | None = None
+    top_signals: list = None
+    explanation: str | None = None
 
 class FraudDetectionService:
     """Production Ensemble Scorer: AST Rules + MVI Anomaly + XGBoost Classifier."""
@@ -60,6 +65,9 @@ class FraudDetectionService:
         from app.services.promo_abuse_detector import compute_promo_abuse_features
         from app.core.bot_detector import BotDetector
         from app.services.fraud_type_classifier import FraudTypeClassifier
+        from app.services.signal_collector import SignalCollector
+        from app.services.probability_engine import ProbabilityEngine
+        from app.services.decision_engine import DecisionEngine
         
         start = time.time()
         limits = get_plan_limits(plan)
@@ -222,36 +230,92 @@ class FraudDetectionService:
                 ml_score = 0.05
                 model_ver = "rules_only_v2.0"
                 
+            # 6.5. Run Multi-Signal Collection & Probability Engine
+            collector = SignalCollector(redis_client)
+            flat_tx = {
+                "amount": float(tx.amount),
+                "currency": tx.currency,
+                "customer_id": tx.customer.id,
+                "customer_name": getattr(tx.customer, 'name', '') or tx.customer.id,
+                "card_holder_name": getattr(tx.card, 'holder_name', '') or getattr(tx.customer, 'name', ''),
+                "card_last_four": tx.card.last_four,
+                "card_bin": getattr(tx.card, 'bin', '') or '',
+                "card_type": tx.card.type,
+                "card_issuing_country": tx.card.issuing_country,
+                "billing_country": getattr(tx.customer, 'billing_country', tx.customer.country),
+                "ip_address": tx.customer.ip,
+                "ip_country": tx.customer.country,
+                "device_fingerprint": tx.customer.device_fingerprint,
+                "channel": tx.channel,
+                "merchant_category": tx.merchant.category,
+                "3ds_result": getattr(tx, 'three_ds_result', None) or tx.metadata.get("3ds_result") or tx.metadata.get("three_ds_result") or "not_enrolled",
+                "is_vpn": bool(tx.metadata.get("is_vpn", False)),
+                "is_tor": bool(tx.metadata.get("is_tor", False)),
+                "is_headless_browser": bool(tx.metadata.get("is_headless_browser", False)),
+                "account_age_days": tx.metadata.get("account_age_days", 30),
+                "card_history_with_merchant": tx.metadata.get("card_history_with_merchant", 0),
+                "card_multi_account_use": tx.metadata.get("card_multi_account_use", 1),
+                "tx_count_same_card_1min": tx.metadata.get("velocity_card_1min") or tx.metadata.get("tx_count_same_card_1min") or 1,
+                **tx.metadata
+            }
+            collected_data = await collector.collect_signals(flat_tx, org_id=org_id_str, db_session=db)
+            collected_signals = collected_data["signals"]
+
+            labeled_count = 0
+            if redis_client:
+                try:
+                    c_val = await redis_client.get("ml:new_labeled_samples_count")
+                    if c_val:
+                        labeled_count = int(c_val)
+                except Exception:
+                    pass
+
+            prob_engine = ProbabilityEngine()
+            prob_result = prob_engine.compute_risk_score(
+                signals=collected_signals,
+                ml_predict_fn=lambda s: ml_score,
+                labeled_samples=labeled_count
+            )
+
+            decision_engine = DecisionEngine()
+            decision_res = decision_engine.decide(
+                risk_result=prob_result,
+                signals=collected_signals,
+                org_thresholds={"approve_below": threshold_review, "challenge_above": threshold_block}
+            )
+
             # Combine score with rule overrides
-            final_score = max(ml_score, rule_score_override)
+            final_score = decision_res["score"]
+            if rule_decision == 'block':
+                final_score = 1.0
+                decision = "block"
+                label = "fraud"
+            else:
+                decision = decision_res["decision"]
+                label = "fraud" if decision == "block" else ("suspicious" if decision == "challenge" else "safe")
+
             final_score = float(np.clip(final_score, 0.0, 1.0))
             
-            # 7. Apply Organization-specific decision thresholds
-            if final_score >= threshold_block:
-                label, decision = "fraud", "block"
-            elif final_score >= threshold_review:
-                label, decision = "suspicious", "review"
-            else:
-                label, decision = "safe", "allow"
-                
             # Reasons compilation
             reasons = []
+            if decision_res.get("triggered_rule"):
+                reasons.append(decision_res["reason"])
             reasons.extend(rule_reasons)
+            reasons.extend([s["human_reason"] for s in prob_result["top_signals"][:3]])
             reasons.extend(xgb_reasons)
             
             if not reasons:
                 if decision == "block":
-                    reasons = ["ML ensemble detected high risk anomaly pattern"]
-                elif decision == "review":
-                    reasons = ["Mildly unusual transaction — review recommended"]
+                    reasons = ["Probability engine detected high risk anomaly pattern"]
+                elif decision == "challenge":
+                    reasons = ["Additional step-up verification required to confirm legitimacy"]
                 else:
-                    reasons = ["Transaction within normal parameters"]
+                    reasons = ["Transaction cleared security verification with low baseline risk"]
                     
             confidence = float(np.clip(1.0 - abs(final_score - 0.5) * 2, 0.5, 1.0))
             
             # 8. Run fraud type classifier
             fraud_type_classifier = FraudTypeClassifier()
-            # If Model A score or rules suggest it's fraud (final_score > 0.35), classify
             if final_score >= 0.35:
                 fraud_type_result = fraud_type_classifier.classify(final_score, features)
             else:
@@ -304,12 +368,18 @@ class FraudDetectionService:
                 "model_scores": {
                     "mviforest": round(float(mvi_score), 4),
                     "xgboost": round(float(xgb_score), 4),
-                    "rules": round(float(rule_score_override), 4)
+                    "rules": round(float(rule_score_override), 4),
+                    "rule_score": prob_result["rule_score"]
                 },
                 "model_version": model_ver,
                 "fraud_type": f_type,
                 "fraud_type_confidence": fraud_type_result["fraud_type_confidence"],
-                "fraud_signals": fraud_signals
+                "fraud_signals": fraud_signals,
+                "signals_json": collected_signals,
+                "decision_details": decision_res,
+                "challenge_method": decision_res.get("challenge_method"),
+                "top_signals": prob_result["top_signals"],
+                "explanation": decision_res.get("explanation")
             }
 
         except Exception as e:
@@ -317,14 +387,19 @@ class FraudDetectionService:
             result_dict = {
                 "risk_score": 0.5,
                 "risk_label": "review",
-                "decision": "review",
+                "decision": "challenge",
                 "confidence": 0.5,
                 "reasons": ["AI Core offline — manual review recommended"],
                 "model_scores": {},
                 "model_version": "fallback_v2.0",
                 "fraud_type": "unknown_pattern",
                 "fraud_type_confidence": 0.0,
-                "fraud_signals": {}
+                "fraud_signals": {},
+                "signals_json": {},
+                "decision_details": {},
+                "challenge_method": "manual_review",
+                "top_signals": [],
+                "explanation": "System fallback mode active. Transaction held for manual review."
             }
             
         latency_ms = int((time.time() - start) * 1000)
@@ -345,7 +420,12 @@ class FraudDetectionService:
             features=features,
             fraud_type=result_dict["fraud_type"],
             fraud_type_confidence=result_dict["fraud_type_confidence"],
-            fraud_signals=result_dict["fraud_signals"]
+            fraud_signals=result_dict["fraud_signals"],
+            signals_json=result_dict.get("signals_json"),
+            decision_details=result_dict.get("decision_details"),
+            challenge_method=result_dict.get("challenge_method"),
+            top_signals=result_dict.get("top_signals"),
+            explanation=result_dict.get("explanation")
         )
 
     async def process_auto_alert(self, org_id: uuid.UUID, tx: TransactionAnalyzeRequest, result: FraudResult, internal_id: uuid.UUID):
@@ -373,6 +453,11 @@ def transaction_row_from_request(org_id: uuid.UUID, tx: TransactionAnalyzeReques
         "risk_score": Decimal(str(result.risk_score)), "risk_label": result.risk_label, "decision": result.decision,
         "fraud_reasons": result.reasons, "model_version": result.model_version,
         "detection_latency_ms": result.detection_latency_ms, "is_confirmed_fraud": None,
+        # Multi-Signal Architecture Additions
+        "signals_json": result.signals_json,
+        "decision_details": result.decision_details,
+        "challenge_method": result.challenge_method,
+        "feedback_label": None,
         # Fraud Telemetry Additions
         "device_fingerprint_hash": result.features.get("device_fingerprint_hash") if result.features else None,
         "device_first_seen": bool(result.features.get("device_first_seen")) if result.features else False,

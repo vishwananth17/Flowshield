@@ -51,6 +51,10 @@ class Transaction(Base):
     geo_mismatch: Mapped[bool | None] = mapped_column(Boolean, server_default="false", nullable=True)
     account_inactive_days: Mapped[int | None] = mapped_column(Integer, server_default="0", nullable=True)
     fraud_type_detected: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    signals_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True, server_default="{}")
+    decision_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True, server_default="{}")
+    challenge_method: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    feedback_label: Mapped[int | None] = mapped_column(Integer, nullable=True)
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
@@ -65,9 +69,11 @@ class Transaction(Base):
     )
 
     alerts: Mapped[list["Alert"]] = relationship("Alert", back_populates="transaction")
+    outcomes: Mapped[list["TransactionOutcome"]] = relationship("TransactionOutcome", back_populates="transaction")
 
 
 from typing import TYPE_CHECKING  # noqa: E402
 
 if TYPE_CHECKING:
     from app.models.alert import Alert
+    from app.models.transaction_outcome import TransactionOutcome

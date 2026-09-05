@@ -52,4 +52,9 @@ class TransactionAnalyzeResponse(BaseModel):
     fraud_type: str | None = None
     fraud_type_confidence: float | None = None
     fraud_signals: dict[str, Any] | None = None
+    signals_json: dict[str, Any] | None = None
+    decision_details: dict[str, Any] | None = None
+    challenge_method: str | None = None
+    top_signals: list[dict[str, Any]] | None = None
+    explanation: str | None = None
     processed_at: datetime

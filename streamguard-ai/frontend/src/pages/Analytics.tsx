@@ -13,6 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import api from '@/services/api';
+import { SignalImportanceChart } from '@/components/SignalImportanceChart';
 
 interface Stats {
   total_analyzed: number;
@@ -222,6 +223,9 @@ export default function Analytics() {
         </Card>
 
       </div>
+
+      {/* Signal Importance & False Positive Drivers Analysis */}
+      <SignalImportanceChart />
 
     </div>
   );

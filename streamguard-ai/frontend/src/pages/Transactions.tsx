@@ -24,17 +24,18 @@ export default function Transactions() {
     setCurrentPage(1);
   }, [searchTerm, riskFilter]);
 
+  const fetchTransactions = async () => {
+    try {
+      const res = await api.get('/transactions');
+      setInitialTransactions(res.data);
+    } catch (e) {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await api.get('/transactions');
-        setInitialTransactions(res.data);
-      } catch (e) {
-        // silent
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTransactions();
   }, [setInitialTransactions]);
 
@@ -232,6 +233,7 @@ export default function Transactions() {
       <TransactionDrawer
         txId={selectedTxId}
         onClose={() => setSelectedTxId(null)}
+        onUpdate={fetchTransactions}
       />
 
     </div>

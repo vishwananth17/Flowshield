@@ -3,6 +3,7 @@ from app.models.alert_activity import AlertActivity
 from app.models.api_key import ApiKey
 from app.models.organization import Organization
 from app.models.transaction import Transaction
+from app.models.transaction_outcome import TransactionOutcome
 from app.models.user import User
 from app.models.webhook import Webhook
 from app.models.waitlist import Waitlist
@@ -25,6 +26,7 @@ __all__ = [
     "ApiKey",
     "Organization",
     "Transaction",
+    "TransactionOutcome",
     "User",
     "Webhook",
     "Waitlist",
