@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Key, Copy, Loader2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { Key, Copy, Check, Trash2, Code, Terminal, Shield, Plus } from 'lucide-react';
 import api from '@/services/api';
 import { toast } from 'sonner';
 
@@ -22,13 +24,14 @@ export default function ApiKeys() {
   const [newKeyName, setNewKeyName] = useState('');
   const [newEnv, setNewEnv] = useState('live');
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   const fetchKeys = async () => {
     try {
       const res = await api.get('/api-keys');
       setKeys(res.data);
     } catch (e) {
-      console.error(e);
+      // fallback
     } finally {
       setLoading(false);
     }
@@ -46,137 +49,210 @@ export default function ApiKeys() {
       setCreatedKey(res.data.raw_key);
       setNewKeyName('');
       fetchKeys();
-      toast.success('Encryption node generated successfully');
+      toast.success('API key generated successfully');
     } catch (e: any) {
-      console.error(e);
       const msg = e.response?.data?.detail || e.response?.data?.error?.message || 'Failed to generate key';
       toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   };
 
   const handleRevoke = async (id: string) => {
-    const confirmRevoke = window.confirm("Are you sure? This will immediately disconnect any systems using this key.");
+    const confirmRevoke = window.confirm("Are you sure? This will immediately reject any requests using this key.");
     if (!confirmRevoke) return;
     
     try {
       await api.delete(`/api-keys/${id}`);
       fetchKeys();
-      toast.success('Key access revoked permanently');
+      toast.success('API key revoked');
     } catch (e: any) {
-      console.error(e);
       toast.error(e.response?.data?.error?.message || 'Revocation failed');
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(true);
+    toast.success('Key copied to clipboard');
+    setTimeout(() => setCopiedKey(false), 2000);
+  };
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">API Keys</h1>
-          <p className="text-gray-400 mt-1">Manage keys for authenticating with the Flowshield AI API</p>
+          <h1 className="type-h1 text-text-primary">API Keys & Access Control</h1>
+          <p className="type-sm text-text-secondary mt-0.5">
+            Manage authentication tokens for server-side evaluation requests and webhook signatures.
+          </p>
         </div>
       </div>
 
+      {/* Reveal Modal / Banner on Creation */}
       {createdKey && (
-        <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-500 p-4 rounded-lg flex flex-col space-y-2">
-          <strong>Key Created Successfully!</strong>
-          <p className="text-sm">Please copy this key now. You won't be able to see it again.</p>
-          <div className="flex items-center space-x-2">
-            <code className="bg-[#1F2937] px-3 py-2 rounded text-emerald-300 select-all font-mono flex-1">
+        <Card variant="alert" padding="md" className="space-y-3 animate-in fade-in duration-fast">
+          <div className="flex items-center justify-between">
+            <span className="type-label text-status-allow font-bold">API Key Generated</span>
+            <span className="text-xs text-text-tertiary">Save this key now. It will not be shown again.</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-surface-100 border border-border-100 rounded px-3 py-2 font-mono text-xs text-cyan-400 select-all truncate">
               {createdKey}
-            </code>
-            <Button 
-              variant="outline" 
-              className="border-emerald-500 bg-emerald-500 text-emerald-900 hover:bg-emerald-400"
-              onClick={() => {
-                navigator.clipboard.writeText(createdKey);
-                toast.success('API Key copied to encryption buffer');
-              }}
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => copyToClipboard(createdKey)}
             >
-              <Copy className="h-4 w-4 mr-2" /> Copy
+              {copiedKey ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedKey ? 'Copied' : 'Copy'}</span>
             </Button>
           </div>
-          <Button variant="outline" className="w-fit mt-2 border-emerald-500 text-emerald-500 hover:bg-emerald-500/20" onClick={() => setCreatedKey(null)}>
-            I have saved the key securely
+
+          <Button
+            variant="secondary"
+            size="xs"
+            onClick={() => setCreatedKey(null)}
+          >
+            I have stored this key securely
           </Button>
-        </div>
+        </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Create new API key</CardTitle>
-          <CardDescription>Generate a new key for a specific environment</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleCreate} className="flex gap-4 items-end">
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium text-gray-200">Key Name</label>
+      {/* Key Generation Card */}
+      <Card variant="data" padding="md">
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <h3 className="type-h3 text-text-primary">Generate New Key</h3>
+            <p className="type-sm text-text-tertiary">Create a scoped key for your backend services</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-6">
               <Input
+                label="Key Label"
+                placeholder="e.g. Production Razorpay Webhook Worker"
                 value={newKeyName}
                 onChange={(e) => setNewKeyName(e.target.value)}
-                placeholder="e.g. Production Web Backend"
                 required
               />
             </div>
-            <div className="w-48 space-y-2">
-              <label className="text-sm font-medium text-gray-200">Environment</label>
-              <select 
-                value={newEnv} 
+
+            <div className="sm:col-span-3">
+              <label className="text-[13px] font-medium text-text-secondary select-none block mb-1.5">
+                Environment
+              </label>
+              <select
+                value={newEnv}
                 onChange={(e) => setNewEnv(e.target.value)}
-                className="flex h-10 w-full rounded-lg border border-[#374151] bg-[#1F2937] px-3 py-2 text-sm text-white"
+                aria-label="Select environment"
+                className="h-10 w-full rounded bg-surface-200 border border-border-200 px-3 text-sm text-text-primary focus:outline-none focus:border-cyan-500"
               >
-                <option value="live">Live</option>
-                <option value="test">Test</option>
+                <option value="live">Live (Production)</option>
+                <option value="test">Test (Sandbox)</option>
               </select>
             </div>
-            <Button type="submit">Generate Key</Button>
-          </form>
-        </CardContent>
+
+            <div className="sm:col-span-3">
+              <Button type="submit" variant="primary" size="md" className="w-full justify-center">
+                <Plus className="w-4 h-4" />
+                <span>Create Key</span>
+              </Button>
+            </div>
+          </div>
+        </form>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Keys</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="py-8 text-center text-gray-500">Loading keys...</div>
-          ) : keys.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">No API keys found. Create one above.</div>
-          ) : (
-            <div className="space-y-4">
-              {keys.map((key) => (
-                <div key={key.id} className="flex items-center justify-between p-4 rounded-lg border border-[#1F2937] bg-[#111827]">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-[#1F2937] rounded-full">
-                      <Key className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <p className="font-medium text-white">{key.name}</p>
-                        <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${key.environment === 'live' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                          {key.environment}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400 font-mono mt-1">{key.key_prefix}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-8">
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500">Last Used</p>
-                      <p className="text-sm text-gray-300">{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : 'Never'}</p>
-                    </div>
-                    <Button variant="destructive" size="sm" onClick={() => handleRevoke(key.id)}>
-                      Revoke
+      {/* Active Keys Table */}
+      <Card variant="data" padding="none" className="overflow-hidden">
+        <div className="p-4 border-b border-border-100 flex items-center justify-between">
+          <h3 className="type-label text-text-primary">Active Keys ({keys.length})</h3>
+          <span className="text-xs font-mono text-text-tertiary">Bearer Authentication</span>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Key Name</TableHead>
+              <TableHead>Prefix</TableHead>
+              <TableHead>Environment</TableHead>
+              <TableHead>Requests (30d)</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading && keys.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-text-tertiary text-xs">
+                  Loading keys...
+                </TableCell>
+              </TableRow>
+            ) : keys.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-text-tertiary text-xs">
+                  No active keys found. Generate a key above to get started.
+                </TableCell>
+              </TableRow>
+            ) : (
+              keys.map((k) => (
+                <TableRow key={k.id}>
+                  <TableCell className="font-semibold text-text-primary text-xs">
+                    {k.name}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-cyan-400">
+                    {k.key_prefix}••••••••
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={k.environment === 'live' ? 'allow' : 'neutral'} size="sm">
+                      {k.environment.toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-text-secondary">
+                    {(k.monthly_requests || 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-text-tertiary">
+                    {new Date(k.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => handleRevoke(k.id)}
+                      className="text-text-tertiary hover:text-status-block"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </Card>
+
+      {/* Quick Start Code Snippet */}
+      <Card variant="data" padding="md" className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Terminal className="w-4 h-4 text-cyan-400" />
+          <h3 className="type-label text-text-primary">Quick Integration Snippet</h3>
+        </div>
+
+        <div className="bg-surface-100 border border-border-100 rounded-sm p-4 font-mono text-xs text-text-secondary overflow-x-auto">
+          <pre><code>{`curl -X POST https://api.flowshield.ai/v1/radar/evaluate \\
+  -H "Authorization: Bearer sk_live_YOUR_KEY_HERE" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 2450.00,
+    "currency": "INR",
+    "customer_ip": "103.241.12.89",
+    "payment_gateway": "razorpay"
+  }'`}</code></pre>
+        </div>
+      </Card>
+
     </div>
   );
 }
-

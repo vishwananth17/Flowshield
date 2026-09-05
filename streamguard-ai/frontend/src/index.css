@@ -1,126 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import './styles/design-system.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Backgrounds */
-    --bg-primary: #080C14;       /* Obsidian Black-Slate — main background */
-    --bg-secondary: #0D131F;     /* Deep Slate — Card backgrounds */
-    --bg-tertiary: #162032;      /* Midnight Blue-Slate — Input fields, hover states */
-    --bg-elevated: #111927;      /* Modals, dropdowns */
-
-    /* Brand */
-    --accent-blue: #2563EB;      /* Precision Blue 600 */
-    --accent-blue-bright: #3B82F6;
-    --accent-emerald: #10B981;   /* Emerald 500 */
-    --accent-red: #EF4444;       /* Red 500 */
-    --accent-amber: #F59E0B;     /* Amber 500 */
-    --accent-purple: #6366F1;    /* Indigo 500 */
-
-    /* Text */
-    --text-primary: #F8FAFC;     /* Slate 50 */
-    --text-secondary: #94A3B8;   /* Slate 400 */
-    --text-muted: #64748B;       /* Slate 500 */
-
-    /* Borders */
-    --border-primary: #1E293B;   /* Slate 800 */
-    --border-accent: #2563EB;
-
-    /* Status */
-    --status-safe: #10B981;
-    --status-suspicious: #F59E0B;
-    --status-fraud: #EF4444;
-    --status-review: #6366F1;
-
-    /* GitHub-style Developer Typography Stack */
-    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    
-    /* Shadcn defaults - Dark Mode */
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 224 71% 6%;
-    --card-foreground: 210 40% 98%;
-    --popover: 224 71% 6%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
   * {
-    @apply border-border;
+    border-color: var(--border-200);
+    box-sizing: border-box;
   }
-  html, body {
-    @apply bg-background text-foreground font-body;
-    background-color: var(--bg-primary);
+
+  html {
+    background-color: var(--surface-100);
     color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-white;
+
+  body {
+    background-color: var(--surface-100);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
+
+  ::selection {
+    background: rgba(6, 182, 212, 0.25);
+    color: #ffffff;
+  }
+
+  /* Custom Clean Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--surface-100);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-600);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-700);
+  }
+
   code, pre, kbd, samp {
-    font-family: var(--font-mono);
-  }
-}
-
-@layer utilities {
-  .bg-glass {
-    @apply bg-opacity-70 backdrop-blur-md;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   }
 
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
+  input, textarea, select, button {
+    font-family: inherit;
   }
 
-  .slide-in {
-    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Focus ring accessibility */
+  :focus-visible {
+    outline: 2px solid var(--cyan-500);
+    outline-offset: 2px;
   }
-
-  .pulse-fraud {
-    animation: pulseFraud 2s infinite;
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes pulseFraud {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }

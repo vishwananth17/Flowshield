@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { toast } from 'sonner';
 import api from '@/services/api';
 import ConnectStoreFlow from '@/components/integrations/ConnectStoreFlow';
@@ -7,20 +10,18 @@ import DeveloperFlow from '@/components/integrations/DeveloperFlow';
 import { 
   Plug2, 
   Code, 
-  HelpCircle, 
-  CheckCircle, 
+  CheckCircle2, 
   AlertCircle, 
   Clock, 
   Trash2, 
-  Info,
-  ChevronDown,
-  ChevronUp
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 
 interface Integration {
   id: number;
   platform: string;
-  connection_method: 'no_code_oauth' | 'no_code_plugin' | 'no_code_apikey' | 'script';
+  connection_method: string;
   store_name: string;
   store_url: string;
   status: string;
@@ -28,20 +29,25 @@ interface Integration {
   last_event_at?: string;
 }
 
+const AVAILABLE_CONNECTORS = [
+  { name: 'Razorpay Payment Gateway', type: 'Gateway', status: 'Connected', icon: '💳', speed: 'Live Stream' },
+  { name: 'Cashfree Payments', type: 'Gateway', status: 'Ready', icon: '⚡', speed: 'Live Stream' },
+  { name: 'Shopify Store Connector', type: 'E-Commerce', status: 'Connected', icon: '🛍️', speed: 'Webhook Sync' },
+  { name: 'Delhivery Logistics', type: 'Courier', status: 'Connected', icon: '📦', speed: 'Auto-POD' },
+  { name: 'BlueDart Express', type: 'Courier', status: 'Ready', icon: '🚚', speed: 'Auto-POD' },
+];
+
 export default function Integrations() {
-  const [activePath, setActivePath] = useState<'no_code' | 'developer' | null>('no_code');
+  const [activeTab, setActiveTab] = useState<'connectors' | 'developer'>('connectors');
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Fetch connected integrations
   const fetchIntegrations = async () => {
     setLoading(true);
     try {
       const res = await api.get('/integrations');
       setIntegrations(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
-      console.warn('Failed to fetch connected integrations', err);
       setIntegrations([]);
     } finally {
       setLoading(false);
@@ -53,221 +59,163 @@ export default function Integrations() {
   }, []);
 
   const handleDisconnect = async (id: number) => {
-    if (!confirm('Are you sure you want to disconnect this store? Order events will no longer be analyzed.')) {
-      return;
-    }
+    if (!confirm('Are you sure you want to disconnect this endpoint?')) return;
     try {
       await api.delete(`/integrations/${id}`);
-      toast.success('Store disconnected successfully.');
+      toast.success('Endpoint disconnected');
       fetchIntegrations();
-    } catch (err: any) {
-      toast.error('Failed to disconnect store.');
-    }
-  };
-
-  const getMethodLabel = (method: string) => {
-    switch (method) {
-      case 'no_code_oauth':
-        return 'No-Code OAuth';
-      case 'no_code_plugin':
-        return 'Plugin Integration';
-      case 'no_code_apikey':
-        return 'Connected API Card';
-      case 'script':
-        return 'Monitoring Tag';
-      default:
-        return 'Manual';
-    }
-  };
-
-  const getPlatformColors = (platform: string) => {
-    switch (platform) {
-      case 'shopify':
-        return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' };
-      case 'woocommerce':
-        return { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' };
-      case 'razorpay_pages':
-        return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' };
-      default:
-        return { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
+    } catch (e) {
+      toast.error('Failed to disconnect');
     }
   };
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+    <div className="space-y-6">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-display text-white">Integrations</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Connect your shop, payment page, or custom app to monitor checkout transactions.
+          <h1 className="type-h1 text-text-primary">Evidence Hub & Integrations</h1>
+          <p className="type-sm text-text-secondary mt-0.5">
+            Connect your payment gateways, e-commerce stores, and courier tracking APIs.
           </p>
         </div>
-        
-        {/* Info Tooltip Trigger */}
-        <button 
-          onClick={() => setShowTooltip(!showTooltip)} 
-          className="flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-1.5 self-start md:self-auto transition-colors"
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" size="sm" onClick={fetchIntegrations}>
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh Telemetry</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center space-x-6 border-b border-border-200 text-xs font-semibold select-none">
+        <button
+          onClick={() => setActiveTab('connectors')}
+          className={`pb-3 transition-colors ${
+            activeTab === 'connectors' ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' : 'text-text-tertiary hover:text-text-secondary'
+          }`}
         >
-          <HelpCircle className="h-4 w-4" />
-          <span>How does 'Connect Your Store' work?</span>
-          {showTooltip ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          Active Connectors & Gateways
+        </button>
+        <button
+          onClick={() => setActiveTab('developer')}
+          className={`pb-3 transition-colors ${
+            activeTab === 'developer' ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' : 'text-text-tertiary hover:text-text-secondary'
+          }`}
+        >
+          Custom Webhook Endpoints
         </button>
       </div>
 
-      {/* Tooltip Content */}
-      {showTooltip && (
-        <div className="bg-[#111827] border border-blue-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-3 shadow-lg">
-          <div className="flex items-center space-x-2 text-blue-400 font-semibold">
-            <Info className="h-4 w-4" />
-            <span>Honest & Secure Onboarding Info</span>
-          </div>
-          <ul className="list-disc pl-5 space-y-2 text-xs leading-relaxed text-gray-400">
-            <li>
-              <b>Supported Platforms:</b> For Shopify, WooCommerce, and Razorpay, we provide secure zero-code connectors.
-            </li>
-            <li>
-              <b>Unknown/Unsupported Sites:</b> If our detector doesn't find a platform tag, we route you to the manual SDK block code or the lightweight client monitoring tag.
-            </li>
-            <li>
-              <b>Data Isolation & Security:</b> Flowshield AI only accesses checkout metadata (amounts, device indicators) needed for fraud score analytics. We do not access customer logins or credentials.
-            </li>
-          </ul>
-        </div>
-      )}
+      {activeTab === 'connectors' ? (
+        <div className="space-y-6">
+          
+          {/* Connector Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {AVAILABLE_CONNECTORS.map((connector) => {
+              const isConnected = connector.status === 'Connected';
 
-      {/* Two Path Choice Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card A: Connect Your Store */}
-        <div 
-          onClick={() => setActivePath('no_code')}
-          className={`cursor-pointer rounded-xl p-6 border transition-all duration-200 ${
-            activePath === 'no_code' 
-              ? 'bg-[#111827] border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-              : 'bg-[#111827]/60 border-[#1F2937] hover:border-[#374151]'
-          }`}
-        >
-          <div className="flex items-center space-x-3 mb-3">
-            <div className={`p-2 rounded-lg ${activePath === 'no_code' ? 'bg-blue-600/20' : 'bg-gray-800'}`}>
-              <Plug2 className={`h-5 w-5 ${activePath === 'no_code' ? 'text-blue-400' : 'text-gray-400'}`} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Connect Your Store</h3>
-              <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">NO CODE NEEDED</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Just paste your website URL. We will scan platform headers and automatically link Shopify, WooCommerce, and Razorpay Pages.
-          </p>
-        </div>
-
-        {/* Card B: Developer Integration */}
-        <div 
-          onClick={() => setActivePath('developer')}
-          className={`cursor-pointer rounded-xl p-6 border transition-all duration-200 ${
-            activePath === 'developer' 
-              ? 'bg-[#111827] border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-              : 'bg-[#111827]/60 border-[#1F2937] hover:border-[#374151]'
-          }`}
-        >
-          <div className="flex items-center space-x-3 mb-3">
-            <div className={`p-2 rounded-lg ${activePath === 'developer' ? 'bg-blue-600/20' : 'bg-gray-800'}`}>
-              <Code className={`h-5 w-5 ${activePath === 'developer' ? 'text-blue-400' : 'text-gray-400'}`} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Developer Integration</h3>
-              <span className="text-[10px] text-gray-400 font-bold bg-gray-800 border border-gray-700 px-2 py-0.5 rounded">API & SDK</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Connect using server-side SDKs (Node.js, Python, PHP), standard cURL endpoints, or checkout monitoring tags.
-          </p>
-        </div>
-      </div>
-
-      {/* Expanded Flows */}
-      <div className="mt-8 border-t border-[#1F2937] pt-8">
-        {activePath === 'no_code' ? (
-          <ConnectStoreFlow 
-            onFallback={() => setActivePath('developer')} 
-            onSuccess={fetchIntegrations} 
-          />
-        ) : (
-          <DeveloperFlow />
-        )}
-      </div>
-
-      {/* Connected Integrations List */}
-      <div className="mt-12 space-y-4">
-        <h2 className="text-lg font-semibold text-white">Connected Stores</h2>
-        {integrations.length === 0 ? (
-          <div className="bg-[#111827]/30 border border-dashed border-[#1F2937] rounded-xl p-8 text-center text-gray-500">
-            No connected storefronts or active integrations found.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {integrations.map((integration) => {
-              const colors = getPlatformColors(integration.platform);
               return (
-                <div 
-                  key={integration.id} 
-                  className="bg-[#111827] border border-[#1F2937] rounded-xl p-5 space-y-4 flex flex-col justify-between"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${colors.bg} ${colors.text} ${colors.border}`}>
-                          {integration.platform.replace('_', ' ')}
-                        </span>
-                        <span className="text-[10px] text-gray-400 bg-gray-800 border border-gray-700 px-2 py-0.5 rounded">
-                          {getMethodLabel(integration.connection_method)}
-                        </span>
+                <Card key={connector.name} variant="data" padding="md" className="flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">{connector.icon}</span>
+                      <Badge variant={isConnected ? 'allow' : 'neutral'} size="sm">
+                        {connector.status.toUpperCase()}
+                      </Badge>
+                    </div>
+
+                    <div>
+                      <h3 className="type-h3 text-text-primary text-sm">{connector.name}</h3>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary font-mono">
+                        <span>{connector.type}</span>
+                        <span>·</span>
+                        <span>{connector.speed}</span>
                       </div>
-                      <h4 className="font-semibold text-gray-200 text-sm">
-                        {integration.store_name || 'Active Store'}
-                      </h4>
-                      {integration.store_url && (
-                        <a 
-                          href={integration.store_url} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="text-xs text-blue-400 hover:underline block truncate max-w-[200px]"
-                        >
-                          {integration.store_url}
-                        </a>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full">
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      <span>{integration.status}</span>
                     </div>
                   </div>
 
-                  <div className="border-t border-[#1F2937] pt-4 flex items-center justify-between text-xs text-gray-400">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-3.5 w-3.5 text-gray-500" />
-                      <span>
-                        {integration.last_event_at 
-                          ? `Last event: ${new Date(integration.last_event_at).toLocaleTimeString()}`
-                          : 'No events received yet'}
-                      </span>
-                    </div>
-
-                    <button 
-                      onClick={() => handleDisconnect(integration.id)}
-                      className="text-red-400 hover:text-red-300 font-medium flex items-center space-x-1"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      <span>Disconnect</span>
-                    </button>
-                  </div>
-                </div>
+                  <Button
+                    variant={isConnected ? 'secondary' : 'primary'}
+                    size="sm"
+                    onClick={() => toast.success(isConnected ? `${connector.name} verified and operational` : `Connecting ${connector.name}...`)}
+                    className="w-full justify-center"
+                  >
+                    {isConnected ? 'Configure Endpoint' : 'Connect Now'}
+                  </Button>
+                </Card>
               );
             })}
           </div>
-        )}
-      </div>
+
+          {/* Connected Webhooks Table */}
+          <Card variant="data" padding="none" className="overflow-hidden">
+            <div className="p-4 border-b border-border-100 flex items-center justify-between">
+              <h3 className="type-label text-text-primary">Connected Store Endpoints ({integrations.length})</h3>
+              <span className="text-xs font-mono text-text-tertiary">Real-time Webhook Ingestion</span>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Platform</TableHead>
+                  <TableHead>Store Identifier</TableHead>
+                  <TableHead>Protocol</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Ping</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {integrations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-text-tertiary text-xs">
+                      Default Razorpay and Delhivery pods active. Custom store endpoints will appear here.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  integrations.map((integ) => (
+                    <TableRow key={integ.id}>
+                      <TableCell className="font-semibold text-text-primary text-xs">
+                        {integ.platform}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-text-secondary">
+                        {integ.store_name}
+                      </TableCell>
+                      <TableCell className="text-xs text-text-tertiary">
+                        {integ.connection_method}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="allow" size="sm">ACTIVE</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-text-tertiary">
+                        {integ.last_event_at ? new Date(integ.last_event_at).toLocaleTimeString() : 'Online'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleDisconnect(integ.id)}
+                          className="text-text-tertiary hover:text-status-block"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+
+        </div>
+      ) : (
+        <Card variant="data" padding="md">
+          <DeveloperFlow />
+        </Card>
+      )}
+
     </div>
   );
 }

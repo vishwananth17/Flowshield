@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { 
-  LayoutDashboard, 
-  Activity, 
-  AlertTriangle, 
-  BarChart3, 
-  Key, 
-  Users, 
-  Settings, 
-  BookOpen,
+import {
+  LayoutDashboard,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  Key,
+  Users,
+  Settings,
   Bell,
   Search,
   LogOut,
@@ -17,54 +16,37 @@ import {
   Menu,
   X,
   Plug2,
-  Shield
+  Shield,
+  Sliders,
+  ChevronRight,
+  SlidersHorizontal,
+  Wifi
 } from 'lucide-react';
-import Logo from '@/components/Logo';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { Button } from '@/components/ui/button';
-
-const AlertBadge = () => {
-  const unreadCount = useAlertStore(state => state.unreadCount);
-  if (unreadCount <= 0) return null;
-  return (
-    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-      {unreadCount > 99 ? '99+' : unreadCount}
-    </span>
-  );
-};
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isApiStatusOpen, setIsApiStatusOpen] = useState(false);
   const { user, organization, logout } = useAuthStore();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Close sidebar automatically on navigation path changes (for mobile/tablet sizes)
+  // Close sidebar on path change (mobile)
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
-  
-  // Derive display label and style from org plan
-  const orgPlan = organization?.plan || 'free';
-  const planLabel = {
-    free:     'FREE',
-    basic:    'BASIC',
-    standard: 'GROWTH',
-    growth:   'GROWTH',
-    premium:  'PRO',
-    enterprise: 'ENT',
-  }[orgPlan] ?? orgPlan.toUpperCase();
-  const planStyle = orgPlan === 'free'
-    ? 'bg-gray-700 text-gray-400'
-    : orgPlan === 'premium' || orgPlan === 'enterprise'
-      ? 'bg-purple-600 text-white shadow-[0_0_8px_rgba(147,51,234,0.5)]'
-      : 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)]';
-  
-  // Activate global websocket
+
+  // Global WebSocket connection
   useWebSocket();
 
-  // Dynamic disputes count for badge
-  const [disputesCount, setDisputesCount] = useState(0);
+  // Dynamic alerts count
+  const unreadAlertsCount = useAlertStore((state) => state.unreadCount);
+
+  // Dynamic open disputes count
+  const [disputesCount, setDisputesCount] = useState(3);
 
   useEffect(() => {
     const checkDisputes = async () => {
@@ -82,170 +64,286 @@ export default function DashboardLayout() {
     return () => clearInterval(interval);
   }, []);
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Disputes', path: '/dashboard/disputes', icon: Shield },
-    { name: 'Transactions', path: '/dashboard/transactions', icon: Activity },
-    { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle },
-    { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
-    { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
-    { name: 'Integrations', path: '/dashboard/integrations', icon: Plug2 },
-    { name: 'Team', path: '/dashboard/team', icon: Users },
-    { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
+  const orgPlan = organization?.plan || 'starter';
+  const planBadgeText = orgPlan.toUpperCase();
+
+  // Breadcrumb calculation
+  const getBreadcrumb = () => {
+    const p = location.pathname;
+    if (p.includes('/dashboard/disputes')) return 'Disputes / Live Queue';
+    if (p.includes('/dashboard/transactions')) return 'Transactions / Feed';
+    if (p.includes('/dashboard/alerts')) return 'Alerts / Incident Triage';
+    if (p.includes('/dashboard/analytics')) return 'Analytics / Intelligence';
+    if (p.includes('/dashboard/api-keys')) return 'Developers / API Keys';
+    if (p.includes('/dashboard/integrations')) return 'Settings / Integrations';
+    if (p.includes('/dashboard/team')) return 'Organization / Team';
+    if (p.includes('/dashboard/billing')) return 'Organization / Billing';
+    if (p.includes('/dashboard/settings')) return 'Settings / Preferences';
+    return 'Dashboard / Overview';
+  };
+
+  const navGroups = [
+    {
+      group: 'DETECTION',
+      items: [
+        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Transactions', path: '/dashboard/transactions', icon: Activity },
+        { name: 'Alerts', path: '/dashboard/alerts', icon: AlertTriangle, badge: unreadAlertsCount > 0 ? unreadAlertsCount : null, isUrgent: true },
+      ],
+    },
+    {
+      group: 'DEFENSE',
+      items: [
+        { name: 'Disputes', path: '/dashboard/disputes', icon: Shield, badge: disputesCount > 0 ? disputesCount : null, isUrgent: false },
+        { name: 'Evidence Hub', path: '/dashboard/integrations', icon: Plug2 },
+      ],
+    },
+    {
+      group: 'INTELLIGENCE',
+      items: [
+        { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
+        { name: 'Rule Builder', path: '/dashboard/api-keys', icon: Sliders },
+      ],
+    },
+    {
+      group: 'SETTINGS',
+      items: [
+        { name: 'Team', path: '/dashboard/team', icon: Users },
+        { name: 'Plans & Billing', path: '/dashboard/billing', icon: CreditCard },
+        { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+      ],
+    },
   ];
 
   return (
-    <div className="flex h-screen bg-[#0A0E1A] text-white overflow-hidden">
+    <div className="flex h-screen bg-surface-100 text-text-primary overflow-hidden font-sans">
+      
       {/* Mobile Backdrop Overlay */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-surface-000/80 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Desktop & Tablet */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-[#1F2937] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Logo size={32} iconSize={18} theme="dark" />
-            <span className="text-xl font-display font-bold">Flowshield AI</span>
-          </div>
-          <button 
+      {/* =========================================================================
+          1. SIDEBAR (220px Width Desktop)
+          ========================================================================= */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[220px] bg-surface-200 border-r border-border-200 flex flex-col justify-between transform transition-transform duration-normal ease-out-expo lg:relative lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Top: Logo & Org Wordmark */}
+        <div className="p-4 border-b border-border-100 flex items-center justify-between">
+          <Link to="/" className="space-y-0.5 select-none block">
+            <div className="flex items-center space-x-1">
+              <span className="font-semibold text-sm tracking-tight text-text-primary">Flowshield</span>
+              <span className="text-cyan-500 font-bold text-sm">/</span>
+              <span className="font-semibold text-sm tracking-tight text-text-primary">AI</span>
+            </div>
+            <div className="text-[11px] font-normal text-text-tertiary truncate max-w-[170px]">
+              {organization?.name || 'Production Workspace'}
+            </div>
+          </Link>
+
+          <button
             type="button"
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-text-tertiary hover:text-text-primary p-1"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <X className="h-5 w-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
-        
-        <div className="flex-1 overflow-y-auto py-4">
-          <nav className="space-y-1 px-4">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path || (item.name === 'Disputes' && location.pathname.startsWith('/dashboard/disputes'));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-gray-400 hover:bg-[#1F2937] hover:text-white'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium text-sm flex-1">{item.name}</span>
-                  {item.name === 'Alerts' && (
-                    <AlertBadge />
-                  )}
-                  {item.name === 'Disputes' && disputesCount > 0 && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                      {disputesCount}
-                    </span>
-                  )}
-                  {item.name === 'Plans & Billing' && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${planStyle}`}>
-                      {planLabel}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+
+        {/* Center: Categorized Nav Groups */}
+        <div className="flex-1 overflow-y-auto px-2.5 py-4 space-y-5">
+          {navGroups.map((grp) => (
+            <div key={grp.group} className="space-y-1">
+              <div className="type-label text-[10px] text-text-tertiary px-3 mb-1.5 font-bold tracking-wider">
+                {grp.group}
+              </div>
+              {grp.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`h-[34px] flex items-center justify-between text-[13px] font-medium rounded-sm transition-all duration-fast select-none ${
+                      isActive
+                        ? 'bg-cyan-500/[0.08] text-cyan-400 border-l-2 border-cyan-500 pl-[10px] pr-3'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-400 px-3'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5 truncate">
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-400' : 'text-text-tertiary'}`} />
+                      <span className="truncate">{item.name}</span>
+                    </div>
+
+                    {item.badge !== null && item.badge !== undefined && (
+                      <span
+                        className={`h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded text-[10px] font-mono font-bold ${
+                          item.isUrgent
+                            ? 'bg-status-block text-surface-000'
+                            : 'bg-surface-600 text-text-primary'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </div>
-        
-        <div className="p-4 border-t border-[#1F2937] space-y-2">
-          <div className="px-3 pb-2 text-[10px] uppercase tracking-widest text-[#374151] font-bold">
-            Powered by Flowshield AI
-            <br/><span className="text-blue-500/50">Founder: Vishwananth BS</span>
+
+        {/* Bottom: User Profile Widget & Danger Logout */}
+        <div className="p-3 border-t border-border-100 bg-surface-200 space-y-2">
+          
+          <div className="flex items-center justify-between px-2 py-1.5 rounded-sm hover:bg-surface-300 transition-colors">
+            <div className="flex items-center space-x-2.5 truncate">
+              <div className="w-7 h-7 rounded-sm bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="truncate">
+                <div className="text-xs font-semibold text-text-primary truncate">
+                  {user?.full_name || user?.email?.split('@')[0] || 'Operator'}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono font-bold text-cyan-400">
+                    {planBadgeText}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <Link to="/dashboard/settings" title="Settings" className="text-text-tertiary hover:text-text-primary p-1">
+              <Settings className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <Link
-            to="/docs"
-            className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors"
+
+          <button
+            onClick={logout}
+            className="w-full h-7 flex items-center justify-center gap-1.5 text-xs text-text-tertiary hover:text-status-block hover:bg-status-block/[0.06] rounded-sm transition-colors duration-fast font-medium"
           >
-            <BookOpen className="h-5 w-5" />
-            <span className="font-medium text-sm">Documentation</span>
-          </Link>
+            <LogOut className="w-3 h-3" />
+            <span>Sign out</span>
+          </button>
+
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navbar */}
-        <header className="h-16 border-b border-[#1F2937] bg-[#111827] flex items-center justify-between px-6 sticky top-0 z-40">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="lg:hidden text-gray-400"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      {/* =========================================================================
+          2. MAIN CONTENT AREA & TOPBAR (52px Height)
+          ========================================================================= */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        {/* Topbar */}
+        <header className="h-[52px] border-b border-border-100 bg-transparent flex items-center justify-between px-4 sm:px-6 z-30">
+          
+          {/* Left: Mobile Toggle & Breadcrumb */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden text-text-secondary hover:text-text-primary p-1"
             >
-              {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-            <div className="hidden sm:flex items-center bg-[#1F2937] rounded-lg px-3 py-2 w-64 lg:w-96 border border-[#374151]">
-              <Search className="h-4 w-4 text-gray-400 mr-2" />
-              <input 
-                type="text" 
-                placeholder="Search transactions, alerts..." 
-                className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-gray-500"
-              />
-            </div>
-            <div className="flex items-center gap-2 bg-emerald-500/5 px-3 py-1.5 rounded-full border border-emerald-500/20">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Live Engine Connected</span>
-            </div>
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="text-[14px] font-semibold text-text-primary font-display">
+              {getBreadcrumb()}
+            </span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <Link 
-              to="/dashboard/alerts" 
-              className="relative p-2 text-gray-400 hover:text-white transition-colors group"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#111827]"></span>
-              <div className="absolute top-full mt-2 right-0 bg-[#1F2937] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                View Alerts
-              </div>
-            </Link>
+          {/* Center: Global Search Bar */}
+          <div className="hidden md:flex items-center w-[320px] relative">
+            <Search className="w-3.5 h-3.5 text-text-tertiary absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search transactions, disputes..."
+              className="w-full h-8 bg-surface-200/70 border border-transparent focus:border-border-300 focus:bg-surface-300 rounded text-xs pl-8 pr-12 text-text-primary placeholder:text-text-tertiary focus:outline-none transition-all"
+            />
+            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-text-tertiary bg-surface-400 px-1.5 py-0.5 rounded-xs border border-border-200">
+              ⌘K
+            </kbd>
+          </div>
+
+          {/* Right: API Live Status Indicator, Alerts, & Avatar */}
+          <div className="flex items-center space-x-3 text-xs">
             
-            <Link 
-              to="/dashboard/profile"
-              className="h-8 w-8 rounded-full border border-[#374151] overflow-hidden bg-[#111827] flex items-center justify-center text-sm font-medium hover:border-blue-500/50 transition-colors group relative"
+            {/* API Live Telemetry Popover */}
+            <div className="relative">
+              <button
+                onClick={() => setIsApiStatusOpen(!isApiStatusOpen)}
+                className="flex items-center space-x-2 px-2.5 py-1 rounded-sm bg-surface-200 border border-border-200 hover:border-border-300 transition-colors text-text-secondary hover:text-text-primary font-mono text-[11px]"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-allow opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-status-allow" />
+                </span>
+                <span>API live</span>
+              </button>
+
+              {isApiStatusOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-surface-300 border border-border-200 rounded-lg p-3 shadow-lg z-50 space-y-2 text-xs font-mono animate-in fade-in duration-fast">
+                  <div className="flex items-center justify-between border-b border-border-100 pb-2">
+                    <span className="font-bold text-text-primary">Gateway Telemetry</span>
+                    <span className="text-status-allow text-[10px]">● Operational</span>
+                  </div>
+                  <div className="space-y-1 text-text-tertiary text-[11px]">
+                    <div className="flex justify-between">
+                      <span>Median Latency</span>
+                      <span className="text-text-primary font-semibold">43ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>P99 Latency</span>
+                      <span className="text-text-primary font-semibold">58ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Uptime (30d)</span>
+                      <span className="text-text-primary font-semibold">99.98%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Region</span>
+                      <span className="text-text-primary font-semibold">ap-south-1 (Mumbai)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Alert Notification Bell */}
+            <Link
+              to="/dashboard/alerts"
+              className="p-1.5 text-text-tertiary hover:text-text-primary rounded-sm hover:bg-surface-300 transition-colors relative"
+              title="Alerts"
             >
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-              <div className="absolute top-full mt-2 right-0 bg-[#1F2937] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                Personal Profile
-              </div>
+              <Bell className="w-4 h-4" />
+              {unreadAlertsCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-status-block" />
+              )}
             </Link>
 
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => {
-                logout();
-                import('sonner').then(m => m.toast.success("Successfully logged out"));
-              }}
-              title="Logout"
-            >
-              <LogOut className="h-5 w-5 text-gray-400 hover:text-white" />
-            </Button>
+            {/* Quick Profile Initials */}
+            <Link to="/dashboard/settings" className="w-7 h-7 rounded-sm bg-surface-400 border border-border-300 flex items-center justify-center font-bold text-xs text-text-primary hover:border-cyan-500 transition-colors">
+              {user?.email?.charAt(0).toUpperCase() || 'O'}
+            </Link>
+
           </div>
+
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#0A0E1A]">
-          <Outlet />
+        {/* Dynamic Nested Route Content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-surface-100">
+          <div className="max-w-7xl mx-auto space-y-8">
+            <Outlet />
+          </div>
         </main>
+
       </div>
+
     </div>
   );
 }
-

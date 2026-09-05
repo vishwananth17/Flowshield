@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 const loadRazorpay = (): Promise<boolean> => {
   return new Promise((resolve) => {
     if ((window as any).Razorpay) {
-        resolve(true);
-        return;
+      resolve(true);
+      return;
     }
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -56,8 +56,8 @@ export async function subscribeToPlan(
       image: 'https://flowshield-ai.vercel.app/favicon.svg',
       theme: { color: '#2563EB' },
       prefill: {
-        name:    user?.full_name  || 'Flowshield User',
-        email:   user?.email      || '',
+        name: user?.full_name || 'Flowshield User',
+        email: user?.email || '',
         contact: (user as any)?.phone || '9999999999',
       },
       notes: { plan, interval, org_id: user?.org_id || '' },
