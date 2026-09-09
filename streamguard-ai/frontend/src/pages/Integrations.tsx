@@ -71,7 +71,18 @@ const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> 
   bluedart: BlueDartLogo,
 };
 
-const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; uptime: string; category: string })[] = [
+interface EnhancedConnectorItem extends ConnectorItem {
+  description: string;
+  tagline: string;
+  ping: string;
+  uptime: string;
+  category: string;
+  accentColor: string;
+  badgeGlow: string;
+  features: string[];
+}
+
+const DEFAULT_CONNECTORS: EnhancedConnectorItem[] = [
   {
     id: 'razorpay',
     name: 'Razorpay Payment Gateway',
@@ -79,13 +90,17 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     category: 'gateways',
     status: 'Connected',
     icon: RazorpayLogo,
+    accentColor: '#0C8CE9',
+    badgeGlow: 'from-[#0C2340]/80 to-slate-900 border-[#0C8CE9]/30 shadow-[0_0_20px_rgba(12,140,233,0.18)]',
     color: 'border-[#0C8CE9]/30 bg-[#0C2340]/50 text-[#0C8CE9]',
     speed: 'Live Stream',
     ping: '28ms',
     uptime: '99.99%',
     apiKey: 'rzp_live_k9948201',
     environment: 'production',
-    description: 'Instant card, UPI & netbanking charge authorization stream with automated risk pre-auth scoring.',
+    tagline: 'Instant card, UPI & netbanking charge authorization stream.',
+    description: 'Instant pre-auth risk inspection across card networks, UPI handle velocity & auto-refund holds.',
+    features: ['Sub-35ms Scoring', 'Pre-Auth Block', 'Auto Refund Hold']
   },
   {
     id: 'cashfree',
@@ -94,12 +109,16 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     category: 'gateways',
     status: 'Ready',
     icon: CashfreeLogo,
+    accentColor: '#FF5A1F',
+    badgeGlow: 'from-[#1C1008]/80 to-slate-900 border-[#FF5A1F]/30 shadow-[0_0_20px_rgba(255,90,31,0.18)]',
     color: 'border-[#FF5A1F]/30 bg-[#1C1008]/50 text-[#FF5A1F]',
     speed: 'Live Stream',
     ping: '32ms',
     uptime: '99.98%',
     environment: 'production',
+    tagline: 'High-frequency payment gateway & automated dispute telemetry.',
     description: 'Real-time payment webhook stream for high-velocity checkout fraud inspection and chargeback defense.',
+    features: ['Instant Ingestion', 'UPI QR Forensics', 'Chargeback Alert']
   },
   {
     id: 'shopify',
@@ -108,13 +127,17 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     category: 'ecommerce',
     status: 'Connected',
     icon: ShopifyLogo,
+    accentColor: '#95BF47',
+    badgeGlow: 'from-[#0D1F0D]/80 to-slate-900 border-[#95BF47]/30 shadow-[0_0_20px_rgba(149,191,71,0.18)]',
     color: 'border-[#95BF47]/30 bg-[#0D1F0D]/50 text-[#95BF47]',
     speed: 'Webhook Sync',
     ping: '42ms',
     uptime: '100%',
     apiKey: 'shpat_998240182',
     environment: 'production',
-    description: 'Bi-directional e-commerce order sync: customer IP tracing, behavioral fingerprinting & cart forensics.',
+    tagline: 'Bi-directional e-commerce store sync for cart & customer forensics.',
+    description: 'Bi-directional order intake, customer IP mapping, device fingerprinting & cart forensics.',
+    features: ['Cart Risk Profiling', 'IP & Device Trace', 'Order Ingress']
   },
   {
     id: 'delhivery',
@@ -123,6 +146,8 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     category: 'couriers',
     status: 'Connected',
     icon: DelhiveryLogo,
+    accentColor: '#E31837',
+    badgeGlow: 'from-[#200508]/80 to-slate-900 border-[#E31837]/30 shadow-[0_0_20px_rgba(227,24,55,0.18)]',
     color: 'border-[#E31837]/30 bg-[#200508]/50 text-[#E31837]',
     speed: 'Auto-POD',
     ping: '24ms',
@@ -130,7 +155,9 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     apiKey: 'del_client_0918',
     autoPod: true,
     environment: 'production',
+    tagline: 'Automated courier tracking API for signed proof-of-delivery packets.',
     description: 'Direct courier API bridge for signed delivery receipts, GPS drop coordinates & RTO dispatch validation.',
+    features: ['Signed Delivery Slips', 'GPS Geotag Proof', 'Courier API']
   },
   {
     id: 'bluedart',
@@ -139,13 +166,17 @@ const DEFAULT_CONNECTORS: (ConnectorItem & { description: string; ping: string; 
     category: 'couriers',
     status: 'Ready',
     icon: BlueDartLogo,
+    accentColor: '#0052CC',
+    badgeGlow: 'from-[#001838]/80 to-slate-900 border-[#0052CC]/30 shadow-[0_0_20px_rgba(0,82,204,0.18)]',
     color: 'border-[#0052CC]/30 bg-[#001838]/50 text-[#0052CC]',
     speed: 'Auto-POD',
     ping: '29ms',
     uptime: '99.96%',
     autoPod: true,
     environment: 'production',
+    tagline: 'Air Waybill tracking & digital POD dispute representment pipeline.',
     description: 'Automated Air Waybill (AWB) tracking & digital recipient proof-of-delivery (POD) dispute packet ingress.',
+    features: ['AWB Manifest Sync', 'Recipient Photo', '94% Win Rate']
   },
 ];
 
@@ -190,16 +221,16 @@ export default function Integrations() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [pingingId, setPingingId] = useState<string | null>(null);
   
-  // State for connectors with icon restoration from ICON_MAP
-  const [connectors, setConnectors] = useState<any[]>(() => {
+  // State for connectors with icon restoration and full metadata hydration
+  const [connectors, setConnectors] = useState<EnhancedConnectorItem[]>(() => {
     try {
-      const saved = localStorage.getItem('flowshield_connectors_v2');
+      const saved = localStorage.getItem('flowshield_connectors_v3');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((item: any) => ({
-          ...item,
-          icon: ICON_MAP[item.id] || RazorpayLogo
-        }));
+        return DEFAULT_CONNECTORS.map((def) => {
+          const userSaved = parsed.find((p: any) => p.id === def.id);
+          return userSaved ? { ...def, ...userSaved, icon: ICON_MAP[def.id] || def.icon } : def;
+        });
       }
     } catch (e) {}
     return DEFAULT_CONNECTORS;
@@ -223,7 +254,7 @@ export default function Integrations() {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('flowshield_connectors_v2', JSON.stringify(connectors));
+      localStorage.setItem('flowshield_connectors_v3', JSON.stringify(connectors));
     } catch (e) {}
   }, [connectors]);
 
@@ -542,108 +573,142 @@ export default function Integrations() {
                 const isPinging = pingingId === connector.id;
 
                 return (
-                  <Card 
+                  <div 
                     key={connector.id} 
-                    variant="data" 
-                    padding="md" 
-                    className={`flex flex-col justify-between space-y-4 rounded-xl border transition-all relative overflow-hidden ${
+                    className={`relative flex flex-col justify-between rounded-2xl border transition-all duration-300 overflow-hidden group ${
                       isConnected 
-                        ? 'bg-[#080D15] border-slate-800 hover:border-slate-700 shadow-sm' 
-                        : 'bg-[#080D15] border-slate-800/80 hover:border-cyan-500/30'
+                        ? 'bg-gradient-to-b from-[#0C121F] via-[#080D17] to-[#04070D] border-slate-800/90 hover:border-slate-700/80 shadow-lg hover:shadow-2xl hover:shadow-black/70 hover:-translate-y-1' 
+                        : 'bg-gradient-to-b from-[#0C121F] via-[#080D17] to-[#04070D] border-slate-800/70 hover:border-cyan-500/40 shadow-md hover:shadow-xl hover:shadow-cyan-950/20 hover:-translate-y-1'
                     }`}
                   >
-                    <div className="space-y-3.5">
+                    {/* 1. Brand Top Glowing Accent Line */}
+                    <div 
+                      className="absolute top-0 inset-x-0 h-[2.5px] opacity-80 group-hover:opacity-100 transition-opacity"
+                      style={{
+                        background: `linear-gradient(90deg, transparent 0%, ${connector.accentColor || '#06B6D4'} 50%, transparent 100%)`
+                      }}
+                    />
+
+                    {/* Subtle brand ambient glow in top-left */}
+                    <div 
+                      className="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-25 transition-opacity pointer-events-none"
+                      style={{ backgroundColor: connector.accentColor || '#06B6D4' }}
+                    />
+
+                    <div className="p-5 space-y-4 relative z-10">
                       
-                      {/* Card Top: Brand Logo + Status */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shadow-inner ${connector.color}`}>
-                            <IconComponent size={26} />
+                      {/* Card Header: Brand Logo + Status Badge */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3.5">
+                          {/* Crisp Brand Badge Frame */}
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${connector.badgeGlow || 'from-slate-900 to-black border-slate-700'} border flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shrink-0`}>
+                            <IconComponent size={28} />
                           </div>
-                          <div>
-                            <div className="flex items-center space-x-1.5">
-                              <span className="text-xs font-mono font-semibold uppercase text-slate-400">
+                          
+                          <div className="space-y-0.5">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800/90 text-slate-300 border border-slate-700/60">
                                 {connector.type}
                               </span>
-                              <span className="text-slate-600">·</span>
-                              <span className="text-[11px] font-mono text-cyan-400">
-                                {connector.speed}
+                              <span className="text-[11px] font-mono text-cyan-400 flex items-center gap-1">
+                                <Zap className="w-2.5 h-2.5" />
+                                <span>{connector.speed}</span>
                               </span>
                             </div>
-                            <h3 className="text-sm font-bold text-white tracking-tight leading-tight">
+                            <h3 className="text-sm md:text-[15px] font-bold text-white tracking-tight leading-tight group-hover:text-cyan-200 transition-colors">
                               {connector.name}
                             </h3>
                           </div>
                         </div>
 
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
+                        {/* Status Badge */}
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-all ${
                           isConnected 
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]' 
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-                          {connector.status}
+                          <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse' : 'bg-amber-400'}`}></span>
+                          {isConnected ? 'CONNECTED' : 'READY TO PAIR'}
                         </span>
                       </div>
 
-                      {/* Connector Description */}
-                      <p className="text-xs text-slate-400 leading-relaxed min-h-[38px]">
+                      {/* Tagline / Value description */}
+                      <p className="text-xs text-slate-400 leading-relaxed min-h-[36px]">
                         {connector.description}
                       </p>
 
-                      {/* Performance & Security Stats */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Activity className="w-3 h-3 text-cyan-400" />
-                          <span>Ping: {connector.ping || '28ms'}</span>
-                        </span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-emerald-400 font-medium">Uptime: {connector.uptime || '99.9%'}</span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-slate-400">TLS 1.3</span>
+                      {/* 3 Capability Feature Pills (Stripe/Linear signature) */}
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {(connector.features || ['Sub-35ms Scoring', 'Mutual TLS 1.3', 'Zero Code']).map((feat: string) => (
+                          <span 
+                            key={feat} 
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#05080F]/90 border border-slate-800 text-[10px] font-medium text-slate-300 transition-colors group-hover:border-slate-700"
+                          >
+                            <CheckCircle2 className="w-2.5 h-2.5 text-cyan-400 shrink-0" />
+                            <span>{feat}</span>
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Live Telemetry Inset Strip */}
+                      <div className="p-2.5 rounded-xl bg-[#05080F]/90 border border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                          <span className="text-slate-500">Ping:</span>
+                          <span className="text-emerald-400 font-bold">{connector.ping || '28ms'}</span>
+                        </div>
+                        <div className="text-slate-600">·</div>
+                        <div>
+                          <span className="text-slate-500">Uptime:</span>
+                          <span className="text-slate-200 font-semibold ml-1">{connector.uptime || '99.9%'}</span>
+                        </div>
+                        <div className="text-slate-600">·</div>
+                        <div className="text-slate-400 flex items-center gap-1">
+                          <Lock className="w-2.5 h-2.5 text-cyan-400" />
+                          <span>TLS 1.3</span>
+                        </div>
                       </div>
 
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="pt-2 flex items-center space-x-2">
+                    {/* Action Footer Buttons */}
+                    <div className="p-5 pt-0 flex items-center gap-2 relative z-10">
                       {isConnected ? (
                         <>
                           <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => handleOpenConfig(connector)}
-                            className="flex-1 justify-center text-xs font-semibold h-8 rounded-lg border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 transition-all"
+                            className="flex-1 justify-center text-xs font-semibold h-8.5 rounded-lg border border-slate-700/80 bg-[#0E1524] hover:bg-[#141F36] hover:border-slate-600 text-slate-200 transition-all shadow-sm"
                           >
-                            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
-                            Configure
+                            <Settings2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                            <span>Configure Endpoint</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleTestPing(connector)}
                             disabled={isPinging}
-                            className="h-8 px-2.5 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/20 rounded-lg transition-all"
+                            className="h-8.5 px-3 text-xs text-cyan-300 hover:text-cyan-200 hover:bg-cyan-500/10 border border-cyan-500/30 rounded-lg transition-all flex items-center gap-1.5 shrink-0"
                             title="Send simulated test telemetry ping"
                           >
-                            <Zap className={`w-3.5 h-3.5 ${isPinging ? 'animate-bounce text-amber-400' : ''}`} />
-                            <span className="ml-1 hidden sm:inline">{isPinging ? 'Pinging...' : 'Ping Test'}</span>
+                            <Zap className={`w-3.5 h-3.5 text-cyan-400 ${isPinging ? 'animate-bounce text-amber-400' : ''}`} />
+                            <span className="hidden sm:inline">{isPinging ? 'Testing...' : 'Ping Test'}</span>
                           </Button>
                         </>
                       ) : (
                         <Button
-                          variant="primary"
                           size="sm"
                           onClick={() => handleOpenConfig(connector)}
-                          className="w-full justify-center text-xs font-semibold h-8 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-md transition-all group"
+                          className="w-full justify-center text-xs font-bold h-9 rounded-lg bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-950/40 transition-all flex items-center gap-2 group"
                         >
-                          <Plug2 className="w-3.5 h-3.5 mr-1.5" />
+                          <Plug2 className="w-3.5 h-3.5" />
                           <span>Connect in 60s</span>
-                          <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                       )}
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
