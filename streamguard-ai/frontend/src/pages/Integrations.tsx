@@ -479,7 +479,178 @@ export default function Integrations() {
       {activeTab === 'connectors' && (
         <div className="space-y-6">
           
-          {/* ════ HOW IT WORKS & KEY BENEFITS (STEP-BY-STEP) ════ */}
+          {/* ════ CONNECTOR CARDS SECTION (FIRST) ════ */}
+          <div className="space-y-4">
+            
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm font-bold text-white tracking-tight">Available Connectors</h3>
+                <span className="text-xs text-slate-500 font-mono">({filteredConnectors.length} platforms)</span>
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#080D15] border border-slate-800 text-xs">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
+                    selectedCategory === 'all'
+                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  All ({connectors.length})
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('gateways')}
+                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
+                    selectedCategory === 'gateways'
+                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Payment Gateways (2)
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('ecommerce')}
+                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
+                    selectedCategory === 'ecommerce'
+                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  E-Commerce (1)
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('couriers')}
+                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
+                    selectedCategory === 'couriers'
+                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Couriers & POD (2)
+                </button>
+              </div>
+            </div>
+
+            {/* Connectors Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredConnectors.map((connector) => {
+                const isConnected = connector.status === 'Connected';
+                const IconComponent = ICON_MAP[connector.id] || connector.icon || RazorpayLogo;
+                const isPinging = pingingId === connector.id;
+
+                return (
+                  <Card 
+                    key={connector.id} 
+                    variant="data" 
+                    padding="md" 
+                    className={`flex flex-col justify-between space-y-4 rounded-xl border transition-all relative overflow-hidden ${
+                      isConnected 
+                        ? 'bg-[#080D15] border-slate-800 hover:border-slate-700 shadow-sm' 
+                        : 'bg-[#080D15] border-slate-800/80 hover:border-cyan-500/30'
+                    }`}
+                  >
+                    <div className="space-y-3.5">
+                      
+                      {/* Card Top: Brand Logo + Status */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shadow-inner ${connector.color}`}>
+                            <IconComponent size={26} />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-1.5">
+                              <span className="text-xs font-mono font-semibold uppercase text-slate-400">
+                                {connector.type}
+                              </span>
+                              <span className="text-slate-600">·</span>
+                              <span className="text-[11px] font-mono text-cyan-400">
+                                {connector.speed}
+                              </span>
+                            </div>
+                            <h3 className="text-sm font-bold text-white tracking-tight leading-tight">
+                              {connector.name}
+                            </h3>
+                          </div>
+                        </div>
+
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
+                          isConnected 
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                          {connector.status}
+                        </span>
+                      </div>
+
+                      {/* Connector Description */}
+                      <p className="text-xs text-slate-400 leading-relaxed min-h-[38px]">
+                        {connector.description}
+                      </p>
+
+                      {/* Performance & Security Stats */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Activity className="w-3 h-3 text-cyan-400" />
+                          <span>Ping: {connector.ping || '28ms'}</span>
+                        </span>
+                        <span className="text-slate-500">·</span>
+                        <span className="text-emerald-400 font-medium">Uptime: {connector.uptime || '99.9%'}</span>
+                        <span className="text-slate-500">·</span>
+                        <span className="text-slate-400">TLS 1.3</span>
+                      </div>
+
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="pt-2 flex items-center space-x-2">
+                      {isConnected ? (
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenConfig(connector)}
+                            className="flex-1 justify-center text-xs font-semibold h-8 rounded-lg border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 transition-all"
+                          >
+                            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
+                            Configure
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleTestPing(connector)}
+                            disabled={isPinging}
+                            className="h-8 px-2.5 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/20 rounded-lg transition-all"
+                            title="Send simulated test telemetry ping"
+                          >
+                            <Zap className={`w-3.5 h-3.5 ${isPinging ? 'animate-bounce text-amber-400' : ''}`} />
+                            <span className="ml-1 hidden sm:inline">{isPinging ? 'Pinging...' : 'Ping Test'}</span>
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleOpenConfig(connector)}
+                          className="w-full justify-center text-xs font-semibold h-8 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-md transition-all group"
+                        >
+                          <Plug2 className="w-3.5 h-3.5 mr-1.5" />
+                          <span>Connect in 60s</span>
+                          <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+
+          </div>
+
+          {/* ════ HOW IT WORKS & KEY BENEFITS (STEP-BY-STEP SECOND) ════ */}
           <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-[#0A1322] to-[#060A12] p-5 md:p-6 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
             
@@ -647,177 +818,6 @@ export default function Integrations() {
                   <span className="text-[11px] text-slate-400">HMAC SHA-256 signatures, AES-256 encryption & SOC2 ready.</span>
                 </div>
               </div>
-            </div>
-
-          </div>
-
-          {/* ════ CONNECTOR CARDS SECTION ════ */}
-          <div className="space-y-4">
-            
-            {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white tracking-tight">Available Connectors</h3>
-                <span className="text-xs text-slate-500 font-mono">({filteredConnectors.length} platforms)</span>
-              </div>
-
-              {/* Category Filter Pills */}
-              <div className="flex items-center space-x-1.5 p-1 rounded-lg bg-[#080D15] border border-slate-800 text-xs">
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
-                    selectedCategory === 'all'
-                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  All ({connectors.length})
-                </button>
-                <button
-                  onClick={() => setSelectedCategory('gateways')}
-                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
-                    selectedCategory === 'gateways'
-                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Payment Gateways (2)
-                </button>
-                <button
-                  onClick={() => setSelectedCategory('ecommerce')}
-                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
-                    selectedCategory === 'ecommerce'
-                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  E-Commerce (1)
-                </button>
-                <button
-                  onClick={() => setSelectedCategory('couriers')}
-                  className={`px-2.5 py-1 rounded-md transition-all font-medium ${
-                    selectedCategory === 'couriers'
-                      ? 'bg-cyan-600 text-white shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Couriers & POD (2)
-                </button>
-              </div>
-            </div>
-
-            {/* Connectors Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredConnectors.map((connector) => {
-                const isConnected = connector.status === 'Connected';
-                const IconComponent = ICON_MAP[connector.id] || connector.icon || RazorpayLogo;
-                const isPinging = pingingId === connector.id;
-
-                return (
-                  <Card 
-                    key={connector.id} 
-                    variant="data" 
-                    padding="md" 
-                    className={`flex flex-col justify-between space-y-4 rounded-xl border transition-all relative overflow-hidden ${
-                      isConnected 
-                        ? 'bg-[#080D15] border-slate-800 hover:border-slate-700 shadow-sm' 
-                        : 'bg-[#080D15] border-slate-800/80 hover:border-cyan-500/30'
-                    }`}
-                  >
-                    <div className="space-y-3.5">
-                      
-                      {/* Card Top: Brand Logo + Status */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shadow-inner ${connector.color}`}>
-                            <IconComponent size={26} />
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-1.5">
-                              <span className="text-xs font-mono font-semibold uppercase text-slate-400">
-                                {connector.type}
-                              </span>
-                              <span className="text-slate-600">·</span>
-                              <span className="text-[11px] font-mono text-cyan-400">
-                                {connector.speed}
-                              </span>
-                            </div>
-                            <h3 className="text-sm font-bold text-white tracking-tight leading-tight">
-                              {connector.name}
-                            </h3>
-                          </div>
-                        </div>
-
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
-                          isConnected 
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-                          {connector.status}
-                        </span>
-                      </div>
-
-                      {/* Connector Description */}
-                      <p className="text-xs text-slate-400 leading-relaxed min-h-[38px]">
-                        {connector.description}
-                      </p>
-
-                      {/* Performance & Security Stats */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Activity className="w-3 h-3 text-cyan-400" />
-                          <span>Ping: {connector.ping || '28ms'}</span>
-                        </span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-emerald-400 font-medium">Uptime: {connector.uptime || '99.9%'}</span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-slate-400">TLS 1.3</span>
-                      </div>
-
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="pt-2 flex items-center space-x-2">
-                      {isConnected ? (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleOpenConfig(connector)}
-                            className="flex-1 justify-center text-xs font-semibold h-8 rounded-lg border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 transition-all"
-                          >
-                            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
-                            Configure
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleTestPing(connector)}
-                            disabled={isPinging}
-                            className="h-8 px-2.5 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/20 rounded-lg transition-all"
-                            title="Send simulated test telemetry ping"
-                          >
-                            <Zap className={`w-3.5 h-3.5 ${isPinging ? 'animate-bounce text-amber-400' : ''}`} />
-                            <span className="ml-1 hidden sm:inline">{isPinging ? 'Pinging...' : 'Ping Test'}</span>
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleOpenConfig(connector)}
-                          className="w-full justify-center text-xs font-semibold h-8 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-md transition-all group"
-                        >
-                          <Plug2 className="w-3.5 h-3.5 mr-1.5" />
-                          <span>Connect in 60s</span>
-                          <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      )}
-                    </div>
-                  </Card>
-                );
-              })}
             </div>
 
           </div>
