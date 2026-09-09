@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '@/services/api';
 import { useAlertStore } from '@/stores/alertStore';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 interface AlertDrawerProps {
   alertId: string | null;
@@ -87,9 +88,13 @@ export const AlertDrawer: React.FC<AlertDrawerProps> = ({ alertId, onClose }) =>
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {loading ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
+            <LoadingScreen
+              fullScreen={false}
+              size="sm"
+              message="Fetching alert telemetry..."
+              submessage=""
+              showBadges={false}
+            />
           ) : (
             <>
               {/* Transaction Details */}

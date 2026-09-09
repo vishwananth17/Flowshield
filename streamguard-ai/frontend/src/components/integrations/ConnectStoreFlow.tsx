@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import api from '@/services/api';
 import PlatformDetectResult from './PlatformDetectResult';
 import { Search, Loader2 } from 'lucide-react';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 interface ConnectStoreFlowProps {
   onFallback: () => void;
@@ -98,17 +99,21 @@ export default function ConnectStoreFlow({ onFallback, onSuccess }: ConnectStore
       )}
 
       {loading && (
-        <div className="max-w-2xl bg-[#111827] border border-[#1F2937] rounded-xl p-8 shadow-xl flex flex-col items-center justify-center text-center">
-          <Loader2 className="h-10 w-10 text-blue-500 animate-spin mb-4" />
-          <h4 className="font-medium text-white text-base mb-1">{loadingStep}</h4>
-          <p className="text-xs text-gray-400 mb-4">Please wait while we audit the remote page signatures...</p>
-          
-          <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden max-w-xs">
+        <div className="max-w-2xl bg-[#080D15] border border-cyan-500/20 rounded-xl p-8 shadow-xl flex flex-col items-center justify-center text-center">
+          <LoadingScreen
+            fullScreen={false}
+            size="sm"
+            message={loadingStep || "Auditing remote store signatures..."}
+            submessage="Auditing checkout DOM and sovereign payment pathways"
+            showBadges={false}
+          />
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-xs mt-3 border border-cyan-500/20">
             <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+              className="bg-gradient-to-r from-cyan-500 to-cyan-300 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_#22d3ee]"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
+          <span className="text-[11px] text-cyan-400 font-mono mt-2">{progress}% Completed</span>
         </div>
       )}
 

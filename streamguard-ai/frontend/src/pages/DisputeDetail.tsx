@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import api, { API_BASE_URL } from '@/services/api';
 
 export default function DisputeDetail() {
@@ -160,10 +161,12 @@ export default function DisputeDetail() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-        <p className="text-gray-400 mt-4 font-bold text-sm">Compiling case dossier...</p>
-      </div>
+      <LoadingScreen
+        fullScreen={false}
+        size="md"
+        message="Compiling sovereign dispute dossier..."
+        submessage="Synthesizing counter-evidence and evaluating win probability models"
+      />
     );
   }
 

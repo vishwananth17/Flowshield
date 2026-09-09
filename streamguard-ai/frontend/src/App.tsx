@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { Toaster } from 'sonner';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -40,43 +42,45 @@ function App() {
         <Toaster position="top-right" richColors closeButton />
         <CookieConsent />
         <PageTitleTracker />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/thank-you" element={<ThankYou />} />
-          <Route path="/welcome" element={<ThankYou />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/developers" element={<DevPortal />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/dpa" element={<DataProcessingAgreement />} />
-          <Route path="/sla" element={<ServiceLevelAgreement />} />
-          <Route path="/cookies" element={<CookiePolicy />} />
-          <Route path="/security" element={<SecurityPolicy />} />
-          {/* Legacy Decommissioned Routes */}
-          <Route path="/demo" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<NotFound />} />
+        <Suspense fallback={<LoadingScreen message="Navigating sovereign interface..." />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/welcome" element={<ThankYou />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/developers" element={<DevPortal />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/dpa" element={<DataProcessingAgreement />} />
+            <Route path="/sla" element={<ServiceLevelAgreement />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/security" element={<SecurityPolicy />} />
+            {/* Legacy Decommissioned Routes */}
+            <Route path="/demo" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
 
-          
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="api-keys" element={<ApiKeys />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="disputes" element={<Disputes />} />
-              <Route path="disputes/:disputeId" element={<DisputeDetail />} />
-              <Route path="alerts" element={<Alerts />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="integrations" element={<Integrations />} />
-              <Route path="team" element={<Team />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="docs" element={<Docs />} />
+            
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="api-keys" element={<ApiKeys />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="disputes" element={<Disputes />} />
+                <Route path="disputes/:disputeId" element={<DisputeDetail />} />
+                <Route path="alerts" element={<Alerts />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="integrations" element={<Integrations />} />
+                <Route path="team" element={<Team />} />
+                <Route path="billing" element={<Billing />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="docs" element={<Docs />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       </ErrorBoundary>
     </BrowserRouter>
   );
