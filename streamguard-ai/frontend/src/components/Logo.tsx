@@ -5,60 +5,64 @@ interface LogoProps {
   size?: number;
   iconSize?: number;
   theme?: 'dark' | 'light' | 'auto';
+  withContainer?: boolean;
 }
 
+/**
+ * Official Flowshield AI Company Emblem
+ * Authentic interlocking triquetra-shield geometric mark
+ */
 export const Logo: React.FC<LogoProps> = ({ 
   className = '', 
-  size = 40, 
-  iconSize = 24,
-  theme = 'auto' 
+  size = 36, 
+  iconSize,
+  theme = 'auto',
+  withContainer = true
 }) => {
-  // Determine background and border styles based on the active theme
-  const bgClass = 
+  const actualIconSize = iconSize || Math.round(size * 0.72);
+  
+  // Theme styling for container
+  const containerStyle = 
     theme === 'dark' 
-      ? 'bg-black text-white border-slate-900' 
+      ? 'bg-[#080D15] border-slate-800 shadow-inner' 
       : theme === 'light' 
-        ? 'bg-white text-slate-900 border-slate-200' 
-        : 'bg-white dark:bg-black text-slate-900 dark:text-white border-slate-200 dark:border-slate-900';
+        ? 'bg-white border-slate-200 shadow-sm' 
+        : 'bg-[#080D15] dark:bg-[#080D15] border-slate-800/90 dark:border-slate-800 shadow-inner';
+
+  const isLight = theme === 'light';
+  const logoSrc = isLight ? '/flowshield-symbol-dark.png' : '/flowshield-symbol.png';
+
+  if (!withContainer) {
+    return (
+      <img
+        src={logoSrc}
+        alt="Flowshield AI"
+        width={size}
+        height={size}
+        className={`object-contain select-none transition-all duration-300 ${className}`}
+        style={{ width: size, height: size }}
+        loading="eager"
+      />
+    );
+  }
 
   return (
     <div 
-      className={`rounded-xl border flex items-center justify-center shadow-inner transition-all duration-300 ${bgClass} ${className}`}
+      className={`rounded-xl border flex items-center justify-center transition-all duration-300 relative overflow-hidden group ${containerStyle} ${className}`}
       style={{ width: size, height: size }}
     >
-      <svg
-        width={iconSize}
-        height={iconSize}
-        viewBox="0 0 400 400"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Left Shield Plate */}
-        <path
-          d="M185 38 L60 85 V195 C60 285 185 355 185 355 V38 Z"
-          fill="currentColor"
-        />
-        {/* Right Shield Plate */}
-        <path
-          d="M215 38 L340 85 V195 C340 285 215 355 215 355 V38 Z"
-          fill="currentColor"
-          opacity="0.75"
-        />
-        {/* Interlocking Secure Center Ring / Lock */}
-        <circle
-          cx="200"
-          cy="190"
-          r="65"
-          className="fill-white dark:fill-black transition-colors duration-300"
-          stroke="currentColor"
-          strokeWidth="24"
-        />
-        {/* Inner Lock Core / Shield Emblem */}
-        <path
-          d="M200 162 L228 178 V207 C228 223 200 234 200 234 C200 234 172 223 172 207 V178 L200 162 Z"
-          fill="currentColor"
-        />
-      </svg>
+      {/* Subtle brand glow on hover */}
+      <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      
+      <img
+        src={logoSrc}
+        alt="Flowshield AI Logo"
+        width={actualIconSize}
+        height={actualIconSize}
+        className="object-contain select-none transform transition-transform duration-300 group-hover:scale-105"
+        style={{ width: actualIconSize, height: actualIconSize }}
+        loading="eager"
+      />
     </div>
   );
 };

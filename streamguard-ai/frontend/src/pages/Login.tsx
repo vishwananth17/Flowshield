@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowRight, ShieldCheck, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Logo } from '@/components/Logo';
 
 export default function Login() {
   const [authMode, setAuthMode] = useState<'email' | 'mobile'>('email');
@@ -74,12 +75,15 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-surface-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-cyan-500/20 antialiased">
       
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        {/* Wordmark Logo */}
-        <Link to="/" className="inline-flex items-center space-x-1 select-none">
-          <span className="font-semibold text-lg tracking-tight text-text-primary">Flowshield</span>
-          <span className="text-cyan-500 font-bold text-lg">/</span>
-          <span className="font-semibold text-lg tracking-tight text-text-primary">AI</span>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 flex flex-col items-center">
+        {/* Official Company Logo & Wordmark */}
+        <Link to="/" className="inline-flex items-center space-x-2.5 select-none group mb-1">
+          <Logo size={40} iconSize={28} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40 shadow-lg shadow-cyan-500/5" />
+          <div className="flex items-center space-x-1">
+            <span className="font-bold text-xl tracking-tight text-text-primary">Flowshield</span>
+            <span className="text-cyan-500 font-bold text-xl">/</span>
+            <span className="font-bold text-xl tracking-tight text-text-primary">AI</span>
+          </div>
         </Link>
         <h2 className="type-h2 text-text-primary">Sign in to your workspace</h2>
         <p className="type-sm text-text-secondary">Enter your credentials to access the SOC telemetry console</p>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { Logo } from '@/components/Logo';
 
 export default function Register() {
   const [fullName, setFullName] = useState('');
@@ -49,12 +50,15 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-surface-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-cyan-500/20 antialiased">
       
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        {/* Wordmark Logo */}
-        <Link to="/" className="inline-flex items-center space-x-1 select-none">
-          <span className="font-semibold text-lg tracking-tight text-text-primary">Flowshield</span>
-          <span className="text-cyan-500 font-bold text-lg">/</span>
-          <span className="font-semibold text-lg tracking-tight text-text-primary">AI</span>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 flex flex-col items-center">
+        {/* Official Company Logo & Wordmark */}
+        <Link to="/" className="inline-flex items-center space-x-2.5 select-none group mb-1">
+          <Logo size={40} iconSize={28} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40 shadow-lg shadow-cyan-500/5" />
+          <div className="flex items-center space-x-1">
+            <span className="font-bold text-xl tracking-tight text-text-primary">Flowshield</span>
+            <span className="text-cyan-500 font-bold text-xl">/</span>
+            <span className="font-bold text-xl tracking-tight text-text-primary">AI</span>
+          </div>
         </Link>
         <h2 className="type-h2 text-text-primary">Create your merchant workspace</h2>
         <p className="type-sm text-text-secondary">Initialize automated fraud defense and dispute representation</p>

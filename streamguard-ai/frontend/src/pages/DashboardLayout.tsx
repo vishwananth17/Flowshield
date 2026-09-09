@@ -28,6 +28,7 @@ import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -140,15 +141,18 @@ export default function DashboardLayout() {
         }`}
       >
         {/* Top: Logo & Org Wordmark */}
-        <div className="p-4 border-b border-border-100 flex items-center justify-between">
-          <Link to="/" className="space-y-0.5 select-none block">
-            <div className="flex items-center space-x-1">
-              <span className="font-semibold text-sm tracking-tight text-text-primary">Flowshield</span>
-              <span className="text-cyan-500 font-bold text-sm">/</span>
-              <span className="font-semibold text-sm tracking-tight text-text-primary">AI</span>
-            </div>
-            <div className="text-[11px] font-normal text-text-tertiary truncate max-w-[170px]">
-              {organization?.name || 'Production Workspace'}
+        <div className="p-3.5 border-b border-border-100 flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2.5 select-none group">
+            <Logo size={32} iconSize={22} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40" />
+            <div className="space-y-0.5">
+              <div className="flex items-center space-x-1">
+                <span className="font-bold text-sm tracking-tight text-text-primary">Flowshield</span>
+                <span className="text-cyan-500 font-bold text-sm">/</span>
+                <span className="font-bold text-sm tracking-tight text-text-primary">AI</span>
+              </div>
+              <div className="text-[10px] font-mono text-text-tertiary truncate max-w-[130px]">
+                {organization?.name || 'Production Workspace'}
+              </div>
             </div>
           </Link>
 

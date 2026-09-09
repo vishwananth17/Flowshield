@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { MotionDiv, MotionSection } from '@/components/ui/Motion';
 import EnterpriseModal from '@/components/EnterpriseModal';
 import { toast } from 'sonner';
+import { Logo } from '@/components/Logo';
 
 // Simulated Real-time Transactions Feed for Hero Stream
 interface StreamTx {
@@ -201,11 +202,14 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       >
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           
-          {/* Logo Wordmark (No generic icon / emoji) */}
-          <Link to="/" className="flex items-center space-x-1 select-none">
-            <span className="font-semibold text-base tracking-tight text-text-primary">Flowshield</span>
-            <span className="text-cyan-500 font-bold text-base">/</span>
-            <span className="font-semibold text-base tracking-tight text-text-primary">AI</span>
+          {/* Official Company Logo & Wordmark */}
+          <Link to="/" className="flex items-center space-x-2.5 select-none group">
+            <Logo size={32} iconSize={22} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40" />
+            <div className="flex items-center space-x-1">
+              <span className="font-bold text-base tracking-tight text-text-primary">Flowshield</span>
+              <span className="text-cyan-500 font-bold text-base">/</span>
+              <span className="font-bold text-base tracking-tight text-text-primary">AI</span>
+            </div>
           </Link>
 
           {/* Desktop Nav Links */}
