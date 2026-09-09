@@ -25,7 +25,6 @@ import {
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
 
 interface AttackScenario {
   id: string;
@@ -255,6 +254,23 @@ export default function Simulator() {
   const [activeTab, setActiveTab] = useState<'hud' | 'json' | 'curl'>('hud');
   const [copied, setCopied] = useState(false);
 
+  // Inbuilt notification banner state (replaces floating popup toasts)
+  const [inbuiltNotice, setInbuiltNotice] = useState<{
+    type: 'BLOCK' | 'REVIEW' | 'ALLOW';
+    title: string;
+    description: string;
+    latency: number;
+    score: number;
+    time: string;
+  }>({
+    type: 'BLOCK',
+    title: 'Transaction Blocked (96/100)',
+    description: 'Evaluated in 38ms • Risk threshold exceeded across threat vectors',
+    latency: 38,
+    score: 96,
+    time: 'Just now'
+  });
+
   // Live feed stream
   const [feedEvents, setFeedEvents] = useState<Array<{ id: string; time: string; name: string; decision: string; score: number; latency: number }>>([
     { id: '1', time: '10:42:19', name: 'Card Testing Bot', decision: 'BLOCK', score: 96, latency: 38 },
@@ -263,7 +279,7 @@ export default function Simulator() {
   ]);
 
   // Run simulation with clean sub-100ms timing
-  const runSimulation = (scenario: AttackScenario, userTriggered = false) => {
+  const runSimulation = (scenario: AttackScenario) => {
     setIsSimulating(true);
 
     const calculatedLatency = Math.round(24 + Math.random() * 22);
@@ -304,40 +320,42 @@ export default function Simulator() {
       setActiveNotes(finalNotes);
       setIsSimulating(false);
 
+      const currentTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      // Update inbuilt notification banner
+      setInbuiltNotice({
+        type: finalDecision,
+        title: finalDecision === 'BLOCK'
+          ? `Transaction Blocked (${finalScore}/100)`
+          : finalDecision === 'REVIEW'
+            ? `Manual Review Required (${finalScore}/100)`
+            : `Transaction Approved (${finalScore}/100)`,
+        description: finalDecision === 'BLOCK'
+          ? `Evaluated in ${calculatedLatency}ms • Risk threshold exceeded across threat vectors`
+          : finalDecision === 'REVIEW'
+            ? `Evaluated in ${calculatedLatency}ms • Escalated to fraud investigation queue`
+            : `Evaluated in ${calculatedLatency}ms • Clean telemetry & verified credentials`,
+        latency: calculatedLatency,
+        score: finalScore,
+        time: currentTimeStr
+      });
+
       // Add to live feed
       const newFeedItem = {
         id: Math.random().toString(),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        time: currentTimeStr,
         name: isCustomMode ? 'Custom Parameter Test' : scenario.title,
         decision: finalDecision,
         score: finalScore,
         latency: calculatedLatency
       };
       setFeedEvents(prev => [newFeedItem, ...prev.slice(0, 4)]);
-
-      // Clean inline notification (only if user explicitly clicked execute)
-      if (userTriggered) {
-        toast.dismiss();
-        if (finalDecision === 'BLOCK') {
-          toast.error(`Transaction Blocked (${finalScore}/100)`, {
-            description: `Evaluated in ${calculatedLatency}ms • Risk threshold exceeded`
-          });
-        } else if (finalDecision === 'REVIEW') {
-          toast.warning(`Manual Review Required (${finalScore}/100)`, {
-            description: `Evaluated in ${calculatedLatency}ms • Escalated to fraud queue`
-          });
-        } else {
-          toast.success(`Transaction Approved (${finalScore}/100)`, {
-            description: `Evaluated in ${calculatedLatency}ms • Low threat probability`
-          });
-        }
-      }
     }, 240);
   };
 
   const handleSelectScenario = (scenario: AttackScenario) => {
     setSelectedScenario(scenario);
-    runSimulation(scenario, false);
+    runSimulation(scenario);
   };
 
   const payloadData = {
@@ -366,7 +384,6 @@ export default function Simulator() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success('Copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -646,8 +663,67 @@ export default function Simulator() {
           </div>
 
           {/* RIGHT COLUMN: INSTITUTIONAL FORENSIC HUD (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4">
             
+            {/* ── INBUILT DEFENSE NOTIFICATION BANNER (EMBEDDED, NO POPUPS) ── */}
+            <AnimatePresence mode="wait">
+              {inbuiltNotice && (
+                <motion.div
+                  key={inbuiltNotice.title + inbuiltNotice.time}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2 }}
+                  className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+                    inbuiltNotice.type === 'BLOCK'
+                      ? 'bg-rose-950/25 border-rose-500/30 text-rose-200'
+                      : inbuiltNotice.type === 'REVIEW'
+                        ? 'bg-amber-950/25 border-amber-500/30 text-amber-200'
+                        : 'bg-emerald-950/25 border-emerald-500/30 text-emerald-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg shrink-0 ${
+                      inbuiltNotice.type === 'BLOCK'
+                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                        : inbuiltNotice.type === 'REVIEW'
+                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    }`}>
+                      {inbuiltNotice.type === 'BLOCK' && <ShieldAlert className="w-4 h-4" />}
+                      {inbuiltNotice.type === 'REVIEW' && <AlertTriangle className="w-4 h-4" />}
+                      {inbuiltNotice.type === 'ALLOW' && <ShieldCheck className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs font-bold tracking-tight ${
+                          inbuiltNotice.type === 'BLOCK' ? 'text-rose-400' :
+                          inbuiltNotice.type === 'REVIEW' ? 'text-amber-400' :
+                          'text-emerald-400'
+                        }`}>
+                          {inbuiltNotice.title}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">• {inbuiltNotice.time}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+                        {inbuiltNotice.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                      inbuiltNotice.type === 'BLOCK' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+                      inbuiltNotice.type === 'REVIEW' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                      'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    }`}>
+                      {inbuiltNotice.type}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Top HUD Controls */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-1.5 bg-[#05080F] p-1 rounded-lg border border-slate-800">
@@ -855,10 +931,18 @@ export default function Simulator() {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(JSON.stringify(payloadData, null, 2))}
-                  className="absolute top-3 right-3 p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  className="absolute top-3 right-3 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors flex items-center gap-1 text-xs"
                   title="Copy JSON"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? (
+                    <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-sans font-medium">
+                      <Check className="w-3.5 h-3.5" /> Copied
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[11px] font-sans">
+                      <Copy className="w-3.5 h-3.5" /> Copy JSON
+                    </span>
+                  )}
                 </button>
                 <pre className="text-xs leading-relaxed">{JSON.stringify(payloadData, null, 2)}</pre>
               </div>
@@ -870,10 +954,18 @@ export default function Simulator() {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(curlCode)}
-                  className="absolute top-3 right-3 p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  className="absolute top-3 right-3 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors flex items-center gap-1 text-xs"
                   title="Copy cURL"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? (
+                    <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-sans font-medium">
+                      <Check className="w-3.5 h-3.5" /> Copied
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[11px] font-sans">
+                      <Copy className="w-3.5 h-3.5" /> Copy cURL
+                    </span>
+                  )}
                 </button>
                 <pre className="text-xs leading-relaxed whitespace-pre-wrap">{curlCode}</pre>
               </div>

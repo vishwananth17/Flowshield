@@ -40,7 +40,7 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="top-right" richColors closeButton theme="dark" />
         <CookieConsent />
         <PageTitleTracker />
         <Suspense fallback={<LoadingScreen message="Navigating sovereign interface..." />}>
