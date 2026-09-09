@@ -211,10 +211,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-text-secondary">
             <a href="#features" className="hover:text-text-primary transition-colors">Product</a>
             <a href="#problem" className="hover:text-text-primary transition-colors">Solutions</a>
-            <Link to="/docs" className="hover:text-text-primary transition-colors flex items-center gap-1.5">
-              <span>Documentation</span>
-              <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-1.5 py-0.5 rounded font-mono">v1</span>
-            </Link>
+            <Link to="/docs" className="hover:text-text-primary transition-colors">Documentation</Link>
             <a href="#pricing" className="hover:text-text-primary transition-colors">Pricing</a>
           </nav>
 
