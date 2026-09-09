@@ -13,6 +13,7 @@ import {
   Minus,
   CheckCircle,
   AlertOctagon,
+  AlertTriangle,
   Copy,
   Info,
   Clock,
@@ -135,9 +136,9 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
   const isApprove = decision === 'allow';
 
   // Format challenge display
-  const challengeBadgeText = challengeMethod === 'otp_sms' ? 'CHALLENGE — OTP SMS' :
-                            challengeMethod === 'manual_review' ? 'CHALLENGE — MANUAL REVIEW' :
-                            'CHALLENGE — 3DS';
+  const challengeBadgeText = challengeMethod === 'otp_sms' ? 'Challenge — OTP SMS' :
+                            challengeMethod === 'manual_review' ? 'Challenge — Manual Review' :
+                            'Challenge — 3D Secure';
 
   // Signals list extraction
   const signalsList: SignalItem[] = [];
@@ -174,10 +175,10 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
   // Synthesized Explanation
   const explanation = tx?.explanation || (
     isBlock 
-      ? `This transaction was BLOCKED (risk score: ${scorePercent}/100). The primary risk vectors indicate critical anomaly thresholds were exceeded. Automated defense rules prohibited execution to protect merchant liability.`
+      ? `This transaction was blocked (risk score: ${scorePercent}/100). Primary risk vectors indicate critical anomaly thresholds were exceeded. Automated defense rules prohibited execution to protect merchant liability.`
       : isChallenge 
-      ? `This transaction was CHALLENGED (risk score: ${scorePercent}/100). Elevated risk contributions require step-up authentication. Recommended action: Route to ${challengeMethod === 'otp_sms' ? 'SMS OTP' : '3D Secure step-up'}.`
-      : `This transaction was APPROVED (risk score: ${scorePercent}/100). Positive historical trust signals and standard behavioral characteristics indicate normal customer purchase patterns.`
+      ? `This transaction was challenged (risk score: ${scorePercent}/100). Elevated risk contributions require step-up authentication. Recommended action: Route to ${challengeMethod === 'otp_sms' ? 'SMS OTP' : '3D Secure step-up'}.`
+      : `This transaction was approved (risk score: ${scorePercent}/100). Positive historical trust signals and standard behavioral characteristics indicate normal customer purchase patterns.`
   );
 
   // Gauge Angle Calculation: 0 score = 180 deg (left), 100 score = 0 deg (right)
@@ -189,18 +190,18 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
   const needleY = 95 - needleLen * Math.sin(needleRad);
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] md:w-[600px] bg-[#0A0F1D] border-l border-border-200 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-200">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] md:w-[600px] bg-[#0A0F1D] border-l border-border-200 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-200 font-sans">
       
       {/* Header Bar */}
-      <div className="p-5 border-b border-border-100 flex items-start justify-between bg-surface-100/60 backdrop-blur-sm">
+      <div className="p-5 border-b border-border-100 flex items-start justify-between bg-surface-100/70 backdrop-blur-sm">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-mono font-bold text-text-tertiary">TRANSACTION</span>
-            <span className="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-0.5 rounded flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">Transaction</span>
+            <span className="text-xs text-text-secondary bg-surface-200 border border-border-200 px-2 py-0.5 rounded-md flex items-center gap-1.5 font-mono">
               {tx?.id ? `${tx.id.substring(0, 18)}...` : 'Analyzing...'}
               <button 
                 onClick={copyTxId} 
-                className="hover:text-white transition-colors"
+                className="hover:text-text-primary transition-colors text-text-tertiary"
                 title="Copy full transaction ID"
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -209,7 +210,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
           </div>
 
           <div className="flex items-center space-x-3 pt-1">
-            <h2 className="text-2xl font-bold font-mono text-white">
+            <h2 className="text-2xl font-bold tracking-tight text-text-primary">
               {tx?.currency || '₹'} {Number(tx?.amount || 0).toLocaleString('en-IN')}
             </h2>
             <span className="text-xs text-text-secondary font-medium">
@@ -230,25 +231,25 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
       <div className="flex border-b border-border-100 bg-surface-100/40 px-5">
         <button
           onClick={() => setActiveTab('signals')}
-          className={`py-3 text-xs font-mono font-semibold flex items-center space-x-2 border-b-2 transition-all mr-6 ${
+          className={`py-3 text-xs font-medium flex items-center space-x-2 border-b-2 transition-all mr-6 ${
             activeTab === 'signals'
-              ? 'border-cyan-400 text-cyan-400'
+              ? 'border-primary-500 text-primary-400 font-semibold'
               : 'border-transparent text-text-tertiary hover:text-text-secondary'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Decision & Signal Vectors</span>
+          <span>Decision & Signals</span>
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
-          className={`py-3 text-xs font-mono font-semibold flex items-center space-x-2 border-b-2 transition-all ${
+          className={`py-3 text-xs font-medium flex items-center space-x-2 border-b-2 transition-all ${
             activeTab === 'timeline'
-              ? 'border-cyan-400 text-cyan-400'
+              ? 'border-primary-500 text-primary-400 font-semibold'
               : 'border-transparent text-text-tertiary hover:text-text-secondary'
           }`}
         >
           <TrendingUp className="w-4 h-4" />
-          <span>Customer Risk Timeline</span>
+          <span>Risk Timeline</span>
         </button>
       </div>
 
@@ -256,8 +257,8 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
         {loading && !tx ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-3">
-            <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-            <span className="text-xs text-text-tertiary font-mono">Decoupling telemetry signals...</span>
+            <RefreshCw className="w-6 h-6 text-primary-400 animate-spin" />
+            <span className="text-xs text-text-tertiary font-sans">Loading transaction signals...</span>
           </div>
         ) : activeTab === 'timeline' ? (
           <RiskTimeline customerId={tx?.customer_id || 'anonymous'} currentTxId={tx?.id} />
@@ -314,37 +315,37 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
                   <circle cx="110" cy="95" r="7" fill="#0F172A" stroke="#FFFFFF" strokeWidth="2.5" />
 
                   {/* Arc boundary tick labels */}
-                  <text x="24" y="112" fill="#64748B" fontSize="9" fontFamily="JetBrains Mono">0</text>
-                  <text x="80" y="32" fill="#64748B" fontSize="9" fontFamily="JetBrains Mono">35</text>
-                  <text x="135" y="32" fill="#64748B" fontSize="9" fontFamily="JetBrains Mono">72</text>
-                  <text x="192" y="112" fill="#64748B" fontSize="9" fontFamily="JetBrains Mono">100</text>
+                  <text x="24" y="112" fill="#64748B" fontSize="9" fontFamily="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">0</text>
+                  <text x="80" y="32" fill="#64748B" fontSize="9" fontFamily="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">35</text>
+                  <text x="135" y="32" fill="#64748B" fontSize="9" fontFamily="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">72</text>
+                  <text x="192" y="112" fill="#64748B" fontSize="9" fontFamily="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">100</text>
                 </svg>
               </div>
 
               {/* Numeric Readout & Decision Badge */}
               <div className="mt-1 space-y-2">
-                <div className="flex items-baseline justify-center space-x-1 font-mono">
-                  <span className={`text-3xl font-extrabold ${
+                <div className="flex items-baseline justify-center space-x-1 font-sans">
+                  <span className={`text-3xl font-bold tracking-tight ${
                     isBlock ? 'text-red-400' : isChallenge ? 'text-amber-400' : 'text-emerald-400'
                   }`}>
                     {scorePercent}
                   </span>
-                  <span className="text-xs text-text-tertiary font-bold">/ 100</span>
+                  <span className="text-xs text-text-tertiary font-medium">/ 100</span>
                 </div>
 
                 {/* Primary Decision Badge */}
                 <div>
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider border ${
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium border ${
                     isBlock 
-                      ? 'bg-red-500/15 text-red-400 border-red-500/30' 
+                      ? 'bg-red-500/10 text-red-400 border-red-500/20' 
                       : isChallenge 
-                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' 
-                      : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   }`}>
                     {isBlock && <AlertOctagon className="w-3.5 h-3.5" />}
                     {isChallenge && <AlertTriangle className="w-3.5 h-3.5" />}
                     {isApprove && <CheckCircle className="w-3.5 h-3.5" />}
-                    {isBlock ? 'BLOCK — FRAUD' : isChallenge ? challengeBadgeText : 'APPROVE'}
+                    {isBlock ? 'Block — Fraud' : isChallenge ? challengeBadgeText : 'Approve'}
                   </span>
                 </div>
               </div>
@@ -352,8 +353,8 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
 
             {/* Decision Explanation (Auto-Generated Paragraph) */}
             <div className="bg-surface-200/60 border border-border-100 rounded-lg p-4 space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="flex items-center space-x-2 text-xs font-semibold text-text-primary">
+                <Sparkles className="w-3.5 h-3.5 text-primary-400" />
                 <span>Decision Explanation</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed font-sans">
@@ -364,11 +365,11 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
             {/* Signal Breakdown Table */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-mono font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                  Signal Breakdown ({signalsList.length} Extracted)
+                <h4 className="text-xs font-semibold text-text-primary flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary-400" />
+                  Signal Breakdown ({signalsList.length} factors)
                 </h4>
-                <span className="text-[10px] text-text-tertiary font-mono">Sorted by Impact</span>
+                <span className="text-[11px] text-text-tertiary font-sans">Sorted by Impact</span>
               </div>
 
               {signalsList.length === 0 ? (
@@ -377,7 +378,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
                 </div>
               ) : (
                 <div className="border border-border-100 rounded-lg overflow-hidden bg-surface-100/30">
-                  <table className="w-full text-left text-xs font-mono">
+                  <table className="w-full text-left text-xs font-sans">
                     <thead className="bg-surface-200/80 text-text-tertiary border-b border-border-100 text-[11px]">
                       <tr>
                         <th className="py-2.5 px-3 font-medium">Signal Factor</th>
@@ -400,25 +401,25 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
                             <td className="py-2.5 px-3">
                               <div className="flex flex-col">
                                 <div className="flex items-center space-x-1.5">
-                                  <span className="text-text-primary font-semibold group-hover:text-cyan-400 transition-colors">
+                                  <span className="text-text-primary font-medium group-hover:text-primary-400 transition-colors">
                                     {sig.name}
                                   </span>
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-surface-300 text-text-tertiary">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-300 text-text-tertiary">
                                     {sig.category}
                                   </span>
                                 </div>
-                                <span className="text-[10px] text-text-tertiary font-sans mt-0.5 line-clamp-1">
+                                <span className="text-[11px] text-text-tertiary font-sans mt-0.5 line-clamp-1">
                                   {sig.reason}
                                 </span>
                               </div>
                             </td>
                             <td className="py-2.5 px-3 text-text-secondary">
-                              <span className="px-1.5 py-0.5 rounded bg-surface-200 text-[11px]">
+                              <span className="px-1.5 py-0.5 rounded bg-surface-200 text-[11px] font-mono">
                                 {sig.value}
                               </span>
                             </td>
                             <td className="py-2.5 px-3 text-right">
-                              <span className={`inline-flex items-center gap-1 font-bold ${
+                              <span className={`inline-flex items-center gap-1 font-semibold ${
                                 isRisk ? 'text-red-400' : isTrust ? 'text-emerald-400' : 'text-slate-400'
                               }`}>
                                 {isRisk && <ArrowUp className="w-3 h-3 text-red-400 stroke-[2.5]" />}
@@ -439,41 +440,41 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
             {/* Context Details Grid */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="bg-surface-200/50 p-3 rounded-lg border border-border-100 space-y-1">
-                <div className="flex items-center space-x-1.5 text-text-tertiary text-[10px] font-mono uppercase">
+                <div className="flex items-center space-x-1.5 text-text-tertiary text-[11px] font-medium">
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Card Token</span>
                 </div>
-                <p className="text-xs font-mono font-bold text-text-primary">
+                <p className="text-xs font-medium text-text-primary font-mono">
                   •••• {tx?.card_last_four || 'XXXX'} ({tx?.card_type || 'VISA'})
                 </p>
               </div>
 
               <div className="bg-surface-200/50 p-3 rounded-lg border border-border-100 space-y-1">
-                <div className="flex items-center space-x-1.5 text-text-tertiary text-[10px] font-mono uppercase">
+                <div className="flex items-center space-x-1.5 text-text-tertiary text-[11px] font-medium">
                   <Globe className="w-3.5 h-3.5" />
                   <span>IP Geolocation</span>
                 </div>
-                <p className="text-xs font-mono font-bold text-text-primary">
+                <p className="text-xs font-medium text-text-primary">
                   {tx?.customer_country || 'IN'} ({tx?.customer_city || 'Domestic'})
                 </p>
               </div>
 
               <div className="bg-surface-200/50 p-3 rounded-lg border border-border-100 space-y-1">
-                <div className="flex items-center space-x-1.5 text-text-tertiary text-[10px] font-mono uppercase">
+                <div className="flex items-center space-x-1.5 text-text-tertiary text-[11px] font-medium">
                   <User className="w-3.5 h-3.5" />
                   <span>Customer Identifier</span>
                 </div>
-                <p className="text-xs font-mono font-bold text-text-primary truncate">
+                <p className="text-xs font-medium text-text-primary truncate font-mono">
                   {tx?.customer_id || 'guest_user'}
                 </p>
               </div>
 
               <div className="bg-surface-200/50 p-3 rounded-lg border border-border-100 space-y-1">
-                <div className="flex items-center space-x-1.5 text-text-tertiary text-[10px] font-mono uppercase">
+                <div className="flex items-center space-x-1.5 text-text-tertiary text-[11px] font-medium">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Analyzed At</span>
                 </div>
-                <p className="text-xs font-mono text-text-secondary">
+                <p className="text-xs font-medium text-text-secondary">
                   {tx?.created_at ? new Date(tx.created_at).toLocaleString() : 'Just now'}
                 </p>
               </div>
@@ -490,7 +491,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
           <button
             onClick={handleOverrideApprove}
             disabled={actionLoading !== null || isApprove}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {actionLoading === 'approve' ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -504,7 +505,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
           <button
             onClick={handleMarkFalsePositive}
             disabled={actionLoading !== null}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-lg bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/20 text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             title="Feeds back into continuous learning loop to retrain model"
           >
             {actionLoading === 'false-positive' ? (
@@ -519,7 +520,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({ txId, onCl
           <button
             onClick={handleConfirmFraud}
             disabled={actionLoading !== null || tx?.is_confirmed_fraud}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-mono font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {actionLoading === 'confirm-fraud' ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />

@@ -735,16 +735,16 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
               </Button>
             </Card>
 
-            {/* Tier 2: Starter */}
+            {/* Tier 2: Builder */}
             <Card variant="data" padding="md" className="flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="type-h3 text-text-primary">Starter</h3>
+                  <h3 className="type-h3 text-text-primary">Builder</h3>
                   <p className="type-sm text-text-tertiary mt-1">For growing D2C brands</p>
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold font-sans text-text-primary">
-                    {isAnnual ? '₹399' : '₹499'}
+                    {isAnnual ? '₹799' : '₹999'}
                   </span>
                   <span className="text-xs text-text-tertiary">/month</span>
                 </div>
@@ -757,7 +757,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
                 </div>
               </div>
               <Button variant="secondary" size="md" asChild className="w-full justify-center">
-                <Link to="/login">Start Starter</Link>
+                <Link to="/login">Start Builder</Link>
               </Button>
             </Card>
 
@@ -776,7 +776,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold font-sans text-cyan-400">
-                      {isAnnual ? '₹1,199' : '₹1,499'}
+                      {isAnnual ? '₹2,399' : '₹2,999'}
                     </span>
                     <span className="text-xs text-text-tertiary">/month</span>
                   </div>
@@ -803,7 +803,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold font-sans text-text-primary">
-                    {isAnnual ? '₹3,999' : '₹4,999'}
+                    {isAnnual ? '₹6,399' : '₹7,999'}
                   </span>
                   <span className="text-xs text-text-tertiary">/month</span>
                 </div>
@@ -884,11 +884,10 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
 
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-border-100 flex flex-col sm:flex-row items-center justify-between text-text-tertiary text-[11px] font-mono gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-border-100 flex flex-col sm:flex-row items-center justify-between text-text-tertiary text-xs gap-4">
           <div>© {new Date().getFullYear()} Flowshield AI Inc. All rights reserved.</div>
-          <div className="flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-status-allow" />
-            <span>Systems Normal (ap-south-1)</span>
+          <div className="text-text-tertiary">
+            RBI FRM & DPDP Compliant
           </div>
         </div>
       </footer>

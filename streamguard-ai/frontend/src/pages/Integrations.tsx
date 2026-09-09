@@ -15,7 +15,12 @@ import {
   Clock, 
   Trash2, 
   Plus,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  Zap,
+  ShoppingBag,
+  Package,
+  Truck
 } from 'lucide-react';
 
 interface Integration {
@@ -30,11 +35,11 @@ interface Integration {
 }
 
 const AVAILABLE_CONNECTORS = [
-  { name: 'Razorpay Payment Gateway', type: 'Gateway', status: 'Connected', icon: '💳', speed: 'Live Stream' },
-  { name: 'Cashfree Payments', type: 'Gateway', status: 'Ready', icon: '⚡', speed: 'Live Stream' },
-  { name: 'Shopify Store Connector', type: 'E-Commerce', status: 'Connected', icon: '🛍️', speed: 'Webhook Sync' },
-  { name: 'Delhivery Logistics', type: 'Courier', status: 'Connected', icon: '📦', speed: 'Auto-POD' },
-  { name: 'BlueDart Express', type: 'Courier', status: 'Ready', icon: '🚚', speed: 'Auto-POD' },
+  { name: 'Razorpay Payment Gateway', type: 'Gateway', status: 'Connected', icon: CreditCard, color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40', speed: 'Live Stream' },
+  { name: 'Cashfree Payments', type: 'Gateway', status: 'Ready', icon: Zap, color: 'text-amber-400 bg-amber-950/40 border-amber-800/40', speed: 'Live Stream' },
+  { name: 'Shopify Store Connector', type: 'E-Commerce', status: 'Connected', icon: ShoppingBag, color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40', speed: 'Webhook Sync' },
+  { name: 'Delhivery Logistics', type: 'Courier', status: 'Connected', icon: Package, color: 'text-blue-400 bg-blue-950/40 border-blue-800/40', speed: 'Auto-POD' },
+  { name: 'BlueDart Express', type: 'Courier', status: 'Ready', icon: Truck, color: 'text-indigo-400 bg-indigo-950/40 border-indigo-800/40', speed: 'Auto-POD' },
 ];
 
 export default function Integrations() {
@@ -115,20 +120,23 @@ export default function Integrations() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {AVAILABLE_CONNECTORS.map((connector) => {
               const isConnected = connector.status === 'Connected';
+              const IconComponent = connector.icon;
 
               return (
                 <Card key={connector.name} variant="data" padding="md" className="flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl">{connector.icon}</span>
+                      <div className={`w-9 h-9 rounded-md border flex items-center justify-center ${connector.color}`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
                       <Badge variant={isConnected ? 'allow' : 'neutral'} size="sm">
                         {connector.status.toUpperCase()}
                       </Badge>
                     </div>
 
                     <div>
-                      <h3 className="type-h3 text-text-primary text-sm">{connector.name}</h3>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary font-mono">
+                      <h3 className="type-h3 text-text-primary text-sm font-semibold">{connector.name}</h3>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
                         <span>{connector.type}</span>
                         <span>·</span>
                         <span>{connector.speed}</span>
@@ -153,7 +161,7 @@ export default function Integrations() {
           <Card variant="data" padding="none" className="overflow-hidden">
             <div className="p-4 border-b border-border-100 flex items-center justify-between">
               <h3 className="type-label text-text-primary">Connected Store Endpoints ({integrations.length})</h3>
-              <span className="text-xs font-mono text-text-tertiary">Real-time Webhook Ingestion</span>
+              <span className="text-xs text-text-tertiary">Real-time Webhook Ingestion</span>
             </div>
 
             <Table>

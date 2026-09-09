@@ -69,13 +69,13 @@ export const RiskTimeline: React.FC<RiskTimelineProps> = ({ customerId, currentT
   const legitimateCount = parseInt(profile.legitimate_count || '0', 10);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 font-sans">
       {/* Customer Header Stats */}
       <div className="bg-surface-200/80 border border-border-200 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">
+            <Activity className="w-4 h-4 text-primary-400" />
+            <h4 className="text-xs font-semibold text-text-primary">
               Customer Risk Trajectory
             </h4>
           </div>
@@ -84,28 +84,28 @@ export const RiskTimeline: React.FC<RiskTimelineProps> = ({ customerId, currentT
             className="text-text-tertiary hover:text-text-primary transition-colors p-1"
             title="Refresh Timeline"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary-400' : ''}`} />
           </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-surface-100 p-2.5 rounded border border-border-100">
-            <span className="text-[10px] text-text-tertiary font-mono block">Profile Multiplier</span>
-            <span className={`text-sm font-mono font-bold ${
+            <span className="text-[11px] text-text-tertiary font-medium block">Profile Multiplier</span>
+            <span className={`text-sm font-semibold ${
               riskMultiplier > 0 ? 'text-red-400' : riskMultiplier < 0 ? 'text-emerald-400' : 'text-text-primary'
             }`}>
               {riskMultiplier > 0 ? `+${riskMultiplier.toFixed(2)}` : riskMultiplier.toFixed(2)}
             </span>
           </div>
           <div className="bg-surface-100 p-2.5 rounded border border-border-100">
-            <span className="text-[10px] text-text-tertiary font-mono block">Confirmed Fraud</span>
-            <span className={`text-sm font-mono font-bold ${fraudCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+            <span className="text-[11px] text-text-tertiary font-medium block">Confirmed Fraud</span>
+            <span className={`text-sm font-semibold ${fraudCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
               {fraudCount}
             </span>
           </div>
           <div className="bg-surface-100 p-2.5 rounded border border-border-100">
-            <span className="text-[10px] text-text-tertiary font-mono block">Legitimate Txs</span>
-            <span className="text-sm font-mono font-bold text-cyan-400">
+            <span className="text-[11px] text-text-tertiary font-medium block">Legitimate Txs</span>
+            <span className="text-sm font-semibold text-primary-400">
               {legitimateCount}
             </span>
           </div>
@@ -114,7 +114,7 @@ export const RiskTimeline: React.FC<RiskTimelineProps> = ({ customerId, currentT
 
       {/* Visual Timeline Stream */}
       {loading ? (
-        <div className="text-center py-8 text-xs text-text-tertiary font-mono animate-pulse">
+        <div className="text-center py-8 text-xs text-text-tertiary font-sans">
           Reconstructing customer risk trajectory...
         </div>
       ) : error ? (
@@ -142,7 +142,7 @@ export const RiskTimeline: React.FC<RiskTimelineProps> = ({ customerId, currentT
                 key={item.id} 
                 className={`relative group transition-all rounded-lg p-3 border ${
                   isCurrent 
-                    ? 'bg-cyan-950/20 border-cyan-500/40 shadow-sm' 
+                    ? 'bg-primary-950/20 border-primary-500/40 shadow-sm' 
                     : 'bg-surface-200/50 border-border-100 hover:border-border-200'
                 }`}
               >
@@ -151,23 +151,23 @@ export const RiskTimeline: React.FC<RiskTimelineProps> = ({ customerId, currentT
 
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono text-xs text-text-primary font-bold">
+                    <span className="font-semibold text-xs text-text-primary">
                       {item.currency} {item.amount.toLocaleString('en-IN')}
                     </span>
                     {isCurrent && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 font-mono font-semibold uppercase">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 font-medium">
                         Current
                       </span>
                     )}
                   </div>
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border uppercase ${badgeColor}`}>
-                    {item.is_confirmed_fraud ? 'FRAUD CONFIRMED' : isBlock ? 'BLOCKED' : isChallenge ? 'CHALLENGED' : 'APPROVED'}
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor}`}>
+                    {item.is_confirmed_fraud ? 'Fraud Confirmed' : isBlock ? 'Blocked' : isChallenge ? 'Challenged' : 'Approved'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-text-tertiary font-mono">
+                <div className="flex items-center justify-between text-xs text-text-tertiary">
                   <div className="flex items-center space-x-2">
-                    <span>Score: <strong className={isBlock ? 'text-red-400' : isChallenge ? 'text-amber-400' : 'text-emerald-400'}>{score}/100</strong></span>
+                    <span>Score: <strong className={`font-semibold ${isBlock ? 'text-red-400' : isChallenge ? 'text-amber-400' : 'text-emerald-400'}`}>{score}/100</strong></span>
                     <span>•</span>
                     <span>Tx #{idx + 1}</span>
                   </div>

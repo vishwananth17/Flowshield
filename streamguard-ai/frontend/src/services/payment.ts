@@ -17,16 +17,18 @@ const loadRazorpay = (): Promise<boolean> => {
 };
 
 export async function subscribeToPlan(
-  plan: 'basic' | 'standard' | 'premium',
+  plan: 'builder' | 'growth' | 'enterprise' | 'basic' | 'standard' | 'premium',
   interval: 'monthly' | 'annual'
 ): Promise<void> {
   try {
     // 1. Create subscription on backend
     const { data } = await api.post('/billing/subscribe', { plan, interval });
 
+    const planDisplayName = plan === 'basic' ? 'Builder' : plan === 'standard' ? 'Growth' : plan === 'premium' ? 'Enterprise' : (plan.charAt(0).toUpperCase() + plan.slice(1));
+
     if (data.simulated) {
       await useAuthStore.getState().refreshUser();
-      toast.success(`Upgraded to ${plan.toUpperCase()} plan successfully!`);
+      toast.success(`Upgraded to ${planDisplayName} plan successfully!`);
       window.location.reload();
       return;
     }
@@ -45,14 +47,17 @@ export async function subscribeToPlan(
     }
 
     const user = useAuthStore.getState().user;
-    const amountPaise = data.amount || (plan === 'basic' ? 49900 : plan === 'standard' ? 149900 : 499900);
+    const amountPaise = data.amount || (
+      (plan === 'builder' || plan === 'basic') ? 99900 :
+      (plan === 'growth' || plan === 'standard') ? 299900 : 799900
+    );
 
     const options: any = {
       key: data.razorpay_key_id || 'rzp_test_flowshield',
       amount: amountPaise,
       currency: 'INR',
       name: 'Flowshield AI',
-      description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan (${interval})`,
+      description: `${planDisplayName} Plan (${interval})`,
       image: 'https://flowshield-ai.vercel.app/favicon.svg',
       theme: { color: '#2563EB' },
       prefill: {
@@ -68,7 +73,7 @@ export async function subscribeToPlan(
           console.warn("Payment verification fallback warning", err);
         }
         await useAuthStore.getState().refreshUser();
-        toast.success(`Upgraded to ${plan.toUpperCase()} plan successfully!`);
+        toast.success(`Upgraded to ${planDisplayName} plan successfully!`);
         window.location.reload();
       },
       modal: {
