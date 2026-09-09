@@ -211,7 +211,10 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-text-secondary">
             <a href="#features" className="hover:text-text-primary transition-colors">Product</a>
             <a href="#problem" className="hover:text-text-primary transition-colors">Solutions</a>
-            <a href="#how-it-works" className="hover:text-text-primary transition-colors">Developers</a>
+            <Link to="/docs" className="hover:text-text-primary transition-colors flex items-center gap-1.5">
+              <span>Documentation</span>
+              <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-1.5 py-0.5 rounded font-mono">v1</span>
+            </Link>
             <a href="#pricing" className="hover:text-text-primary transition-colors">Pricing</a>
           </nav>
 
@@ -245,7 +248,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
           <div className="md:hidden border-b border-border-200 bg-surface-200 px-4 py-4 space-y-3 animate-in fade-in duration-fast">
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Product</a>
             <a href="#problem" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Solutions</a>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Developers</a>
+            <Link to="/docs" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-cyan-400 py-1.5">Documentation</Link>
             <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Pricing</a>
             <div className="pt-2 flex flex-col space-y-2">
               <Button variant="secondary" size="sm" asChild className="w-full justify-center">

@@ -20,7 +20,8 @@ import {
   Sliders,
   ChevronRight,
   SlidersHorizontal,
-  Wifi
+  Wifi,
+  BookOpen
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -103,6 +104,7 @@ export default function DashboardLayout() {
       items: [
         { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
         { name: 'Rule Builder', path: '/dashboard/api-keys', icon: Sliders },
+        { name: 'Documentation', path: '/docs', icon: BookOpen },
       ],
     },
     {
