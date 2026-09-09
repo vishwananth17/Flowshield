@@ -21,7 +21,8 @@ import {
   ChevronRight,
   SlidersHorizontal,
   Wifi,
-  BookOpen
+  BookOpen,
+  Zap
 } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -71,6 +72,7 @@ export default function DashboardLayout() {
   // Breadcrumb calculation
   const getBreadcrumb = () => {
     const p = location.pathname;
+    if (p.includes('/dashboard/simulator')) return 'Defense / Attack Simulator';
     if (p.includes('/dashboard/disputes')) return 'Disputes / Live Queue';
     if (p.includes('/dashboard/transactions')) return 'Transactions / Feed';
     if (p.includes('/dashboard/alerts')) return 'Alerts / Incident Triage';
@@ -95,6 +97,7 @@ export default function DashboardLayout() {
     {
       group: 'DEFENSE',
       items: [
+        { name: 'Attack Simulator', path: '/dashboard/simulator', icon: Zap, badge: 'LIVE', isUrgent: false },
         { name: 'Disputes', path: '/dashboard/disputes', icon: Shield, badge: disputesCount > 0 ? disputesCount : null, isUrgent: false },
         { name: 'Evidence Hub', path: '/dashboard/integrations', icon: Plug2 },
       ],

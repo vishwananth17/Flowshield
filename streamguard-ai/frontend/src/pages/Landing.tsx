@@ -15,7 +15,8 @@ import {
   Cpu, 
   Lock, 
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -210,6 +211,10 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-text-secondary">
             <a href="#features" className="hover:text-text-primary transition-colors">Product</a>
+            <Link to="/simulator" className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+              <span>Attack Simulator</span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">LIVE</span>
+            </Link>
             <a href="#problem" className="hover:text-text-primary transition-colors">Solutions</a>
             <Link to="/docs" className="hover:text-text-primary transition-colors">Documentation</Link>
             <a href="#pricing" className="hover:text-text-primary transition-colors">Pricing</a>
@@ -244,6 +249,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-border-200 bg-surface-200 px-4 py-4 space-y-3 animate-in fade-in duration-fast">
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Product</a>
+            <Link to="/simulator" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-semibold text-cyan-400 py-1.5">Attack Simulator (Live)</Link>
             <a href="#problem" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Solutions</a>
             <Link to="/docs" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-cyan-400 py-1.5">Documentation</Link>
             <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Pricing</a>
@@ -308,6 +314,12 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
                   <Link to="/register">
                     <span>Start free</span>
                     <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button variant="secondary" size="lg" asChild className="border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/30 text-cyan-300">
+                  <Link to="/simulator" className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-cyan-400 fill-current" />
+                    <span>Test Attack Simulator</span>
                   </Link>
                 </Button>
                 <Button variant="ghost" size="lg" asChild>
