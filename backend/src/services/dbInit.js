@@ -71,6 +71,34 @@ export async function initDatabase() {
       );
     `);
 
+    // Add modern explainability and telemetry columns if not present
+    const transactionCols = [
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_confirmed_fraud BOOLEAN DEFAULT FALSE`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS feedback_label INTEGER`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS challenge_method VARCHAR(50) DEFAULT '3ds_redirect'`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS top_signals JSONB DEFAULT '[]'::jsonb`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS signals_json JSONB DEFAULT '{}'::jsonb`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS explanation TEXT`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS external_id VARCHAR(255)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS merchant_name VARCHAR(255)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS merchant_category VARCHAR(50)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS card_last_four VARCHAR(10)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS card_type VARCHAR(50)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_id VARCHAR(255)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_ip VARCHAR(100)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_country VARCHAR(10)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS customer_city VARCHAR(100)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS device_fingerprint VARCHAR(255)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS channel VARCHAR(50)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS risk_score DOUBLE PRECISION`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS risk_label VARCHAR(50)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS decision VARCHAR(50)`,
+      `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()`
+    ];
+    for (const col of transactionCols) {
+      try { await client.query(col); } catch (e) { /* column exists */ }
+    }
+
     // 4. API Keys
     await client.query(`
       CREATE TABLE IF NOT EXISTS api_keys (
