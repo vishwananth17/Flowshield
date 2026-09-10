@@ -39,9 +39,9 @@ export const StatCard: React.FC<StatCardProps> = ({
           <span
             className={cn(
               'inline-flex items-center gap-0.5 text-xs font-mono font-semibold px-1.5 py-0.5 rounded-sm border',
-              trendDirection === 'up' && 'text-[#0E6245] bg-[#CBF4C9] border-[#A3E7A0]',
-              trendDirection === 'down' && 'text-[#A8071A] bg-[#FFD8D8] border-[#F4A4A4]',
-              trendDirection === 'neutral' && 'text-[#4F566B] bg-[#F1F5F9] border-[#E2E8F0]'
+              trendDirection === 'up' && 'text-status-allow bg-status-allow/10 border-status-allow/20',
+              trendDirection === 'down' && 'text-status-block bg-status-block/10 border-status-block/20',
+              trendDirection === 'neutral' && 'text-text-tertiary bg-white/[0.02] border-border-100'
             )}
           >
             {trendDirection === 'up' && <ArrowUpRight className="w-3 h-3" />}

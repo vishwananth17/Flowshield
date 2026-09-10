@@ -9,17 +9,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-[#635BFF] text-white hover:bg-[#4F46E5] active:bg-[#4338CA] hover:-translate-y-[0.5px] active:translate-y-0 shadow-sm font-medium',
+          'bg-cyan-500 text-surface-000 hover:bg-cyan-400 active:bg-cyan-600 hover:-translate-y-[1px] active:translate-y-0 shadow-sm',
         secondary:
-          'bg-white border border-border-200 text-text-primary hover:bg-surface-300 hover:border-border-300 active:bg-surface-400 shadow-sm font-medium',
+          'bg-transparent border border-border-300 text-text-primary hover:bg-white/[0.04] hover:border-border-400 active:bg-white/[0.08]',
         ghost:
-          'bg-transparent border-0 text-text-secondary hover:text-text-primary hover:bg-surface-300 font-medium',
+          'bg-transparent border-0 text-text-secondary hover:text-text-primary active:text-text-primary',
         destructive:
-          'bg-red-50 border border-red-200 text-status-block hover:bg-red-100 active:bg-red-200 font-medium',
+          'bg-status-block/15 border border-status-block/30 text-status-block hover:bg-status-block/25 active:bg-status-block/35',
         outline:
-          'bg-white border border-border-200 text-text-primary hover:bg-surface-300 hover:border-border-300 shadow-sm font-medium',
+          'bg-transparent border border-border-300 text-text-primary hover:bg-white/[0.04] hover:border-border-400 active:bg-white/[0.08]',
         default:
-          'bg-[#635BFF] text-white hover:bg-[#4F46E5] active:bg-[#4338CA] hover:-translate-y-[0.5px] active:translate-y-0 shadow-sm font-medium',
+          'bg-cyan-500 text-surface-000 hover:bg-cyan-400 active:bg-cyan-600 hover:-translate-y-[1px] active:translate-y-0 shadow-sm',
       },
       size: {
         xs: 'h-8 px-3 text-xs rounded-sm gap-1.5',

@@ -8,14 +8,14 @@ const cardVariants = cva(
     variants: {
       variant: {
         // Variant A: Data Card
-        data: 'bg-white border border-border-100 shadow-sm hover:shadow-md hover:border-border-200 transition-all',
-        // Variant B: Surface Card
-        glass: 'bg-white border border-border-100 shadow-sm',
+        data: 'bg-surface-300 border border-border-200 hover:border-border-400 hover:-translate-y-0.5 hover:shadow-md',
+        // Variant B: Glass Card
+        glass: 'glass-standard hover:border-border-400 shadow-sm [box-shadow:inset_0_1px_0_rgba(255,255,255,0.06)]',
         // Variant C: Inset Card
-        inset: 'bg-surface-300 border border-border-100',
+        inset: 'bg-surface-100 border border-border-100 font-mono',
         // Variant D: Alert Card
-        alert: 'bg-red-50/60 border border-red-200 border-l-4 border-l-status-block',
-        default: 'bg-white border border-border-100 shadow-sm',
+        alert: 'bg-status-block/[0.04] border border-status-block/15 border-l-2 border-l-status-block',
+        default: 'bg-surface-300 border border-border-200 hover:border-border-400',
       },
       padding: {
         none: 'p-0',

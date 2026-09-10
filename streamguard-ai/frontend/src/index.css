@@ -30,8 +30,8 @@
   }
 
   ::selection {
-    background: rgba(99, 91, 255, 0.2);
-    color: #1A1F36;
+    background: rgba(6, 182, 212, 0.25);
+    color: #ffffff;
   }
 
   /* Custom Clean Scrollbar */
@@ -41,16 +41,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #F6F9FC;
+    background: var(--surface-100);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
+    background: var(--surface-600);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: var(--surface-700);
   }
 
   code, pre, kbd, samp {
