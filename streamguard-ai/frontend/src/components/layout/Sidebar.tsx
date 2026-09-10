@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {!isCollapsed && <span className="truncate">{item.name}</span>}
 
                     {!isCollapsed && item.badge !== null && item.badge !== undefined && (
-                      <span className="h-[16px] min-w-[16px] px-1 flex items-center justify-center rounded-[var(--radius-xs)] bg-[var(--risk-high-dot)] text-white text-[10px] font-bold ml-auto font-mono">
+                      <span className="h-[18px] min-w-[18px] px-1.5 flex items-center justify-center rounded-full bg-[var(--surface-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] text-[10px] font-medium ml-auto font-mono">
                         {item.badge}
                       </span>
                     )}

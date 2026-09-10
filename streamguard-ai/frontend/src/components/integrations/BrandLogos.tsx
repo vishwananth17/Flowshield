@@ -88,18 +88,39 @@ export const DelhiveryLogo: React.FC<BrandIconProps> = ({ className = '', size =
 // 5. BLUEDART LOGO (Dynamic Aerodynamic Express Arrows)
 export const BlueDartLogo: React.FC<BrandIconProps> = ({ className = '', size = 28 }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    {/* Dynamic Aerodynamic Forward Arrows */}
+    <path d="M4 10L14 10L11 22L4 22L6 10Z" fill="#0052CC" />
+    <path d="M11 10L20 10L17 22L9 22L11 10Z" fill="#2684FF" />
+    <path d="M17 10L26 10L22 22L15 22L17 10Z" fill="#FFAB00" />
+  </svg>
+);
+
+// 6. PHONEPE LOGO (Iconic Purple Circle with Devanagari Pe Glyph)
+export const PhonePeLogo: React.FC<BrandIconProps> = ({ className = '', size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect width="32" height="32" rx="8" fill="#5F259F" />
     <path
-      d="M4 10L14 10L11 22L4 22L6 10Z"
-      fill="#0052CC"
-    />
-    <path
-      d="M11 10L20 10L17 22L9 22L11 10Z"
-      fill="#2684FF"
-    />
-    <path
-      d="M17 10L26 10L22 22L15 22L17 10Z"
-      fill="#FFAB00"
+      d="M17.5 7H13.2C12.5 7 12 7.5 12 8.2V24.5C12 25 12.4 25.5 13 25.5H15.5C16 25.5 16.5 25 16.5 24.5V19.5H18C21.2 19.5 23.5 17.2 23.5 14C23.5 10.2 21 7 17.5 7ZM17.8 15.2H16.5V11.2H17.8C19 11.2 20 12 20 13.2C20 14.4 19 15.2 17.8 15.2Z"
+      fill="#FFFFFF"
     />
   </svg>
 );
+
+// 7. SHIPROCKET LOGO (Modern Purple-Cyan Delivery Box)
+export const ShiprocketLogo: React.FC<BrandIconProps> = ({ className = '', size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect width="32" height="32" rx="8" fill="#0B132B" />
+    <path
+      d="M16 6L25 11.2V20.8L16 26L7 20.8V11.2L16 6Z"
+      stroke="#7B2CBF"
+      strokeWidth="2"
+      fill="#1C1035"
+    />
+    <path
+      d="M16 6V16M16 16L25 11.2M16 16L7 11.2"
+      stroke="#9D4EDD"
+      strokeWidth="1.8"
+    />
+    <circle cx="16" cy="16" r="2.5" fill="#00F0FF" />
+  </svg>
+);
+
