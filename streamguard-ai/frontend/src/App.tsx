@@ -64,10 +64,6 @@ function App() {
             <Route path="/dpa" element={<DataProcessingAgreement />} />
             <Route path="/sla" element={<ServiceLevelAgreement />} />
             <Route path="/cookies" element={<CookiePolicy />} />
-            <Route path="/security" element={<SecurityPolicy />} />
-            <Route path="*" element={<NotFound />} />
-
-            
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
@@ -76,6 +72,10 @@ function App() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="api-keys" element={<ApiKeys />} />
                 <Route path="transactions" element={<Transactions />} />
+                <Route path="live" element={<Transactions />} />
+                <Route path="feed" element={<Transactions />} />
+                <Route path="intelligence" element={<RiskAudit />} />
+                <Route path="rules" element={<Settings />} />
                 <Route path="disputes" element={<Disputes />} />
                 <Route path="disputes/:disputeId" element={<DisputeDetail />} />
                 <Route path="alerts" element={<Alerts />} />
@@ -87,6 +87,9 @@ function App() {
                 <Route path="docs" element={<Docs />} />
               </Route>
             </Route>
+
+            {/* Catch-all 404 handler at bottom */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>
