@@ -3,7 +3,7 @@ import { MetricCard } from '@/components/ui/MetricCard';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { RiskBadge } from '@/components/ui/RiskBadge';
 import { LiveIndicator } from '@/components/ui/LiveIndicator';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
   TransactionDetailDrawer,
   type TransactionRecord,

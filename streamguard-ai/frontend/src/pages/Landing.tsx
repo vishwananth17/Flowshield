@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { RiskBadge } from '@/components/ui/RiskBadge';
 import { LiveIndicator } from '@/components/ui/LiveIndicator';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -27,22 +27,24 @@ interface StreamTx {
   riskScore: number;
   status: 'APPROVED' | 'REVIEW' | 'BLOCKED';
   time: string;
+  method: string;
+  tag?: string;
 }
 
 const INITIAL_TXS: StreamTx[] = [
-  { id: 'TXN-10483', amount: 98500, currency: '₹', customer: 'CUS-8124', riskScore: 92, status: 'BLOCKED', time: 'Just now' },
-  { id: 'TXN-10482', amount: 14200, currency: '₹', customer: 'CUS-5510', riskScore: 78, status: 'REVIEW', time: '2s ago' },
-  { id: 'TXN-10481', amount: 4500, currency: '₹', customer: 'CUS-9912', riskScore: 14, status: 'APPROVED', time: '5s ago' },
-  { id: 'TXN-10480', amount: 32000, currency: '₹', customer: 'CUS-2041', riskScore: 84, status: 'REVIEW', time: '8s ago' },
-  { id: 'TXN-10479', amount: 2100, currency: '₹', customer: 'CUS-7718', riskScore: 8, status: 'APPROVED', time: '12s ago' },
+  { id: 'TXN-10483', amount: 98500, currency: '₹', customer: 'CUS-8124', riskScore: 92, status: 'BLOCKED', time: 'Just now', method: 'UPI Collect', tag: '1930 Freeze' },
+  { id: 'TXN-10482', amount: 14200, currency: '₹', customer: 'CUS-5510', riskScore: 78, status: 'REVIEW', time: '2s ago', method: 'COD Order', tag: 'High RTO' },
+  { id: 'TXN-10481', amount: 4500, currency: '₹', customer: 'CUS-9912', riskScore: 14, status: 'APPROVED', time: '5s ago', method: 'PhonePe PG' },
+  { id: 'TXN-10480', amount: 32000, currency: '₹', customer: 'CUS-2041', riskScore: 84, status: 'REVIEW', time: '8s ago', method: 'Razorpay Card' },
+  { id: 'TXN-10479', amount: 2100, currency: '₹', customer: 'CUS-7718', riskScore: 8, status: 'APPROVED', time: '12s ago', method: 'GPay UPI' },
 ];
 
 const NEW_POOL_TXS: StreamTx[] = [
-  { id: 'TXN-10488', amount: 84000, currency: '₹', customer: 'CUS-9102', riskScore: 89, status: 'BLOCKED', time: 'Just now' },
-  { id: 'TXN-10487', amount: 12500, currency: '₹', customer: 'CUS-3411', riskScore: 68, status: 'REVIEW', time: 'Just now' },
-  { id: 'TXN-10486', amount: 3200, currency: '₹', customer: 'CUS-1094', riskScore: 12, status: 'APPROVED', time: 'Just now' },
-  { id: 'TXN-10485', amount: 56000, currency: '₹', customer: 'CUS-6029', riskScore: 94, status: 'BLOCKED', time: 'Just now' },
-  { id: 'TXN-10484', amount: 1890, currency: '₹', customer: 'CUS-4820', riskScore: 6, status: 'APPROVED', time: 'Just now' },
+  { id: 'TXN-10488', amount: 84000, currency: '₹', customer: 'CUS-9102', riskScore: 89, status: 'BLOCKED', time: 'Just now', method: 'Burner VPA', tag: 'Micro-probe' },
+  { id: 'TXN-10487', amount: 12500, currency: '₹', customer: 'CUS-3411', riskScore: 68, status: 'REVIEW', time: 'Just now', method: 'COD Express', tag: 'RTO Pincode' },
+  { id: 'TXN-10486', amount: 3200, currency: '₹', customer: 'CUS-1094', riskScore: 12, status: 'APPROVED', time: 'Just now', method: 'Cashfree PG' },
+  { id: 'TXN-10485', amount: 56000, currency: '₹', customer: 'CUS-6029', riskScore: 94, status: 'BLOCKED', time: 'Just now', method: 'UPI Intent', tag: 'Mule Account' },
+  { id: 'TXN-10484', amount: 1890, currency: '₹', customer: 'CUS-4820', riskScore: 6, status: 'APPROVED', time: 'Just now', method: 'Paytm UPI' },
 ];
 
 export default function Landing() {
@@ -82,10 +84,54 @@ export default function Landing() {
 
   const featureTabs = [
     {
+      id: 'upi_defense',
+      title: 'UPI & 1930 Freeze Defense',
+      headline: 'Stop police bank account freezes and burner VPA cycling',
+      description: 'MHA 1930 cybercrime portals freeze entire merchant settlement accounts if a victim reports a scam transaction. FlowShield inspects UPI flow types, VPA reputation, and device fingerprints to isolate tainted funds before capture.',
+      points: [
+        'Deterministic detection of burner VPAs (@ybl, @okhdfcbank) cycling through rapid micro-probing.',
+        'Blocks reverse UPI collect requests deceptively masquerading as incoming payouts.',
+        'Saves merchants weeks of legal liaison with cyber police by stopping lien vectors pre-settlement.',
+      ],
+      code: `// UPI Webhook received from Razorpay / Cashfree / PhonePe
+const evaluation = await flowshield.evaluateUpi({
+  vpa: "scammer.quickloot98@ybl",
+  amount: 45000,
+  upiFlow: "COLLECT",
+  customerPhone: "9876543210",
+  deviceFingerprint: "dev_991823"
+});
+
+// Result returned in 38ms:
+// { decision: "BLOCK", score: 94, reason: "1930_POLICE_FREEZE_VECTOR_BURNER_VPA" }`,
+    },
+    {
+      id: 'rto_defense',
+      title: 'COD & RTO Shield',
+      headline: 'Predict delivery refusal before spending ₹250 on courier fees',
+      description: 'Fake Cash-on-Delivery orders cost Indian D2C brands thousands in forward and return courier penalties. FlowShield calculates RTO risk using delivery address anomalies, pincode refusal rates, and phone history.',
+      points: [
+        'Real-time RTO risk score (0–100) and recommendation: ALLOW_COD, REQUIRE_PREPAID_UPI, or BLOCK.',
+        'Cuts courier return burn by up to 42% on high-risk logistics pin codes.',
+        'Deep sync with Shiprocket, Delhivery, and BlueDart air waybill events.',
+      ],
+      code: `// Evaluate D2C Cash on Delivery Order
+const rtoCheck = await flowshield.evaluateOrder({
+  amount: 2499,
+  isCod: true,
+  pincode: "110006",
+  address: "Room 402, Near Old Bridge, Delhi",
+  phone: "9123456780"
+});
+
+// Result:
+// { rtoRiskScore: 82, recommendation: "REQUIRE_PREPAID_UPI", reason: "HIGH_RTO_PINCODE_UNVERIFIED_ADDRESS" }`,
+    },
+    {
       id: 'scoring',
-      title: 'Real-time Risk Scoring',
+      title: 'Gateway Telemetry',
       headline: '43ms ML inference before payment capture',
-      description: 'Evaluate incoming payments against 120+ risk signals including device canvas hashing, proxy telemetry, BIN consistency, and behavioral velocity.',
+      description: 'Evaluate incoming payments across Razorpay, Cashfree, and PhonePe against 120+ risk signals including device canvas hashing, proxy telemetry, BIN consistency, and behavioral velocity.',
       points: [
         'Deterministic rules executed concurrently with gradient boosted decision trees.',
         'Sub-50ms roundtrip latency prevents checkout drop-off.',
@@ -105,7 +151,7 @@ const evaluation = await flowshield.evaluate({
     },
     {
       id: 'chargebacks',
-      title: 'Chargeback Defense',
+      title: 'Dispute Representment',
       headline: 'Automated 4-page representment dossiers',
       description: 'Stop losing winnable disputes to paperwork. FlowShield automatically aggregates courier delivery proofs, customer IP logs, and order receipts into bank-formatted PDF packages.',
       points: [
@@ -342,32 +388,40 @@ func main() {
             <div className="lg:col-span-7 space-y-6 text-left">
               
               {/* Category Rule Tagline: 2px solid brand-500 left border */}
-              <div className="border-l-2 border-[var(--brand-500)] pl-3 text-[12px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                REAL-TIME PAYMENT INTELLIGENCE
+              <div className="inline-flex items-center gap-2.5 border-l-2 border-[var(--brand-500)] pl-3 text-[12px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                <span>REAL-TIME TRANSACTION INTELLIGENCE</span>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] font-mono text-emerald-400 font-bold">UPI & CARD DEFENSE</span>
               </div>
 
               {/* Strict Max 56px Headline */}
-              <h1 className="text-[36px] sm:text-[46px] lg:text-[54px] font-bold tracking-tight text-[var(--text-primary)] leading-[1.1]">
-                See the risk. Before it becomes a{' '}
-                <span className="text-[var(--brand-500)]">loss</span>.
+              <h1 className="text-[34px] sm:text-[44px] lg:text-[52px] font-bold tracking-tight text-[var(--text-primary)] leading-[1.12]">
+                Stop UPI Scams, 1930 Account Freezes &{' '}
+                <span className="text-[var(--brand-500)]">D2C RTO Losses</span>.
               </h1>
 
               {/* Subheading: max 20px, text-secondary, max-w-xl */}
               <p className="max-w-xl text-[16px] sm:text-[18px] text-[var(--text-secondary)] leading-relaxed font-normal">
-                FlowShield evaluates every transaction in 43ms. Block fraud, reduce chargebacks, and protect revenue with ML trained on 50M+ payment events.
+                FlowShield evaluates every payment in under 50ms across Razorpay, Cashfree, PhonePe, and Cards. Autonomous ML intelligence protecting merchant bank accounts from cybercrime liens and eliminating courier cash burn.
               </p>
 
               {/* Action CTAs */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Button variant="primary" size="lg" asChild>
-                  <Link to="/register" className="gap-2">
-                    <span>Start free</span>
+                  <Link to="/simulator" className="gap-2 font-medium">
+                    <span>Try Threat Simulator</span>
                     <ArrowRight size={15} />
                   </Link>
                 </Button>
+                <Button variant="secondary" size="lg" asChild>
+                  <Link to="/audit" className="gap-2 font-medium">
+                    <span>Run Free Risk Audit</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">10K BENCHMARK</span>
+                  </Link>
+                </Button>
                 <Button variant="ghost" size="lg" asChild>
-                  <a href="#how-it-works" className="gap-2">
-                    <span>See how it works</span>
+                  <a href="#how-it-works" className="gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                    <span>Architecture</span>
                     <span className="text-[var(--text-tertiary)]">↓</span>
                   </a>
                 </Button>
@@ -376,16 +430,16 @@ func main() {
               {/* Trust Line: 3 Checkmarks */}
               <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[var(--text-secondary)]">
                 <div className="flex items-center gap-2">
-                  <Check size={14} className="text-[var(--brand-500)]" />
-                  <span>No credit card required</span>
+                  <Check size={14} className="text-emerald-400" />
+                  <span>Native UPI Telemetry (GPay, PhonePe, Paytm)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check size={14} className="text-[var(--brand-500)]" />
-                  <span>5-minute integration</span>
+                  <Check size={14} className="text-emerald-400" />
+                  <span>Cybercrime 1930 Police Freeze Defense</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check size={14} className="text-[var(--brand-500)]" />
-                  <span>Free up to 1,000 txns/mo</span>
+                  <Check size={14} className="text-emerald-400" />
+                  <span>D2C COD Return-to-Origin (RTO) Shield</span>
                 </div>
               </div>
 
@@ -431,17 +485,27 @@ func main() {
                       </div>
 
                       <div className="flex items-center justify-between pt-0.5">
-                        <RiskBadge
-                          level={
-                            tx.riskScore >= 85 ? 'critical' :
-                            tx.riskScore >= 70 ? 'high' :
-                            tx.riskScore >= 35 ? 'medium' :
-                            'low'
-                          }
-                          score={tx.riskScore}
-                          size="sm"
-                        />
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <RiskBadge
+                            level={
+                              tx.riskScore >= 85 ? 'critical' :
+                              tx.riskScore >= 70 ? 'high' :
+                              tx.riskScore >= 35 ? 'medium' :
+                              'low'
+                            }
+                            score={tx.riskScore}
+                            size="sm"
+                          />
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700/60">
+                            {tx.method}
+                          </span>
+                          {tx.tag && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                              {tx.tag}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-400 shrink-0">
                           {tx.time}
                         </span>
                       </div>

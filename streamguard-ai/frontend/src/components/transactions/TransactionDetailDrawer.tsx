@@ -5,7 +5,7 @@ import { RiskScore } from '@/components/ui/RiskScore';
 import { SignalCard } from '@/components/ui/SignalCard';
 import { Timeline } from '@/components/ui/Timeline';
 import type { TimelineEvent } from '@/components/ui/Timeline';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Check, Flag, Ban, ChevronDown, ChevronUp, UserCheck, ExternalLink, Smartphone, Truck, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 

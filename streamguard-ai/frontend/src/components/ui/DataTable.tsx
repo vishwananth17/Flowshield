@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowUpDown, AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from './Button';
+import { Button } from './button';
 import { cn } from '@/lib/utils';
 
 export interface Column<T> {
