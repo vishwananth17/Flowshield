@@ -195,3 +195,44 @@ Fully aligned with the Test-Ready MVP priorities:
     - Actionable merchant recommendations & Pilot CTA strip.
 
 All changes compiled with `npm run build` (0 errors in 1.45s) and pushed to GitHub `origin main` (commit `babcaf3`).
+
+---
+
+## 11. India-First Payments Architecture: UPI, Webhooks & RTO Defense
+
+In India, over 80% of digital retail is conducted via **UPI (Google Pay, PhonePe, Paytm)** through aggregators like **Razorpay, Cashfree, and PhonePe PG**. We completely upgraded FlowShield's core engine to address the real threats Indian merchants face:
+
+### A. Core Schema & Database Upgrades
+- Made `card: CardIn | None = None` optional in `app/schemas/transaction.py` so cardless UPI requests pass validation cleanly without `422 Unprocessable Entity` errors.
+- Added native `UpiIn` schema (`vpa`, `app`, `flow_type`, `payer_name`, `bank_ref_no`).
+- Added `DeliveryIn` schema (`pincode`, `city`, `state`, `address_hash`, `is_cod`).
+- Added database columns in `app/models/transaction.py` for persistent telemetry.
+
+### B. Indian Payment Gateway Webhooks (Razorpay, Cashfree, PhonePe)
+- Built `app/api/v1/gateway_webhooks.py`:
+  - `POST /api/v1/webhooks/gateways/razorpay`: Parses `payment.authorized` and `order.paid`, converts paise to INR, and normalizes UPI VPAs.
+  - `POST /api/v1/webhooks/gateways/cashfree`: Parses `PAYMENT_SUCCESS_WEBHOOK` and UPI channels.
+  - `POST /api/v1/webhooks/gateways/phonepe`: Decodes base64 S2S server callbacks and UPI instruments.
+- Mounted on `/api/v1` router.
+
+### C. Cybercrime 1930 Account Freeze Defense & India Threat Rules
+- Implemented in `app/ml/ensemble.py`:
+  - **1930 Account Freeze Defense**: Blocks unsolicited UPI collect requests from new devices or proxies to prevent merchant bank accounts from being frozen under Section 102 CrPC.
+  - **Burner VPA Cycling**: Detects single hardware GUIDs cycling >3 different VPAs (`@okhdfcbank`, `@ybl`, `@paytm`) to exploit promotional discounts.
+  - **Micro-UPI Probing**: Detects botnets firing rapid ₹1–₹10 UPI requests to test rate limits.
+  - **High-RTO Delivery Clusters**: Flags orders dispatched to known return-heavy postal codes.
+
+### D. RTO Risk Scoring & COD Recommendation Engine
+- Implemented in `app/services/fraud_detection_service.py`:
+  - Computes `rto_risk_score` (0–100) and `cod_recommendation`:
+    - `ALLOW_COD`: Safe address and recipient.
+    - `REQUIRE_PREPAID_UPI`: Prompts buyer to pay via UPI (+5% discount incentive) to save the merchant ₹180 in courier return fees.
+    - `BLOCK`: Habitual return syndicate; cancels dispatch.
+
+### E. Frontend Upgrades
+- `TransactionDetailDrawer.tsx`: Displays UPI pills (`UPI · Google Pay`), 1930 Account Freeze Defense warning banner, and RTO risk recommendations.
+- `Simulator.tsx`: Added **UPI Collect & 1930 Police Freeze Vector** and **D2C COD & RTO Syndicate** interactive attack scenarios with dynamic JSON/cURL generation.
+- `Transactions.tsx`: Enhanced sample transactions with realistic Indian UPI and D2C COD telemetry.
+
+All verified via [scratch/test_india_upi_integration.py](file:///c:/Users/vishw/Flowshieldai/streamguard-ai/backend/scratch/test_india_upi_integration.py) (100% pass) and `npm run build` (0 errors), pushed to GitHub `origin main` (`e35fcbb`).
+
