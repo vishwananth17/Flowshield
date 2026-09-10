@@ -4,7 +4,11 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/v1/:match*",
+      "destination": "https://flowshield-backend-ani8.onrender.com/api/v1/:match*"
+    },
+    {
+      "source": "/((?!assets/|favicon|robots|sitemap|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
@@ -15,19 +19,15 @@
         {"key": "X-Frame-Options", "value": "DENY"},
         {"key": "X-Content-Type-Options", "value": "nosniff"},
         {"key": "X-XSS-Protection", "value": "1; mode=block"},
-        {"key": "Referrer-Policy",
-         "value": "strict-origin-when-cross-origin"},
-        {"key": "Permissions-Policy",
-         "value": "geolocation=(), microphone=(), camera=()"},
-        {"key": "Strict-Transport-Security",
-         "value": "max-age=31536000; includeSubDomains; preload"}
+        {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+        {"key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()"},
+        {"key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload"}
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {"key": "Cache-Control",
-         "value": "public, max-age=31536000, immutable"}
+        {"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}
       ]
     }
   ]
