@@ -204,7 +204,7 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
           
           {/* Official Company Logo & Wordmark */}
           <Link to="/" className="flex items-center space-x-2.5 select-none group">
-            <Logo size={32} iconSize={22} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40" />
+            <Logo size={32} withContainer={false} className="group-hover:scale-105 transition-transform" />
             <div className="flex items-center space-x-1">
               <span className="font-bold text-base tracking-tight text-text-primary">Flowshield</span>
               <span className="text-cyan-500 font-bold text-base">/</span>

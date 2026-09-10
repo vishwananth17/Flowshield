@@ -77,12 +77,12 @@ export default function Login() {
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 flex flex-col items-center">
         {/* Official Company Logo & Wordmark */}
-        <Link to="/" className="inline-flex items-center space-x-2.5 select-none group mb-1">
-          <Logo size={40} iconSize={28} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40 shadow-lg shadow-cyan-500/5" />
+        <Link to="/" className="inline-flex items-center space-x-3 select-none group mb-1">
+          <Logo size={42} withContainer={false} className="group-hover:scale-105 transition-transform" />
           <div className="flex items-center space-x-1">
-            <span className="font-bold text-xl tracking-tight text-text-primary">Flowshield</span>
-            <span className="text-cyan-500 font-bold text-xl">/</span>
-            <span className="font-bold text-xl tracking-tight text-text-primary">AI</span>
+            <span className="font-bold text-2xl tracking-tight text-text-primary">Flowshield</span>
+            <span className="text-cyan-500 font-bold text-2xl">/</span>
+            <span className="font-bold text-2xl tracking-tight text-text-primary">AI</span>
           </div>
         </Link>
         <h2 className="type-h2 text-text-primary">Sign in to your workspace</h2>

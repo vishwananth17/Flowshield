@@ -143,7 +143,7 @@ export default function DashboardLayout() {
         {/* Top: Logo & Org Wordmark */}
         <div className="p-3.5 border-b border-border-100 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2.5 select-none group">
-            <Logo size={32} iconSize={22} theme="dark" className="border-cyan-500/20 group-hover:border-cyan-500/40" />
+            <Logo size={30} withContainer={false} className="group-hover:scale-105 transition-transform" />
             <div className="space-y-0.5">
               <div className="flex items-center space-x-1">
                 <span className="font-bold text-sm tracking-tight text-text-primary">Flowshield</span>

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import api from '@/services/api';
 import DeveloperFlow from '@/components/integrations/DeveloperFlow';
 import ConnectorConfigModal, { type ConnectorItem } from '@/components/integrations/ConnectorConfigModal';
+import RadarEvidenceModal, { type EvidenceDossierItem } from '@/components/integrations/RadarEvidenceModal';
 import { 
   RazorpayLogo, 
   CashfreeLogo, 
@@ -16,10 +16,8 @@ import {
 } from '@/components/integrations/BrandLogos';
 import { 
   Plug2, 
-  Code, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
   Trash2, 
   Plus,
   RefreshCw,
@@ -27,27 +25,26 @@ import {
   FileCheck,
   Shield,
   ArrowRight,
-  ExternalLink,
-  Sliders,
   ShieldCheck,
   Zap,
-  Activity,
-  Layers,
-  Sparkles,
-  TrendingUp,
-  Cpu,
   Lock,
-  Boxes,
-  CheckCircle,
-  HelpCircle,
   Truck,
-  Building2,
-  SendHorizontal,
-  ChevronRight,
   PackageCheck,
   Award,
-  Globe,
-  Radio
+  Radio,
+  Sliders,
+  FileText,
+  Clock,
+  ExternalLink,
+  ChevronRight,
+  Sparkles,
+  Search,
+  CheckCircle,
+  AlertTriangle,
+  Terminal,
+  Layers,
+  HelpCircle,
+  Filter
 } from 'lucide-react';
 
 interface IntegrationEndpoint {
@@ -216,11 +213,260 @@ const INITIAL_ENDPOINTS: IntegrationEndpoint[] = [
   }
 ];
 
+const DOSSIER_MOCK_DATA: EvidenceDossierItem[] = [
+  {
+    id: 'dos-1',
+    orderId: 'ORD-99412',
+    disputeRef: 'DP-RZP-88412',
+    amount: '₹14,999',
+    gateway: 'Razorpay',
+    customerName: 'Rahul Sharma',
+    customerEmail: 'r.sharma91@gmail.com',
+    customerIp: '49.37.142.88',
+    reason: 'Customer claims product never delivered',
+    carrier: 'Delhivery',
+    awbNumber: 'DEL-992018427',
+    deliveryDate: 'Yesterday at 14:32 IST',
+    signedBy: 'Rahul S. (Recipient OTP Verified)',
+    gpsCoords: '19.0760° N, 72.8777° E (Within 6m)',
+    winProbability: 96.4,
+    status: 'WON',
+    timeline: [
+      { event: 'Delhivery courier OTP matched & digital signature captured', timestamp: '14:32:04 IST', badge: 'DELIVERY' },
+      { event: 'Razorpay webhook received: Dispute DP-RZP-88412 opened', timestamp: '16:15:20 IST', badge: 'GATEWAY' },
+      { event: 'Flowshield Auto-POD bound AWB DEL-992018427 to dispute', timestamp: '16:15:22 IST', badge: 'AUTO-POD' },
+      { event: 'Court-ready 4-page evidence dossier sent via HMAC SHA-256 API', timestamp: '16:15:25 IST', badge: 'REPRESENTMENT' },
+      { event: 'Issuing bank ruled dispute in merchant favor (Won)', timestamp: '18:40:11 IST', badge: 'RESOLVED' },
+    ]
+  },
+  {
+    id: 'dos-2',
+    orderId: 'ORD-99285',
+    disputeRef: 'DP-CFR-40192',
+    amount: '₹28,450',
+    gateway: 'Cashfree',
+    customerName: 'Priya Nambiar',
+    customerEmail: 'priya.n@outlook.com',
+    customerIp: '122.179.82.14',
+    reason: 'Fraudulent transaction unrecognized by cardholder',
+    carrier: 'BlueDart',
+    awbNumber: 'BLU-440182741',
+    deliveryDate: '2 days ago at 11:18 IST',
+    signedBy: 'Priya Nambiar (Digital Stylus Sign)',
+    gpsCoords: '12.9716° N, 77.5946° E (Drop Verified)',
+    winProbability: 94.8,
+    status: 'SUBMITTED',
+    timeline: [
+      { event: 'BlueDart doorstep dispatch completed with digital stylus signature', timestamp: '11:18:40 IST', badge: 'DELIVERY' },
+      { event: 'Cashfree dispute alert: Unauthorized Transaction filed', timestamp: '09:12:10 IST', badge: 'GATEWAY' },
+      { event: 'Extracted 3DS OTP ARN (74920184) & BlueDart POD image slip', timestamp: '09:12:12 IST', badge: 'AUTO-POD' },
+      { event: 'Representment packet transmitted to Cashfree Dispute Ops', timestamp: '09:12:14 IST', badge: 'SUBMITTED' }
+    ]
+  },
+  {
+    id: 'dos-3',
+    orderId: 'ORD-98920',
+    disputeRef: 'DP-RZP-77194',
+    amount: '₹8,200',
+    gateway: 'Razorpay',
+    customerName: 'Vikramaditya Sengupta',
+    customerEmail: 'v.sengupta@tcs.com',
+    customerIp: '103.211.23.6',
+    reason: 'Product defective or damaged in transit',
+    carrier: 'Delhivery',
+    awbNumber: 'DEL-883019255',
+    deliveryDate: '3 days ago at 17:05 IST',
+    signedBy: 'Security Desk (V. Sengupta authorized)',
+    gpsCoords: '22.5726° N, 88.3639° E',
+    winProbability: 92.1,
+    status: 'AUTO-COMPILED',
+    timeline: [
+      { event: 'Delhivery manifest logged building security intake verification', timestamp: '17:05:00 IST', badge: 'DELIVERY' },
+      { event: 'Razorpay dispute notice indexed: Condition Ref #77194', timestamp: '10:04:19 IST', badge: 'GATEWAY' },
+      { event: 'Compiled unboxing confirmation and carrier weight certificate', timestamp: '10:04:21 IST', badge: 'AUTO-POD' }
+    ]
+  },
+  {
+    id: 'dos-4',
+    orderId: 'ORD-98614',
+    disputeRef: 'DP-CFR-38910',
+    amount: '₹42,000',
+    gateway: 'Cashfree',
+    customerName: 'Amitabh Saxena',
+    customerEmail: 'a.saxena@deloitte.com',
+    customerIp: '14.143.12.190',
+    reason: 'Order cancelled prior to warehouse dispatch',
+    carrier: 'BlueDart',
+    awbNumber: 'BLU-319028475',
+    deliveryDate: 'Sep 06 at 13:45 IST',
+    signedBy: 'Amitabh Saxena (OTP confirmed)',
+    gpsCoords: '28.4595° N, 77.0266° E',
+    winProbability: 97.5,
+    status: 'WON',
+    timeline: [
+      { event: 'Order physically delivered with OTP confirmation at Gurugram', timestamp: 'Sep 06, 13:45 IST', badge: 'DELIVERY' },
+      { event: 'Customer initiated chargeback alleging pre-shipment cancellation', timestamp: 'Sep 07, 08:30 IST', badge: 'GATEWAY' },
+      { event: 'Disproved claim: shipping timestamp preceded dispute notice by 48h', timestamp: 'Sep 07, 08:30:03 IST', badge: 'AUTO-POD' },
+      { event: 'Cashfree risk desk resolved in merchant favor (₹42,000 retained)', timestamp: 'Sep 08, 14:00 IST', badge: 'RESOLVED' }
+    ]
+  },
+  {
+    id: 'dos-5',
+    orderId: 'ORD-98401',
+    disputeRef: 'DP-RZP-66291',
+    amount: '₹5,890',
+    gateway: 'Razorpay',
+    customerName: 'Kavita Reddy',
+    customerEmail: 'kavita.r@rediffmail.com',
+    customerIp: '49.206.18.91',
+    reason: 'Duplicate charge reported on card account',
+    carrier: 'Delhivery',
+    awbNumber: 'DEL-771920831',
+    deliveryDate: 'Sep 04 at 16:20 IST',
+    signedBy: 'K. Reddy',
+    gpsCoords: '17.3850° N, 78.4867° E',
+    winProbability: 95.0,
+    status: 'WON',
+    timeline: [
+      { event: 'Carrier delivery successfully executed in Hyderabad', timestamp: 'Sep 04, 16:20 IST', badge: 'DELIVERY' },
+      { event: 'Razorpay alert: Duplicate Transaction DP-RZP-66291', timestamp: 'Sep 05, 11:15 IST', badge: 'GATEWAY' },
+      { event: 'Demonstrated single authorization token and single fulfillment cycle', timestamp: 'Sep 05, 11:15:02 IST', badge: 'AUTO-POD' },
+      { event: 'Acquirer verified single charge, dispute closed favorably', timestamp: 'Sep 06, 19:10 IST', badge: 'RESOLVED' }
+    ]
+  }
+];
+
+interface RadarRuleItem {
+  id: string;
+  name: string;
+  expression: string;
+  action: 'BLOCK' | 'CHALLENGE_3DS' | 'REVIEW' | 'AUTO_POD';
+  hitsCount: number;
+  status: 'ACTIVE' | 'TEST_MODE';
+  lastTriggered: string;
+}
+
+const RADAR_RULES: RadarRuleItem[] = [
+  {
+    id: 'rule-1',
+    name: 'Block High-Risk Machine Learning Threshold',
+    expression: ':risk_score: >= 65',
+    action: 'BLOCK',
+    hitsCount: 1284,
+    status: 'ACTIVE',
+    lastTriggered: '3 mins ago'
+  },
+  {
+    id: 'rule-2',
+    name: 'Enforce 3DS on Cross-Border Velocity Spikes',
+    expression: ':ip_country: != :card_country: AND :velocity_10m: > 2',
+    action: 'CHALLENGE_3DS',
+    hitsCount: 492,
+    status: 'ACTIVE',
+    lastTriggered: '14 mins ago'
+  },
+  {
+    id: 'rule-3',
+    name: 'Auto-Submit Signed Carrier POD on Disputes',
+    expression: ':courier_pod_signed: == true AND :dispute_opened: == true',
+    action: 'AUTO_POD',
+    hitsCount: 87,
+    status: 'ACTIVE',
+    lastTriggered: '42 mins ago'
+  },
+  {
+    id: 'rule-4',
+    name: 'Block Disposable Anonymous Email Domains',
+    expression: ':email_domain_risk: == "disposable" OR :proxy_score: > 80',
+    action: 'BLOCK',
+    hitsCount: 318,
+    status: 'ACTIVE',
+    lastTriggered: '1 hour ago'
+  },
+  {
+    id: 'rule-5',
+    name: 'High-Value Ticket SOC Manual Inspection',
+    expression: ':order_amount: > 50000 AND :device_trust_score: < 40',
+    action: 'REVIEW',
+    hitsCount: 34,
+    status: 'ACTIVE',
+    lastTriggered: '3 hours ago'
+  }
+];
+
+interface WebhookStreamEvent {
+  id: string;
+  timestamp: string;
+  gateway: string;
+  eventType: string;
+  score: number;
+  verdict: 'ALLOW' | 'BLOCK' | 'CHALLENGE' | 'AUTO-POD';
+  latency: string;
+  signature: string;
+}
+
+const LIVE_STREAM_EVENTS: WebhookStreamEvent[] = [
+  {
+    id: 'evt_99182',
+    timestamp: 'Just now',
+    gateway: 'Razorpay',
+    eventType: 'payment.authorized',
+    score: 12,
+    verdict: 'ALLOW',
+    latency: '24ms',
+    signature: 'hmac_sha256:7f4a...91e'
+  },
+  {
+    id: 'evt_99181',
+    timestamp: '42s ago',
+    gateway: 'Delhivery',
+    eventType: 'pod.delivered_signed',
+    score: 0,
+    verdict: 'AUTO-POD',
+    latency: '19ms',
+    signature: 'del_jwt:48a2...30b'
+  },
+  {
+    id: 'evt_99180',
+    timestamp: '2m ago',
+    gateway: 'Cashfree',
+    eventType: 'charge.attempt',
+    score: 78,
+    verdict: 'BLOCK',
+    latency: '31ms',
+    signature: 'hmac_sha256:32c1...9aa'
+  },
+  {
+    id: 'evt_99179',
+    timestamp: '3m ago',
+    gateway: 'Shopify',
+    eventType: 'orders/create',
+    score: 38,
+    verdict: 'CHALLENGE',
+    latency: '36ms',
+    signature: 'shpat_sha256:91b...e54'
+  },
+  {
+    id: 'evt_99178',
+    timestamp: '5m ago',
+    gateway: 'BlueDart',
+    eventType: 'awb.status_update',
+    score: 0,
+    verdict: 'AUTO-POD',
+    latency: '22ms',
+    signature: 'blu_api:11f9...ca0'
+  }
+];
+
 export default function Integrations() {
-  const [activeTab, setActiveTab] = useState<'connectors' | 'developer' | 'evidence'>('connectors');
+  const [activeTab, setActiveTab] = useState<'pipes' | 'dossiers' | 'rules' | 'events' | 'developer'>('pipes');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [pingingId, setPingingId] = useState<string | null>(null);
   
+  // Dossier modal state
+  const [selectedDossier, setSelectedDossier] = useState<EvidenceDossierItem | null>(null);
+  const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
+
   // State for connectors with icon restoration and full metadata hydration
   const [connectors, setConnectors] = useState<EnhancedConnectorItem[]>(() => {
     try {
@@ -247,7 +493,7 @@ export default function Integrations() {
 
   const [loading, setLoading] = useState(false);
 
-  // Modal state
+  // Connector config modal state
   const [selectedConnector, setSelectedConnector] = useState<ConnectorItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -361,10 +607,15 @@ export default function Integrations() {
     setTimeout(() => {
       setPingingId(null);
       const pingTime = Math.round(22 + Math.random() * 14);
-      toast.success(`⚡ Live Ping Acknowledged: ${connector.name}`, {
-        description: `Response received in ${pingTime}ms • Stream healthy • Zero packet drops detected.`
+      toast.success(`⚡ Radar Health Ping Acknowledged: ${connector.name}`, {
+        description: `Response received in ${pingTime}ms • Ingress healthy • TLS 1.3 HMAC verified.`
       });
-    }, 700);
+    }, 600);
+  };
+
+  const handleInspectDossier = (dossier: EvidenceDossierItem) => {
+    setSelectedDossier(dossier);
+    setIsDossierModalOpen(true);
   };
 
   const filteredConnectors = selectedCategory === 'all' 
@@ -376,18 +627,18 @@ export default function Integrations() {
   return (
     <div className="space-y-6 font-sans">
       
-      {/* ── TOP BANNER & HEADER ── */}
+      {/* ── 1. RADAR INSTITUTIONAL HEADER ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2.5">
-            <h1 className="text-xl font-bold text-white tracking-tight">Evidence Hub & Integrations</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">Radar Evidence Hub & Integrations</h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              SOC GATEWAY · ACTIVE
+              RADAR ACTIVE · SOC-2 READY
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Connect your payment gateways, e-commerce stores, and courier tracking APIs for automated fraud blocking & dispute representment.
+          <p className="text-xs text-slate-400 mt-1 max-w-3xl">
+            Stripe Radar-grade real-time fraud scoring, automated courier Proof-of-Delivery (Auto-POD) representment, and heuristic risk rule orchestration.
           </p>
         </div>
         
@@ -397,14 +648,14 @@ export default function Integrations() {
             size="sm" 
             onClick={() => {
               fetchBackendIntegrations();
-              toast.success('Telemetry streams refreshed', {
-                description: 'All active ingress pods reporting sub-35ms response times.'
+              toast.success('Radar Telemetry Synchronized', {
+                description: 'All 5 ingress pipelines reporting nominal latencies (P99: 28ms).'
               });
             }}
             className="text-xs border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-all"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
-            <span>Refresh Telemetry</span>
+            <span>Sync Telemetry</span>
           </Button>
           
           <Button
@@ -418,106 +669,251 @@ export default function Integrations() {
         </div>
       </div>
 
-      {/* ── ENTERPRISE TELEMETRY ASSURANCE STRIP ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 flex items-center space-x-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-            <Radio className="w-4 h-4 animate-pulse" />
+      {/* ── 2. STRIPE RADAR INSTITUTIONAL METRICS STRIP (5 COLUMNS) ── */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        
+        {/* Screened Volume */}
+        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+            <span>Screened Volume</span>
+            <span className="text-[10px] font-mono text-cyan-400">30 Days</span>
           </div>
+          <div className="text-base font-bold text-white tracking-tight">₹4,821,900</div>
+          <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+            <span className="text-emerald-400 font-semibold">18,420</span> transactions evaluated
+          </div>
+        </div>
+
+        {/* Blocked by ML */}
+        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+            <span>Blocked by ML</span>
+            <span className="text-[10px] font-mono text-rose-400">Score &gt; 65</span>
+          </div>
+          <div className="text-base font-bold text-rose-400 tracking-tight">0.42%</div>
+          <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+            <span>₹98,400 fraud prevented</span>
+          </div>
+        </div>
+
+        {/* Dispute Rate */}
+        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+            <span>Dispute Rate</span>
+            <span className="text-[10px] font-mono text-emerald-400">Visa Cap: 0.9%</span>
+          </div>
+          <div className="text-base font-bold text-emerald-400 tracking-tight">0.04%</div>
+          <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+            <span>Optimal institutional tier</span>
+          </div>
+        </div>
+
+        {/* Dispute Win Rate */}
+        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+            <span>Dispute Win Rate</span>
+            <span className="text-[10px] font-mono text-cyan-400">Auto-POD</span>
+          </div>
+          <div className="text-base font-bold text-white tracking-tight flex items-center gap-1">
+            <span>94.2%</span>
+            <span className="text-[10px] text-emerald-400 font-mono font-medium">+72% vs Manual</span>
+          </div>
+          <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+            <span>₹142,800 reclaimed</span>
+          </div>
+        </div>
+
+        {/* Protection Mesh */}
+        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 shadow-sm space-y-1 col-span-2 md:col-span-1">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400">
+            <span>Active Pipes</span>
+            <span className="text-[10px] font-mono text-emerald-400">P99: 28ms</span>
+          </div>
+          <div className="text-base font-bold text-white tracking-tight">
+            {connectedCount} of {connectors.length} Live
+          </div>
+          <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Zero packet loss</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── 3. STRIPE RADAR RISK SCORE DISTRIBUTION HISTOGRAM (0–100) ── */}
+      <div className="p-5 rounded-2xl bg-[#080D15] border border-slate-800 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <div className="text-[11px] font-medium text-slate-400">Protection Mesh</div>
-            <div className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>{connectedCount} of {connectors.length} Connected</span>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-sm font-bold text-white tracking-tight">Radar Risk Score Distribution</h2>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                0 TO 100 HEURISTIC
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Breakdown of screened checkout attempts across Normal (0–20), Elevated 3DS (21–64), and High Risk Block (65–100).
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+              <span className="text-slate-300">Normal (92.4%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-amber-500"></span>
+              <span className="text-slate-300">Elevated 3DS (5.8%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm bg-rose-500"></span>
+              <span className="text-slate-300">High Risk (1.8%)</span>
             </div>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 flex items-center space-x-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-            <Zap className="w-4 h-4" />
+        {/* 3-Tier Color Segmented Visual Bar */}
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded-full bg-slate-900 border border-slate-800 flex overflow-hidden p-0.5">
+            <div 
+              style={{ width: '92.4%' }} 
+              className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-l-full relative group cursor-pointer transition-opacity hover:opacity-90"
+              title="Normal Risk: 92.4% (0–20 score)"
+            />
+            <div 
+              style={{ width: '5.8%' }} 
+              className="h-full bg-gradient-to-r from-amber-600 to-amber-400 relative group cursor-pointer transition-opacity hover:opacity-90"
+              title="Elevated Risk: 5.8% (21–64 score)"
+            />
+            <div 
+              style={{ width: '1.8%' }} 
+              className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-r-full relative group cursor-pointer transition-opacity hover:opacity-90"
+              title="High Risk: 1.8% (65–100 score)"
+            />
           </div>
-          <div>
-            <div className="text-[11px] font-medium text-slate-400">P99 Stream Latency</div>
-            <div className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>28ms</span>
-              <span className="text-[10px] text-emerald-400 font-mono font-medium">Sub-35ms</span>
-            </div>
+
+          {/* Scale Legend */}
+          <div className="flex justify-between text-[10px] font-mono text-slate-500 px-1">
+            <span>0 (Lowest Risk)</span>
+            <span className="text-emerald-400">Score 20 (Frictionless Allow)</span>
+            <span className="text-amber-400">Score 65 (3DS Step-Up Challenge)</span>
+            <span className="text-rose-400">100 (Instant Pre-Auth Block)</span>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 flex items-center space-x-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-            <Award className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] font-medium text-slate-400">Dispute Win Rate</div>
-            <div className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>94.2%</span>
-              <span className="text-[10px] text-emerald-400 font-mono font-medium">+72% vs Manual</span>
+        {/* 3 Breakdown Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          
+          <div className="p-3 rounded-xl bg-[#05080F] border border-slate-800/80 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-medium text-slate-400 block">Tier 1: Normal (0–20)</span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">17,020 Allowed</span>
+            </div>
+            <div className="text-right font-mono text-[11px]">
+              <span className="text-slate-300">Avg: 8.4</span>
+              <span className="block text-[10px] text-slate-500">Zero Friction</span>
             </div>
           </div>
-        </div>
 
-        <div className="p-3.5 rounded-xl bg-[#080D15] border border-slate-800/90 flex items-center space-x-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
-            <PackageCheck className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] font-medium text-slate-400">Auto-POD Evidence</div>
-            <div className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>Autonomous</span>
-              <span className="text-[10px] text-purple-400 font-mono font-medium">Zero Paperwork</span>
+          <div className="p-3 rounded-xl bg-[#05080F] border border-slate-800/80 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-medium text-slate-400 block">Tier 2: Elevated (21–64)</span>
+              <span className="text-sm font-bold text-amber-400 font-mono">1,068 Step-Up 3DS</span>
+            </div>
+            <div className="text-right font-mono text-[11px]">
+              <span className="text-slate-300">Avg: 41.2</span>
+              <span className="block text-[10px] text-slate-500">OTP Required</span>
             </div>
           </div>
+
+          <div className="p-3 rounded-xl bg-[#05080F] border border-slate-800/80 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-medium text-slate-400 block">Tier 3: High Risk (65–100)</span>
+              <span className="text-sm font-bold text-rose-400 font-mono">332 Blocked</span>
+            </div>
+            <div className="text-right font-mono text-[11px]">
+              <span className="text-slate-300">Avg: 82.6</span>
+              <span className="block text-[10px] text-slate-500">Pre-Auth Drop</span>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* ── TABS NAVIGATION ── */}
-      <div className="flex items-center space-x-6 border-b border-slate-800 text-xs font-semibold select-none">
+      {/* ── 4. TABS NAVIGATION ── */}
+      <div className="flex items-center space-x-6 border-b border-slate-800 text-xs font-semibold select-none overflow-x-auto">
         <button
-          onClick={() => setActiveTab('connectors')}
-          className={`pb-3 transition-colors ${
-            activeTab === 'connectors' 
+          onClick={() => setActiveTab('pipes')}
+          className={`pb-3 transition-colors shrink-0 flex items-center gap-2 ${
+            activeTab === 'pipes' 
               ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Active Connectors & Gateways ({connectedCount}/{connectors.length})
+          <Plug2 className="w-3.5 h-3.5" />
+          <span>Active Ingress Pipes ({connectedCount}/{connectors.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('dossiers')}
+          className={`pb-3 transition-colors shrink-0 flex items-center gap-2 ${
+            activeTab === 'dossiers' 
+              ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <PackageCheck className="w-3.5 h-3.5" />
+          <span>Auto-POD Evidence Dossiers ({DOSSIER_MOCK_DATA.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('rules')}
+          className={`pb-3 transition-colors shrink-0 flex items-center gap-2 ${
+            activeTab === 'rules' 
+              ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>Radar Heuristic Rules ({RADAR_RULES.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('events')}
+          className={`pb-3 transition-colors shrink-0 flex items-center gap-2 ${
+            activeTab === 'events' 
+              ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5" />
+          <span>Live Ingress Stream</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('developer')}
-          className={`pb-3 transition-colors ${
+          className={`pb-3 transition-colors shrink-0 flex items-center gap-2 ${
             activeTab === 'developer' 
               ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Custom Webhook Endpoints
-        </button>
-        <button
-          onClick={() => setActiveTab('evidence')}
-          className={`pb-3 transition-colors ${
-            activeTab === 'evidence' 
-              ? 'text-cyan-400 border-b-2 border-cyan-500 font-bold' 
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Auto-POD Evidence Pipeline
+          <FileCheck className="w-3.5 h-3.5" />
+          <span>Custom Developer Webhook</span>
         </button>
       </div>
 
-      {/* ── TAB 1: ACTIVE CONNECTORS ── */}
-      {activeTab === 'connectors' && (
+      {/* ── TAB 1: ACTIVE INGRESS PIPES & CONNECTORS ── */}
+      {activeTab === 'pipes' && (
         <div className="space-y-6">
           
-          {/* ════ CONNECTOR CARDS SECTION (FIRST) ════ */}
+          {/* Connector Cards Section */}
           <div className="space-y-4">
             
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white tracking-tight">Available Connectors</h3>
-                <span className="text-xs text-slate-500 font-mono">({filteredConnectors.length} platforms)</span>
+                <h3 className="text-sm font-bold text-white tracking-tight">Production Data Ingress Pipes</h3>
+                <span className="text-xs text-slate-500 font-mono">({filteredConnectors.length} pipes)</span>
               </div>
 
               {/* Category Filter Pills */}
@@ -581,7 +977,7 @@ export default function Integrations() {
                         : 'bg-gradient-to-b from-[#0C121F] via-[#080D17] to-[#04070D] border-slate-800/70 hover:border-cyan-500/40 shadow-md hover:shadow-xl hover:shadow-cyan-950/20 hover:-translate-y-1'
                     }`}
                   >
-                    {/* 1. Brand Top Glowing Accent Line */}
+                    {/* Top Accent Line */}
                     <div 
                       className="absolute top-0 inset-x-0 h-[2.5px] opacity-80 group-hover:opacity-100 transition-opacity"
                       style={{
@@ -589,7 +985,6 @@ export default function Integrations() {
                       }}
                     />
 
-                    {/* Subtle brand ambient glow in top-left */}
                     <div 
                       className="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-25 transition-opacity pointer-events-none"
                       style={{ backgroundColor: connector.accentColor || '#06B6D4' }}
@@ -600,7 +995,6 @@ export default function Integrations() {
                       {/* Card Header: Brand Logo + Status Badge */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center space-x-3.5">
-                          {/* Crisp Brand Badge Frame */}
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${connector.badgeGlow || 'from-slate-900 to-black border-slate-700'} border flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shrink-0`}>
                             <IconComponent size={28} />
                           </div>
@@ -628,16 +1022,16 @@ export default function Integrations() {
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse' : 'bg-amber-400'}`}></span>
-                          {isConnected ? 'CONNECTED' : 'READY TO PAIR'}
+                          {isConnected ? 'LIVE INGRESS' : 'READY TO PAIR'}
                         </span>
                       </div>
 
-                      {/* Tagline / Value description */}
+                      {/* Tagline */}
                       <p className="text-xs text-slate-400 leading-relaxed min-h-[36px]">
                         {connector.description}
                       </p>
 
-                      {/* 3 Capability Feature Pills (Stripe/Linear signature) */}
+                      {/* Feature Pills */}
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
                         {(connector.features || ['Sub-35ms Scoring', 'Mutual TLS 1.3', 'Zero Code']).map((feat: string) => (
                           <span 
@@ -654,7 +1048,7 @@ export default function Integrations() {
                       <div className="p-2.5 rounded-xl bg-[#05080F]/90 border border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
                         <div className="flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                          <span className="text-slate-500">Ping:</span>
+                          <span className="text-slate-500">Latency:</span>
                           <span className="text-emerald-400 font-bold">{connector.ping || '28ms'}</span>
                         </div>
                         <div className="text-slate-600">·</div>
@@ -665,7 +1059,7 @@ export default function Integrations() {
                         <div className="text-slate-600">·</div>
                         <div className="text-slate-400 flex items-center gap-1">
                           <Lock className="w-2.5 h-2.5 text-cyan-400" />
-                          <span>TLS 1.3</span>
+                          <span>HMAC SHA-256</span>
                         </div>
                       </div>
 
@@ -682,7 +1076,7 @@ export default function Integrations() {
                             className="flex-1 justify-center text-xs font-semibold h-8.5 rounded-lg border border-slate-700/80 bg-[#0E1524] hover:bg-[#141F36] hover:border-slate-600 text-slate-200 transition-all shadow-sm"
                           >
                             <Settings2 className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-                            <span>Configure Endpoint</span>
+                            <span>Configure Pipe</span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -715,193 +1109,21 @@ export default function Integrations() {
 
           </div>
 
-          {/* ════ HOW IT WORKS & KEY BENEFITS (STEP-BY-STEP SECOND) ════ */}
-          <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-[#0A1322] to-[#060A12] p-5 md:p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-            
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                    ARCHITECTURE OVERVIEW
-                  </span>
-                  <span className="text-xs text-slate-400">·</span>
-                  <span className="text-xs font-medium text-slate-300">Autonomous Fraud Defense & POD Ingress</span>
-                </div>
-                <h2 className="text-base md:text-lg font-bold text-white tracking-tight mt-1">
-                  How Flowshield Integration Works
-                </h2>
-                <p className="text-xs text-slate-400 max-w-2xl mt-0.5">
-                  Connect your store, payment gateways, and shipping couriers in under 60 seconds. Our zero-code telemetry pipeline protects transactions from pre-auth checkout to dispute representment.
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-2 text-xs text-slate-400 shrink-0">
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
-                  <Lock className="w-3 h-3 text-cyan-400" />
-                  TLS 1.3 Vaulted
-                </span>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  PCI-DSS Level 1
-                </span>
-              </div>
-            </div>
-
-            {/* 4-Step Interactive Horizontal Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 relative">
-              
-              {/* Step 1 */}
-              <div className="p-4 rounded-xl bg-[#080D15]/80 border border-slate-800/90 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-3 group">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="w-6 h-6 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] font-mono font-bold flex items-center justify-center">
-                      01
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400 font-medium bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                      60s Setup
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white tracking-tight mt-2.5 group-hover:text-cyan-300 transition-colors">
-                    1. Secure API Handshake
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Connect Razorpay, Cashfree, or Shopify in 1-click. Credentials are stored in a zero-knowledge encrypted vault.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                  <span className="text-cyan-400 font-semibold">Mutual TLS 1.3</span>
-                  <span>Zero Code</span>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="p-4 rounded-xl bg-[#080D15]/80 border border-slate-800/90 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-3 group">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="w-6 h-6 rounded-md bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[11px] font-mono font-bold flex items-center justify-center">
-                      02
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400 font-medium bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                      Sub-35ms
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white tracking-tight mt-2.5 group-hover:text-blue-300 transition-colors">
-                    2. Real-Time Pre-Auth Scoring
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Every checkout attempt is scanned across 40+ fraud vectors (IP proxy, velocity, behavioral bot flags) before charge finalization.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                  <span className="text-blue-400 font-semibold">28ms Latency</span>
-                  <span>Instant Block</span>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="p-4 rounded-xl bg-[#080D15]/80 border border-slate-800/90 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-3 group">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="w-6 h-6 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[11px] font-mono font-bold flex items-center justify-center">
-                      03
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400 font-medium bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                      Auto-POD
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white tracking-tight mt-2.5 group-hover:text-purple-300 transition-colors">
-                    3. Courier Auto-POD Ingress
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Delhivery & BlueDart tracking APIs pull signed recipient manifests, GPS drop coordinates, and delivery photo proof automatically.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                  <span className="text-purple-400 font-semibold">Signed Receipts</span>
-                  <span>GPS Geotag</span>
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div className="p-4 rounded-xl bg-[#080D15]/80 border border-slate-800/90 hover:border-cyan-500/40 transition-all flex flex-col justify-between space-y-3 group">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="w-6 h-6 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono font-bold flex items-center justify-center">
-                      04
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
-                      94.2% Win
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white tracking-tight mt-2.5 group-hover:text-emerald-300 transition-colors">
-                    4. Instant Win Representment
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    When a dispute occurs, Flowshield compiles a court-ready 4-page evidence dossier and submits it to your gateway API automatically.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                  <span className="text-emerald-400 font-semibold">Auto-Submitted</span>
-                  <span>Zero Manual Loss</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Merchant Benefits Grid */}
-            <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-              <div className="flex items-start space-x-2.5">
-                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-white font-semibold block">94.2% Dispute Win Rate</span>
-                  <span className="text-[11px] text-slate-400">Reclaim revenue lost to "Item Not Received" friendly fraud.</span>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-2.5">
-                <CheckCircle className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-white font-semibold block">Frictionless Checkout</span>
-                  <span className="text-[11px] text-slate-400">Asynchronous streaming causes zero drop in payment conversions.</span>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-2.5">
-                <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-white font-semibold block">Zero Paperwork</span>
-                  <span className="text-[11px] text-slate-400">Stop chasing logistics partners for delivery slips manually.</span>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-2.5">
-                <CheckCircle className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-white font-semibold block">Bank-Grade Compliance</span>
-                  <span className="text-[11px] text-slate-400">HMAC SHA-256 signatures, AES-256 encryption & SOC2 ready.</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ════ ACTIVE INTEGRATION ENDPOINTS TABLE ════ */}
+          {/* Active Integration Endpoints Table */}
           <Card variant="data" padding="none" className="overflow-hidden rounded-xl border border-slate-800/80 bg-[#080D15]">
             <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span>Active Integration Endpoints</span>
+                  <span>Active Telemetry Endpoints</span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
                     {endpoints.length} Active
                   </span>
                 </h3>
-                <span className="text-[11px] text-slate-400">Real-time webhook ingestion and auto-POD representment streams</span>
+                <span className="text-[11px] text-slate-400">Cryptographically signed webhook ingestion & Auto-POD data feeds</span>
               </div>
               <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-medium">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                ALL STREAMS SYNCHRONIZED
+                ALL INGRESS STREAMS NOMINAL
               </span>
             </div>
 
@@ -1007,43 +1229,313 @@ export default function Integrations() {
         </div>
       )}
 
-      {/* ── TAB 2: CUSTOM DEVELOPER WEBHOOK FLOW ── */}
+      {/* ── TAB 2: AUTO-POD DISPUTE EVIDENCE DOSSIERS ── */}
+      {activeTab === 'dossiers' && (
+        <div className="space-y-6">
+          
+          {/* Banner */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/20 via-[#080D15] to-cyan-950/20 border border-emerald-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-bold text-white tracking-tight">Autonomous Representment Pipeline</h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    94.2% WIN PROBABILITY
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  When a customer files a chargeback, Flowshield AI extracts signed courier manifests and GPS tags from Delhivery & BlueDart to compile court-ready defense dossiers submitted directly to Razorpay & Cashfree APIs.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3 shrink-0">
+              <div className="text-right">
+                <span className="text-[10px] font-mono text-slate-400 block uppercase">Auto-Resolved</span>
+                <span className="text-base font-bold text-white font-mono">₹142,800</span>
+              </div>
+              <div className="h-8 w-px bg-slate-800"></div>
+              <div className="text-right">
+                <span className="text-[10px] font-mono text-slate-400 block uppercase">Avg Turnaround</span>
+                <span className="text-base font-bold text-emerald-400 font-mono">&lt; 3.2s</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dossiers Table Card */}
+          <Card variant="data" padding="none" className="overflow-hidden rounded-xl border border-slate-800/80 bg-[#080D15]">
+            <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span>Dispute Representment Packets</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
+                    {DOSSIER_MOCK_DATA.length} Active Dossiers
+                  </span>
+                </h3>
+                <span className="text-[11px] text-slate-400">Click "Inspect Dossier" to preview court-ready proofs, signed receipts, and download PDF packets</span>
+              </div>
+              <span className="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>HMAC SHA-256 API Transmitted</span>
+              </span>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-800/80 hover:bg-transparent">
+                  <TableHead className="text-xs text-slate-400 font-semibold">Case & Dispute Ref</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Amount & Gateway</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Customer & IP Address</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Courier Proof (Auto-POD)</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Win Likelihood</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Status</TableHead>
+                  <TableHead className="text-right text-xs text-slate-400 font-semibold">Evidence Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {DOSSIER_MOCK_DATA.map((dossier) => (
+                  <TableRow key={dossier.id} className="border-slate-800/60 hover:bg-slate-900/40 transition-colors">
+                    
+                    {/* Case & Ref */}
+                    <TableCell className="font-semibold text-white text-xs">
+                      <div>
+                        <span className="font-bold font-mono text-white">{dossier.orderId}</span>
+                        <span className="block text-[11px] font-mono text-slate-400">{dossier.disputeRef}</span>
+                      </div>
+                    </TableCell>
+
+                    {/* Amount & Gateway */}
+                    <TableCell className="text-xs font-mono">
+                      <span className="font-bold text-white">{dossier.amount}</span>
+                      <span className="block text-[10px] text-cyan-400">{dossier.gateway} Ingress</span>
+                    </TableCell>
+
+                    {/* Customer */}
+                    <TableCell className="text-xs">
+                      <div className="font-medium text-slate-200">{dossier.customerName}</div>
+                      <div className="text-[11px] font-mono text-slate-400">{dossier.customerIp}</div>
+                    </TableCell>
+
+                    {/* Courier Proof */}
+                    <TableCell className="text-xs font-mono">
+                      <div className="flex items-center gap-1.5 text-purple-300">
+                        <Truck className="w-3.5 h-3.5 text-purple-400" />
+                        <span className="font-bold">{dossier.carrier}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block">{dossier.awbNumber}</span>
+                    </TableCell>
+
+                    {/* Win Likelihood */}
+                    <TableCell className="text-xs font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-emerald-400">{dossier.winProbability}%</span>
+                        <span className="text-[9px] text-emerald-500 font-sans">High</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 block">Signed Recipient</span>
+                    </TableCell>
+
+                    {/* Status */}
+                    <TableCell>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        dossier.status === 'WON' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                          : dossier.status === 'SUBMITTED'
+                          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {dossier.status}
+                      </span>
+                    </TableCell>
+
+                    {/* Action */}
+                    <TableCell className="text-right">
+                      <Button
+                        size="xs"
+                        onClick={() => handleInspectDossier(dossier)}
+                        className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 shadow-sm transition-all"
+                      >
+                        <FileText className="w-3 h-3 mr-1" />
+                        <span>Inspect Dossier</span>
+                      </Button>
+                    </TableCell>
+
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+
+        </div>
+      )}
+
+      {/* ── TAB 3: RADAR HEURISTIC RULES ENGINE ── */}
+      {activeTab === 'rules' && (
+        <div className="space-y-6">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-white tracking-tight">Radar Heuristic Risk Rules</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Stripe-style programmatic rule engine executing sub-millisecond conditions before payment authorization.
+              </p>
+            </div>
+
+            <Button
+              size="sm"
+              onClick={() => {
+                toast.success('Radar Rule Sandbox', {
+                  description: 'Custom rule builder opened. Test against 30-day historical replay.'
+                });
+              }}
+              className="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <span>Add Custom Rule</span>
+            </Button>
+          </div>
+
+          <Card variant="data" padding="none" className="overflow-hidden rounded-xl border border-slate-800/80 bg-[#080D15]">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-800/80 hover:bg-transparent">
+                  <TableHead className="text-xs text-slate-400 font-semibold">Rule Name</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Condition Expression</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Action Enforced</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Hits (30D)</TableHead>
+                  <TableHead className="text-xs text-slate-400 font-semibold">Status</TableHead>
+                  <TableHead className="text-right text-xs text-slate-400 font-semibold">Last Hit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {RADAR_RULES.map((rule) => (
+                  <TableRow key={rule.id} className="border-slate-800/60 hover:bg-slate-900/40 transition-colors">
+                    <TableCell className="font-semibold text-white text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Sliders className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <span className="font-bold text-white">{rule.name}</span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="font-mono text-xs text-cyan-300">
+                      <code className="bg-[#03060A] px-2 py-0.5 rounded border border-slate-800">
+                        {rule.expression}
+                      </code>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        rule.action === 'BLOCK'
+                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                          : rule.action === 'CHALLENGE_3DS'
+                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                          : rule.action === 'AUTO_POD'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+                      }`}>
+                        {rule.action}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-xs font-mono font-bold text-slate-200">
+                      {rule.hitsCount.toLocaleString()}
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        {rule.status}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-right text-xs font-mono text-slate-400">
+                      {rule.lastTriggered}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+
+        </div>
+      )}
+
+      {/* ── TAB 4: LIVE INGRESS STREAM ── */}
+      {activeTab === 'events' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm font-bold text-white tracking-tight">Live Ingress Event Telemetry</h3>
+                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                  STREAMING
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Real-time stream of parsed webhook events, ML heuristic scores, and sub-35ms gateway responses.
+              </p>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="xs"
+              onClick={() => {
+                toast.success('Live Stream Flushed', { description: 'Re-subscribing to ingress event sockets.' });
+              }}
+              className="text-xs border-slate-700 bg-slate-900 text-slate-300"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              <span>Clear Log</span>
+            </Button>
+          </div>
+
+          <Card variant="data" padding="none" className="overflow-hidden rounded-xl border border-slate-800/80 bg-[#05080F] font-mono text-xs">
+            <div className="p-3 border-b border-slate-800 bg-[#03060A] text-slate-400 flex items-center justify-between text-[11px]">
+              <span className="flex items-center gap-2">
+                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                <span>stdout: streamguard-ingress-pod-01 · TLS 1.3 HMAC Validated</span>
+              </span>
+              <span>P99: 28ms · 0 Drops</span>
+            </div>
+
+            <div className="divide-y divide-slate-800/60">
+              {LIVE_STREAM_EVENTS.map((evt) => (
+                <div key={evt.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-900/40 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-slate-500 text-[11px] w-14 shrink-0">{evt.timestamp}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-400 font-bold text-[10px]">
+                      {evt.gateway}
+                    </span>
+                    <span className="text-slate-200 font-semibold">{evt.eventType}</span>
+                  </div>
+
+                  <div className="flex items-center space-x-4 text-[11px]">
+                    <span className="text-slate-400">Score: <strong className={evt.score >= 65 ? 'text-rose-400' : evt.score > 20 ? 'text-amber-400' : 'text-emerald-400'}>{evt.score}</strong></span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      evt.verdict === 'ALLOW' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' :
+                      evt.verdict === 'BLOCK' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' :
+                      evt.verdict === 'CHALLENGE' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' :
+                      'bg-purple-500/10 text-purple-400 border border-purple-500/30'
+                    }`}>
+                      {evt.verdict}
+                    </span>
+                    <span className="text-emerald-400 font-bold">{evt.latency}</span>
+                    <span className="text-slate-500 text-[10px] hidden md:inline">{evt.signature}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── TAB 5: CUSTOM DEVELOPER WEBHOOK FLOW ── */}
       {activeTab === 'developer' && (
         <Card variant="data" padding="md" className="rounded-xl border border-slate-800 bg-[#080D15]">
           <DeveloperFlow />
         </Card>
-      )}
-
-      {/* ── TAB 3: AUTO-POD EVIDENCE PIPELINE ── */}
-      {activeTab === 'evidence' && (
-        <div className="space-y-6">
-          <div className="p-6 rounded-xl border border-cyan-500/30 bg-[#080D15] space-y-4">
-            <div className="flex items-center space-x-2 text-cyan-400">
-              <FileCheck className="w-5 h-5" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Automated Courier Proof-of-Delivery (POD) Ingress
-              </h3>
-            </div>
-            <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
-              When a customer files a "Product Not Received" or "Fraudulent Charge" dispute, Flowshield AI automatically queries your connected Delhivery and BlueDart APIs using the order Air Waybill (AWB). It extracts signed recipient manifests, GPS drop coordinates, and delivery photos into court-ready dispute defense packets.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="p-4 rounded-lg bg-[#05080F] border border-slate-800 space-y-1.5">
-                <span className="text-xs font-bold text-white block">1. AWB Ingress</span>
-                <p className="text-[11px] text-slate-400">Order tracking numbers automatically indexed from Shopify and WooCommerce webhooks.</p>
-              </div>
-              <div className="p-4 rounded-lg bg-[#05080F] border border-slate-800 space-y-1.5">
-                <span className="text-xs font-bold text-white block">2. Signed POD Extraction</span>
-                <p className="text-[11px] text-slate-400">Real-time courier signed receipt and delivery snapshot retrieved from Delhivery/BlueDart APIs.</p>
-              </div>
-              <div className="p-4 rounded-lg bg-[#05080F] border border-slate-800 space-y-1.5">
-                <span className="text-xs font-bold text-white block">3. Gateway Upload</span>
-                <p className="text-[11px] text-slate-400">Automated 4-page PDF evidence dossier compiled and submitted to Razorpay & Cashfree dispute APIs.</p>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* ── CONNECTOR CONFIGURATION MODAL ── */}
@@ -1053,6 +1545,13 @@ export default function Integrations() {
         connector={selectedConnector}
         onSave={handleSaveConnector}
         onDisconnect={handleDisconnectConnector}
+      />
+
+      {/* ── RADAR EVIDENCE DOSSIER MODAL ── */}
+      <RadarEvidenceModal
+        isOpen={isDossierModalOpen}
+        onClose={() => setIsDossierModalOpen(false)}
+        dossier={selectedDossier}
       />
 
     </div>
