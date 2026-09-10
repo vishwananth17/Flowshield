@@ -7,17 +7,17 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        allow: 'bg-status-allow/10 text-status-allow border-status-allow/20',
-        safe: 'bg-status-allow/10 text-status-allow border-status-allow/20',
-        review: 'bg-status-review/10 text-status-review border-status-review/20',
-        block: 'bg-status-block/10 text-status-block border-status-block/20',
-        fraud: 'bg-status-block/10 text-status-block border-status-block/20',
-        info: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-        neutral: 'bg-text-tertiary/10 text-text-secondary border-border-200',
-        secondary: 'bg-text-tertiary/10 text-text-secondary border-border-200',
-        new: 'bg-cyan-500/[0.08] text-cyan-300 border-cyan-300/15',
-        live: 'bg-cyan-500/[0.08] text-cyan-300 border-cyan-300/15',
-        default: 'bg-text-tertiary/10 text-text-secondary border-border-200',
+        allow: 'bg-[#CBF4C9] text-[#0E6245] border border-[#A3E7A0] font-bold',
+        safe: 'bg-[#CBF4C9] text-[#0E6245] border border-[#A3E7A0] font-bold',
+        review: 'bg-[#FFECD1] text-[#8A6100] border border-[#F9D08B] font-bold',
+        block: 'bg-[#FFD8D8] text-[#A8071A] border border-[#F4A4A4] font-bold',
+        fraud: 'bg-[#FFD8D8] text-[#A8071A] border border-[#F4A4A4] font-bold',
+        info: 'bg-[#EEF2FF] text-[#635BFF] border border-[#C7D2FE] font-bold',
+        neutral: 'bg-[#F1F5F9] text-[#4F566B] border border-[#E2E8F0] font-medium',
+        secondary: 'bg-[#F1F5F9] text-[#4F566B] border border-[#E2E8F0] font-medium',
+        new: 'bg-[#EEF2FF] text-[#635BFF] border border-[#C7D2FE] font-bold',
+        live: 'bg-[#EEF2FF] text-[#635BFF] border border-[#C7D2FE] font-bold',
+        default: 'bg-[#F1F5F9] text-[#4F566B] border border-[#E2E8F0] font-medium',
       },
       size: {
         sm: 'h-5 px-2 text-[11px] gap-1.5',

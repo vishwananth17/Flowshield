@@ -7,7 +7,11 @@ import { Toaster } from 'sonner';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import DashboardLayout from '@/pages/DashboardLayout';
-import Dashboard from '@/pages/Dashboard';
+import RadarOverview from '@/pages/radar/RadarOverview';
+import RadarReviews from '@/pages/radar/RadarReviews';
+import RadarRules from '@/pages/radar/RadarRules';
+import RadarLists from '@/pages/radar/RadarLists';
+import RadarRiskControls from '@/pages/radar/RadarRiskControls';
 import ApiKeys from '@/pages/ApiKeys';
 import Transactions from '@/pages/Transactions';
 import Docs from '@/pages/Docs';
@@ -40,10 +44,10 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <Toaster position="top-right" richColors closeButton theme="dark" />
+        <Toaster position="top-right" richColors closeButton theme="light" />
         <CookieConsent />
         <PageTitleTracker />
-        <Suspense fallback={<LoadingScreen message="Navigating sovereign interface..." />}>
+        <Suspense fallback={<LoadingScreen message="Loading Flowshield Radar..." />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -62,19 +66,28 @@ function App() {
             <Route path="/security" element={<SecurityPolicy />} />
             <Route path="*" element={<NotFound />} />
 
-            
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="simulator" element={<Simulator />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="api-keys" element={<ApiKeys />} />
+                {/* Core Stripe Radar Subsystem */}
+                <Route index element={<RadarOverview />} />
+                <Route path="radar" element={<RadarOverview />} />
+                <Route path="radar/reviews" element={<RadarReviews />} />
+                <Route path="radar/rules" element={<RadarRules />} />
+                <Route path="radar/lists" element={<RadarLists />} />
+                <Route path="radar/risk-controls" element={<RadarRiskControls />} />
+
+                {/* Payments & Disputes */}
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="disputes" element={<Disputes />} />
                 <Route path="disputes/:disputeId" element={<DisputeDetail />} />
+                <Route path="simulator" element={<Simulator />} />
+                <Route path="integrations" element={<Integrations />} />
+
+                {/* Intelligence & Settings */}
                 <Route path="alerts" element={<Alerts />} />
                 <Route path="analytics" element={<Analytics />} />
-                <Route path="integrations" element={<Integrations />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="api-keys" element={<ApiKeys />} />
                 <Route path="team" element={<Team />} />
                 <Route path="billing" element={<Billing />} />
                 <Route path="settings" element={<Settings />} />
@@ -89,4 +102,3 @@ function App() {
 }
 
 export default App;
-

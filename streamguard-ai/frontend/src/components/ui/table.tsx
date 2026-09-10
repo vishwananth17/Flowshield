@@ -13,14 +13,14 @@ Table.displayName = 'Table';
 
 export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn('border-b border-border-200 bg-transparent', className)} {...props} />
+    <thead ref={ref} className={cn('border-b border-border-100 bg-[#F8FAFC]', className)} {...props} />
   )
 );
 TableHeader.displayName = 'TableHeader';
 
 export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <tbody ref={ref} className={cn('divide-y divide-border-100', className)} {...props} />
+    <tbody ref={ref} className={cn('divide-y divide-border-100 bg-white', className)} {...props} />
   )
 );
 TableBody.displayName = 'TableBody';
@@ -32,8 +32,8 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b border-border-100 bg-transparent transition-colors duration-fast group',
-      isClickable ? 'cursor-pointer hover:bg-surface-400' : 'hover:bg-surface-300/40',
+      'border-b border-border-100 transition-colors duration-fast group',
+      isClickable ? 'cursor-pointer hover:bg-[#F8FAFC]' : 'hover:bg-[#F8FAFC]',
       className
     )}
     {...props}
