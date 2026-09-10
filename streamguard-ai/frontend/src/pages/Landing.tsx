@@ -1072,11 +1072,6 @@ func main() {
             <div>
               © {new Date().getFullYear()} FlowShield AI Inc. All rights reserved.
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--risk-low-dot)]" />
-              <span className="font-mono text-[var(--text-secondary)]">All systems operational</span>
-            </div>
           </div>
         </div>
       </footer>
