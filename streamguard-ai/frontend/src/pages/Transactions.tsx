@@ -15,91 +15,107 @@ import api from '@/services/api';
 const DEFAULT_TRANSACTIONS: TransactionRecord[] = [
   {
     id: 'TXN-10483',
-    amount: 98500,
+    amount: 48500,
     currency: 'INR',
     customer: 'CUS-8124',
-    riskScore: 92,
+    riskScore: 94,
     status: 'BLOCKED',
     time: '2s ago',
     timestamp: 'Apr 17, 2026, 10:32:48 AM IST',
-    merchant: 'CryptoExchange.io',
+    merchant: 'CryptoExchange India',
     category: '6051 — Quasi-Cash',
-    location: 'Lagos, Nigeria',
-    device: 'New — iPhone 14',
-    ipAddress: '41.58.100.5',
-    threeDsResult: 'Not enrolled',
+    location: 'New Delhi, India',
+    device: 'Realme 11 Pro · Android 14',
+    ipAddress: '103.21.124.5',
+    threeDsResult: 'UPI MPIN Initiated',
+    paymentMethod: 'upi',
+    gateway: 'razorpay',
+    vpa: 'refund.claim88@ybl',
+    upiApp: 'Google Pay',
+    upiFlowType: 'collect',
     signals: [
       {
-        name: 'Anonymous Proxy / Tor Exit',
-        description: 'IP origin identified in global malicious proxy exit list',
-        impact: 42,
+        name: 'Cybercrime 1930 Account Freeze Risk',
+        description: 'MHA Cybercrime Portal freeze vector. Auto-blocked to protect merchant bank account',
+        impact: 48,
         severity: 'critical',
       },
       {
-        name: 'Billing & Geo Mismatch',
-        description: 'Card issuing country (IN) does not match terminal IP (NG)',
+        name: 'Unsolicited UPI Collect Request',
+        description: 'Inverted UPI collect request initiated without active cart checkout session',
         impact: 28,
         severity: 'high',
       },
       {
-        name: 'Velocity Spike',
-        description: '4 failed payment attempts with different CVVs in past 10 minutes',
-        impact: 22,
+        name: 'Burner VPA Cycling',
+        description: '6 distinct virtual payment addresses cycled from single hardware GUID',
+        impact: 18,
         severity: 'high',
       },
     ],
     timeline: [
-      { id: 1, time: '10:32:40 AM', title: 'Checkout session initiated', detail: 'Cart value ₹98,500' },
-      { id: 2, time: '10:32:42 AM', title: 'IP geo-lookup completed', detail: 'Country mismatch detected (NG vs IN)', type: 'risk' },
-      { id: 3, time: '10:32:45 AM', title: 'Card CVC check failed (Attempt 1)', detail: 'Issuing bank returned Mismatch', type: 'risk' },
-      { id: 4, time: '10:32:48 AM', title: 'ML scoring engine evaluated', detail: 'Score 92 exceeds Critical Block threshold (85)', type: 'critical' },
+      { id: 1, time: '10:32:40 AM', title: 'UPI Collect session initiated', detail: 'VPA: refund.claim88@ybl' },
+      { id: 2, time: '10:32:42 AM', title: 'Cybercrime ledger evaluated', detail: 'Pattern matches 1930 Section 102 CrPC alert', type: 'critical' },
+      { id: 3, time: '10:32:45 AM', title: 'Burner VPA cycle detected', detail: 'Same hardware hash cycled 6 VPAs in 15m', type: 'risk' },
+      { id: 4, time: '10:32:48 AM', title: 'Defensive block enforced', detail: 'Razorpay settlement account protected from lien', type: 'critical' },
     ],
     customerContext: {
-      accountAge: '3 days',
+      accountAge: '2 days',
       priorTransactions: 0,
-      priorDisputes: 0,
+      priorDisputes: 2,
       knownDevices: 1,
     },
   },
   {
     id: 'TXN-10482',
-    amount: 14200,
+    amount: 8990,
     currency: 'INR',
     customer: 'CUS-5510',
-    riskScore: 78,
+    riskScore: 82,
     status: 'REVIEW',
     time: '14s ago',
     timestamp: 'Apr 17, 2026, 10:32:36 AM IST',
-    merchant: 'StyleStreet Retail',
+    merchant: 'StyleStreet D2C',
     category: '5651 — Family Apparel',
-    location: 'Bangalore, India',
+    location: 'Patna, Bihar',
     device: 'Android 14 · Chrome 124',
     ipAddress: '157.48.12.90',
-    threeDsResult: '3DS 2.0 Challenged',
+    threeDsResult: 'Cash on Delivery (Unverified)',
+    paymentMethod: 'cod',
+    isCod: true,
+    deliveryPincode: '800001',
+    rtoRiskScore: 86,
+    codRecommendation: 'REQUIRE_PREPAID_UPI',
     signals: [
       {
-        name: 'Rapid IP Subnet Shift',
-        description: 'User switched IP addresses 3 times during checkout',
-        impact: 34,
+        name: 'High RTO Delivery Cluster (800001)',
+        description: 'Destination pincode exhibits >42% courier return-to-origin and refusal rate',
+        impact: 44,
         severity: 'high',
       },
       {
-        name: 'High-Ticket Velocity',
-        description: 'Cart total 4x higher than merchant customer median',
-        impact: 22,
+        name: 'First-Time Buyer High Ticket COD',
+        description: 'Cart total exceeds ₹5,000 with zero prior purchase history',
+        impact: 26,
         severity: 'medium',
+      },
+      {
+        name: 'Incomplete Street Address Hash',
+        description: 'Generic landmark hash correlates with first-attempt delivery refusal',
+        impact: 12,
+        severity: 'low',
       },
     ],
     timeline: [
-      { id: 1, time: '10:32:15 AM', title: 'Item added to cart', detail: 'Women designer wear' },
-      { id: 2, time: '10:32:28 AM', title: 'IP address changed mid-session', detail: 'Switched from cellular to public Wi-Fi', type: 'risk' },
-      { id: 3, time: '10:32:36 AM', title: 'Transaction held in manual review', detail: 'Score 78 flagged for secondary approval', type: 'risk' },
+      { id: 1, time: '10:32:15 AM', title: 'Order placed via COD', detail: 'Cart total ₹8,990 to Patna (800001)' },
+      { id: 2, time: '10:32:28 AM', title: 'RTO courier risk evaluated', detail: 'Pincode historical refusal 42%', type: 'risk' },
+      { id: 3, time: '10:32:36 AM', title: 'COD converted to Prepaid Recommendation', detail: 'Trigger WhatsApp 5% discount prepaid UPI prompt', type: 'risk' },
     ],
     customerContext: {
-      accountAge: '4 months',
-      priorTransactions: 2,
+      accountAge: '4 hours',
+      priorTransactions: 0,
       priorDisputes: 0,
-      knownDevices: 2,
+      knownDevices: 1,
     },
   },
   {
@@ -107,27 +123,34 @@ const DEFAULT_TRANSACTIONS: TransactionRecord[] = [
     amount: 4500,
     currency: 'INR',
     customer: 'CUS-9912',
-    riskScore: 14,
+    riskScore: 12,
     status: 'APPROVED',
     time: '38s ago',
     timestamp: 'Apr 17, 2026, 10:32:12 AM IST',
     merchant: 'FreshBites Daily',
     category: '5411 — Grocery Store',
     location: 'Mumbai, India',
-    device: 'MacBook Pro · Safari 17',
+    device: 'iPhone 15 · PhonePe App',
     ipAddress: '49.207.181.12',
-    threeDsResult: 'Frictionless Authenticated',
+    threeDsResult: 'UPI Intent Authenticated',
+    paymentMethod: 'upi',
+    gateway: 'phonepe',
+    vpa: 'ananya.iyer@okhdfcbank',
+    upiApp: 'PhonePe',
+    upiFlowType: 'intent',
+    rtoRiskScore: 8,
+    codRecommendation: 'ALLOW_COD',
     signals: [
       {
-        name: 'Trusted Customer Account',
-        description: 'Device fingerprint matched 18 prior successful orders',
-        impact: -15,
+        name: 'Trusted Domestic UPI Profile',
+        description: 'Hardware fingerprint matched 18 prior successful orders with zero disputes',
+        impact: -18,
         severity: 'low',
       },
     ],
     timeline: [
-      { id: 1, time: '10:32:00 AM', title: 'Checkout initiated', detail: 'Cart value ₹4,500' },
-      { id: 2, time: '10:32:12 AM', title: 'Approved automatically', detail: 'Safe score 14 passed directly to gateway', type: 'normal' },
+      { id: 1, time: '10:32:00 AM', title: 'UPI Intent launched', detail: 'PhonePe app intent invoked' },
+      { id: 2, time: '10:32:12 AM', title: 'Approved automatically', detail: 'Safe score 12 passed directly to settlement', type: 'normal' },
     ],
     customerContext: {
       accountAge: '14 months',
@@ -412,11 +435,21 @@ export default function Transactions() {
       width: '24%',
       render: (row) => (
         <div>
-          <div className="font-mono text-[12px] text-[var(--text-primary)] font-medium">
-            {row.customer}
+          <div className="font-mono text-[12px] text-[var(--text-primary)] font-medium flex items-center gap-1.5 flex-wrap">
+            <span className="truncate">{row.customer}</span>
+            {row.paymentMethod === 'upi' || row.vpa ? (
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+                UPI {row.upiApp ? `· ${row.upiApp}` : ''}
+              </span>
+            ) : row.isCod ? (
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+                COD · PIN {row.deliveryPincode || 'RTO'}
+              </span>
+            ) : null}
           </div>
-          <div className="text-[11px] text-[var(--text-tertiary)] truncate">
-            {row.merchant}
+          <div className="text-[11px] text-[var(--text-tertiary)] truncate flex items-center gap-1 mt-0.5">
+            <span>{row.merchant}</span>
+            {row.vpa && <span className="text-indigo-400 font-mono">· {row.vpa}</span>}
           </div>
         </div>
       ),

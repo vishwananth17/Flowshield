@@ -6,7 +6,7 @@ import { SignalCard } from '@/components/ui/SignalCard';
 import { Timeline } from '@/components/ui/Timeline';
 import type { TimelineEvent } from '@/components/ui/Timeline';
 import { Button } from '@/components/ui/Button';
-import { Check, Flag, Ban, ChevronDown, ChevronUp, UserCheck, ExternalLink } from 'lucide-react';
+import { Check, Flag, Ban, ChevronDown, ChevronUp, UserCheck, ExternalLink, Smartphone, Truck, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export interface TransactionRecord {
@@ -24,6 +24,18 @@ export interface TransactionRecord {
   device: string;
   ipAddress: string;
   threeDsResult: string;
+  // India & UPI Telemetry
+  paymentMethod?: 'upi' | 'card' | 'cod' | 'netbanking' | 'wallet';
+  gateway?: 'razorpay' | 'cashfree' | 'phonepe' | 'stripe' | 'payu';
+  vpa?: string;
+  upiApp?: string;
+  upiFlowType?: 'intent' | 'collect';
+  bankRefNo?: string;
+  // D2C Delivery & RTO Risk
+  isCod?: boolean;
+  deliveryPincode?: string;
+  rtoRiskScore?: number;
+  codRecommendation?: 'ALLOW_COD' | 'REQUIRE_PREPAID_UPI' | 'BLOCK';
   signals: Array<{
     name: string;
     description: string;
@@ -110,13 +122,30 @@ export const TransactionDetailDrawer: React.FC<TransactionDetailDrawerProps> = (
             />
           </div>
 
-          {/* Row 3: Status Badge + Timestamp */}
-          <div className="flex items-center gap-2 pt-0.5">
+          {/* Row 3: Status Badge + UPI/COD Badge + Timestamp */}
+          <div className="flex items-center gap-2 pt-0.5 flex-wrap">
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-[var(--radius-xs)] border text-[11px] font-semibold font-mono tracking-wide ${statusBadgeColor}`}
             >
               {transaction.status}
             </span>
+
+            {/* Native India UPI Telemetry Badge */}
+            {(transaction.paymentMethod === 'upi' || transaction.vpa) && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-xs)] border text-[11px] font-semibold font-mono bg-blue-500/10 text-blue-400 border-blue-500/20">
+                <Smartphone size={11} />
+                UPI · {transaction.upiApp || 'Direct'}
+              </span>
+            )}
+
+            {/* D2C Cash on Delivery Badge */}
+            {transaction.isCod && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-xs)] border text-[11px] font-semibold font-mono bg-amber-500/10 text-amber-400 border-amber-500/20">
+                <Truck size={11} />
+                Cash on Delivery
+              </span>
+            )}
+
             <span className="text-[12px] text-[var(--text-tertiary)] font-mono">
               {transaction.time}
             </span>
@@ -156,6 +185,48 @@ export const TransactionDetailDrawer: React.FC<TransactionDetailDrawerProps> = (
       <section className="space-y-4">
         <RiskScore score={transaction.riskScore} />
 
+        {/* ── INDIA-SPECIFIC DEFENSE ALERTS ── */}
+        {/* 1. Cybercrime 1930 Account Freeze Defense Banner */}
+        {transaction.signals.some(s => s.name.toLowerCase().includes('1930') || s.name.toLowerCase().includes('freeze') || s.name.toLowerCase().includes('cybercrime') || s.description.toLowerCase().includes('1930')) && (
+          <div className="p-3.5 rounded-[var(--radius-md)] bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-300">
+            <ShieldAlert size={18} className="text-rose-400 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold text-rose-200 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
+                Cybercrime 1930 Account Freeze Defense
+              </div>
+              <p className="text-[11px] text-rose-300/90 mt-1 leading-relaxed">
+                This transaction matches known cybercrime mule and burner VPA clusters. Auto-blocking this payment prevents your merchant Razorpay MID and nodal bank account from being frozen under Section 102 CrPC by law enforcement.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 2. D2C RTO Risk & Courier Defense Card */}
+        {transaction.rtoRiskScore !== undefined && (
+          <div className={`p-3.5 rounded-[var(--radius-md)] border flex items-start gap-3 text-xs ${
+            transaction.rtoRiskScore >= 70
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+          }`}>
+            <Truck size={18} className={`shrink-0 mt-0.5 ${transaction.rtoRiskScore >= 70 ? 'text-amber-400' : 'text-emerald-400'}`} />
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold uppercase tracking-wide text-[11px]">
+                  {transaction.rtoRiskScore >= 70 ? 'High RTO (Return-to-Origin) Risk' : 'Healthy D2C Delivery Profile'}
+                </span>
+                <span className="font-mono font-bold text-[12px]">{transaction.rtoRiskScore} / 100</span>
+              </div>
+              <p className="text-[11px] mt-1 leading-relaxed opacity-95">
+                {transaction.codRecommendation === 'REQUIRE_PREPAID_UPI'
+                  ? `Courier rejection probability in pincode ${transaction.deliveryPincode || 'cluster'} is over 40%. Recommended action: Convert COD to Prepaid UPI with 5% discount incentive to save ₹180 courier RTO charges.`
+                  : transaction.codRecommendation === 'BLOCK'
+                  ? 'Historical refusal rate exceeds 80% for this customer hash. Recommended action: Cancel dispatch.'
+                  : 'Recipient address and device reputation confirmed. Safe for standard courier delivery.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">
           <div className="text-[12px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
             Why was this flagged?
@@ -189,16 +260,64 @@ export const TransactionDetailDrawer: React.FC<TransactionDetailDrawerProps> = (
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Currency</div>
-            <div className="font-mono text-[var(--text-primary)] font-medium mt-0.5">
-              {transaction.currency}
+            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Currency / Method</div>
+            <div className="font-mono text-[var(--text-primary)] font-medium mt-0.5 flex items-center gap-1.5">
+              <span>{transaction.currency}</span>
+              <span className="text-[11px] text-[var(--text-tertiary)]">·</span>
+              <span className="text-[11px] text-blue-400 font-semibold">{transaction.paymentMethod?.toUpperCase() || (transaction.vpa ? 'UPI' : 'CARD')}</span>
             </div>
           </div>
 
+          {/* UPI Specific Parameters */}
+          {transaction.vpa && (
+            <>
+              <div>
+                <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">UPI ID / VPA</div>
+                <div className="font-mono text-[12px] text-indigo-400 font-semibold mt-0.5 truncate">
+                  {transaction.vpa}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">UPI Flow & App</div>
+                <div className="font-medium text-[var(--text-primary)] mt-0.5 text-[12px]">
+                  {transaction.upiApp || 'UPI'} · {transaction.upiFlowType === 'collect' ? 'Collect (Inverted)' : 'Intent (Native)'}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* D2C Logistics Parameters */}
+          {transaction.deliveryPincode && (
+            <>
+              <div>
+                <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Delivery Pincode</div>
+                <div className="font-mono text-[var(--text-primary)] font-medium mt-0.5">
+                  {transaction.deliveryPincode} {transaction.isCod ? '(COD)' : '(Prepaid)'}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">COD Recommendation</div>
+                <div className={`font-mono text-[11px] font-bold mt-0.5 ${
+                  transaction.codRecommendation === 'REQUIRE_PREPAID_UPI' ? 'text-amber-400' :
+                  transaction.codRecommendation === 'BLOCK' ? 'text-rose-400' : 'text-emerald-400'
+                }`}>
+                  {transaction.codRecommendation || 'ALLOW_COD'}
+                </div>
+              </div>
+            </>
+          )}
+
           <div>
-            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Merchant</div>
-            <div className="text-[var(--text-primary)] font-medium mt-0.5 truncate">
-              {transaction.merchant}
+            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Merchant / Gateway</div>
+            <div className="text-[var(--text-primary)] font-medium mt-0.5 truncate flex items-center gap-1.5">
+              <span>{transaction.merchant}</span>
+              {transaction.gateway && (
+                <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-300">
+                  {transaction.gateway.toUpperCase()}
+                </span>
+              )}
             </div>
           </div>
 
@@ -238,9 +357,9 @@ export const TransactionDetailDrawer: React.FC<TransactionDetailDrawerProps> = (
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">3DS Result</div>
+            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase">Authentication</div>
             <div className="font-medium text-[var(--text-primary)] mt-0.5">
-              {transaction.threeDsResult}
+              {transaction.paymentMethod === 'upi' || transaction.vpa ? 'UPI MPIN Biometric' : transaction.threeDsResult}
             </div>
           </div>
 

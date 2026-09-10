@@ -137,22 +137,37 @@ class FlowshieldEnsemble:
 
         # ── UPI / India-specific rules ────────────────────────────────────────
         channel = str(features.get('channel', '')).lower()
-        is_upi  = channel in {"upi", "bhim", "phonepe", "gpay", "paytm", "upi_collect"}
+        is_upi  = channel in {"upi", "bhim", "phonepe", "gpay", "paytm", "upi_collect"} or bool(features.get('is_upi', 0))
+        is_collect = channel == 'upi_collect' or bool(features.get('is_upi_collect', 0))
 
-        # UPI Collect fraud: recipient-initiated payment requests are high risk
-        if channel == 'upi_collect' and amount > 5000:
-            score = max(score, 0.75)
-            reasons.append("UPI Collect request above safe threshold — verify payee")
+        # 1. Cybercrime 1930 Account Freeze Defense:
+        # Fraudsters tricking victims via UPI Collect on new devices or proxy connections
+        if is_collect and (features.get('is_proxy_or_tor', 0) == 1 or new_dev == 1) and amount > 5000:
+            score = max(score, 0.92)
+            reasons.append("High-risk UPI Collect on unrecognized device/proxy — risk of 1930 cybercrime freeze")
+        elif is_collect and amount > 10000:
+            score = max(score, 0.78)
+            reasons.append("High-value UPI Collect request — requires payer identity verification")
 
-        # SIM swap + UPI: new device + night + UPI channel
+        # 2. Burner VPA cycling / Promo abuse on single device
+        if int(features.get('device_vpa_count', 0)) > 3:
+            score = max(score, 0.86)
+            reasons.append(f"Burner VPA cycling: {features.get('device_vpa_count')} distinct UPI IDs on single device")
+
+        # 3. High RTO delivery pincodes on Cash on Delivery
+        if features.get('is_cod', 0) == 1 and str(features.get('delivery_pincode', '')) in {"800001", "842001", "208001", "110094"}:
+            score = max(score, 0.72)
+            reasons.append("COD delivery to high-RTO courier return pincode cluster")
+
+        # 4. SIM swap + UPI: new device + night + UPI channel
         if features.get('is_new_device', 0) == 1 and features.get('is_night', 0) == 1 and is_upi:
             score = max(score, 0.80)
             reasons.append("UPI transaction from new device at night — potential SIM swap")
 
-        # High-velocity UPI (card testing via micro-UPI)
+        # 5. High-velocity micro-UPI (card testing via micro-UPI)
         if is_upi and int(features.get('tx_count_last_1h', 0)) > 10 and amount < 100:
             score = max(score, 0.85)
-            reasons.append("Micro-amount UPI velocity — potential card testing pattern")
+            reasons.append("Micro-amount UPI velocity — potential card testing probe")
 
         return score, reasons
 

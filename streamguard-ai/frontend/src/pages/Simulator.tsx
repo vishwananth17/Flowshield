@@ -49,6 +49,14 @@ interface AttackScenario {
     velocity10Min: number;
     deviceTrustScore: number;
     has3DS: boolean;
+    paymentMethod?: string;
+    vpa?: string;
+    upiApp?: string;
+    upiFlowType?: string;
+    pincode?: string;
+    isCod?: boolean;
+    rtoRiskScore?: number;
+    gateway?: string;
   };
   result: {
     score: number;
@@ -60,6 +68,87 @@ interface AttackScenario {
 }
 
 const PRESET_SCENARIOS: AttackScenario[] = [
+  {
+    id: 'upi-1930-freeze',
+    title: 'UPI Collect & 1930 Police Freeze Vector',
+    subtitle: 'Unsolicited UPI collect request with burner VPA cycling threatening merchant bank account freeze',
+    category: 'UPI & CYBERCRIME 1930',
+    badge: 'BLOCK',
+    icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
+    params: {
+      amount: 48500.00,
+      currency: 'INR',
+      customerEmail: 'probe_claim89@rediffmail.com',
+      cardBin: 'UPI (GPay / YBL)',
+      paymentMethod: 'upi',
+      vpa: 'refund.claim88@ybl',
+      upiApp: 'Google Pay',
+      upiFlowType: 'collect',
+      gateway: 'razorpay',
+      ipCountry: 'IN',
+      billingCountry: 'IN',
+      isProxyOrTor: false,
+      velocity10Min: 12,
+      deviceTrustScore: 14,
+      has3DS: false,
+    },
+    result: {
+      score: 95,
+      decision: 'BLOCK',
+      latencyMs: 27,
+      shapFactors: [
+        { name: 'CYBERCRIME_1930_FREEZE_DEFENSE', impact: 48, description: 'Virtual Payment Address matched active cybercrime syndicate mule cluster. Section 102 CrPC defense triggered.' },
+        { name: 'UNSOLICITED_UPI_COLLECT', impact: 28, description: 'Inverted UPI collect request initiated without active checkout or cart session tokens' },
+        { name: 'BURNER_VPA_CYCLING', impact: 19, description: '6 distinct UPI IDs registered across single hardware GUID within 15 minutes' },
+        { name: 'RAPID_SUB_SECOND_CALLS', impact: 8, description: 'Automated intent generation bypassing native human biometric screen authentication' }
+      ],
+      forensicNotes: [
+        'Proactive freeze defense triggered: Preventing MHA Cybercrime Portal (1930) Section 102 CrPC merchant bank account freeze.',
+        'UPI Collect intent dispatched without active session token; typical social engineering reverse refund vector.',
+        'Hardware canvas fingerprint matched previously frozen ICICI/Axis gateway settlement complaints.'
+      ]
+    }
+  },
+  {
+    id: 'd2c-rto-syndicate',
+    title: 'D2C Cash on Delivery (COD) & RTO Syndicate',
+    subtitle: 'High-value COD order routed to repeat courier return-to-origin refusal cluster',
+    category: 'RTO / COD ABUSE',
+    badge: 'REVIEW',
+    icon: <Layers className="w-4 h-4 text-amber-400" />,
+    params: {
+      amount: 8990.00,
+      currency: 'INR',
+      customerEmail: 'buyer.patna02@gmail.com',
+      cardBin: 'CASH ON DELIVERY',
+      paymentMethod: 'cod',
+      isCod: true,
+      pincode: '800001',
+      rtoRiskScore: 86,
+      gateway: 'cashfree',
+      ipCountry: 'IN',
+      billingCountry: 'IN',
+      isProxyOrTor: false,
+      velocity10Min: 4,
+      deviceTrustScore: 32,
+      has3DS: false,
+    },
+    result: {
+      score: 82,
+      decision: 'REVIEW',
+      latencyMs: 31,
+      shapFactors: [
+        { name: 'HIGH_RISK_RTO_DELIVERY_CLUSTER', impact: 44, description: 'Destination pincode 800001 exhibits >42% courier return-to-origin and refusal rate' },
+        { name: 'FIRST_TIME_HIGH_TICKET_COD', impact: 26, description: 'Order size exceeds ₹5,000 threshold for unverified first-time buyer on COD' },
+        { name: 'INCOMPLETE_STREET_ENTROPY', impact: 16, description: 'Generic street description increases first-attempt courier non-delivery by 3.8x' }
+      ],
+      forensicNotes: [
+        'RTO Risk Index: 86/100. Autonomous action: Convert COD to Prepaid UPI (+5% instant discount incentive).',
+        'Direct freight savings: Merchant avoids ₹180 forward + reverse courier penalty fees on refusal.',
+        'Device token previously associated with 2 undelivered packages on Delhivery network.'
+      ]
+    }
+  },
   {
     id: 'card-testing',
     title: 'Card Testing Bot Attack',
@@ -342,18 +431,34 @@ export default function Simulator() {
   const payloadData = {
     amount: isCustomMode ? customAmount : selectedScenario.params.amount,
     currency: 'INR',
+    payment_method: selectedScenario.params.paymentMethod || 'card',
+    gateway: selectedScenario.params.gateway || 'razorpay',
     customer: {
       email: selectedScenario.params.customerEmail,
       device_trust_score: isCustomMode ? customTrustScore : selectedScenario.params.deviceTrustScore,
       is_proxy_or_tor: isCustomMode ? customProxy : selectedScenario.params.isProxyOrTor,
       velocity_10m: isCustomMode ? customVelocity : selectedScenario.params.velocity10Min,
     },
-    payment: {
-      card_bin: selectedScenario.params.cardBin,
-      has_3ds_challenge: isCustomMode ? custom3DS : selectedScenario.params.has3DS,
-      billing_country: selectedScenario.params.billingCountry,
-      ip_country: selectedScenario.params.ipCountry
-    },
+    ...(selectedScenario.params.paymentMethod === 'upi' ? {
+      upi: {
+        vpa: selectedScenario.params.vpa,
+        app: selectedScenario.params.upiApp,
+        flow_type: selectedScenario.params.upiFlowType,
+      }
+    } : selectedScenario.params.isCod ? {
+      delivery: {
+        pincode: selectedScenario.params.pincode,
+        is_cod: true,
+        rto_risk_score: selectedScenario.params.rtoRiskScore
+      }
+    } : {
+      card: {
+        card_bin: selectedScenario.params.cardBin,
+        has_3ds_challenge: isCustomMode ? custom3DS : selectedScenario.params.has3DS,
+        billing_country: selectedScenario.params.billingCountry,
+        ip_country: selectedScenario.params.ipCountry
+      }
+    }),
     threat_intel_version: 'v2.4.0'
   };
 
@@ -828,27 +933,43 @@ export default function Simulator() {
                 {/* ── 3. TRANSACTION TELEMETRY GRID ── */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 rounded-lg bg-[#0E1524] border border-slate-800/80 space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Value</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Order Value</span>
                     <p className="text-xs font-mono font-bold text-white">
                       ₹{(isCustomMode ? customAmount : selectedScenario.params.amount).toLocaleString()}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-[#0E1524] border border-slate-800/80 space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Card BIN</span>
-                    <p className="text-xs font-mono font-bold text-white">
-                      {selectedScenario.params.cardBin} • Visa
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                      {selectedScenario.params.paymentMethod === 'upi' ? 'UPI Identity' : selectedScenario.params.isCod ? 'Logistics' : 'Payment Method'}
+                    </span>
+                    <p className="text-xs font-mono font-bold text-white truncate">
+                      {selectedScenario.params.paymentMethod === 'upi' 
+                        ? (selectedScenario.params.vpa || 'UPI Native')
+                        : selectedScenario.params.isCod
+                        ? `PIN ${selectedScenario.params.pincode} (COD)`
+                        : `${selectedScenario.params.cardBin} • Card`}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-[#0E1524] border border-slate-800/80 space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Network</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                      {selectedScenario.params.paymentMethod === 'upi' ? 'UPI Flow' : selectedScenario.params.isCod ? 'RTO Risk Index' : 'Network Route'}
+                    </span>
                     <p className="text-xs font-mono font-bold text-slate-200 truncate">
-                      {(isCustomMode ? customProxy : selectedScenario.params.isProxyOrTor) ? 'Proxy / Tor' : 'Direct Carrier'}
+                      {selectedScenario.params.paymentMethod === 'upi'
+                        ? `${selectedScenario.params.upiApp} (${selectedScenario.params.upiFlowType?.toUpperCase()})`
+                        : selectedScenario.params.isCod
+                        ? `${selectedScenario.params.rtoRiskScore}/100 High Risk`
+                        : ((isCustomMode ? customProxy : selectedScenario.params.isProxyOrTor) ? 'Proxy / Tor' : 'Direct Carrier')}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-[#0E1524] border border-slate-800/80 space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">3DS Security</span>
-                    <p className="text-xs font-mono font-bold text-slate-200">
-                      {(isCustomMode ? custom3DS : selectedScenario.params.has3DS) ? 'Challenge OK' : 'No Challenge'}
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Security Defense</span>
+                    <p className="text-xs font-mono font-bold text-slate-200 truncate">
+                      {selectedScenario.params.paymentMethod === 'upi'
+                        ? '1930 Freeze Check'
+                        : selectedScenario.params.isCod
+                        ? 'Prepaid UPI Prompt'
+                        : ((isCustomMode ? custom3DS : selectedScenario.params.has3DS) ? 'Challenge OK' : 'No 3DS')}
                     </p>
                   </div>
                 </div>

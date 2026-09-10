@@ -38,6 +38,9 @@ class FraudResult:
     challenge_method: str | None = None
     top_signals: list = None
     explanation: str | None = None
+    upi_signals: dict = None
+    rto_risk_score: int | None = None
+    cod_recommendation: str | None = None
 
 class FraudDetectionService:
     """Production Ensemble Scorer: AST Rules + MVI Anomaly + XGBoost Classifier."""
@@ -232,16 +235,19 @@ class FraudDetectionService:
                 
             # 6.5. Run Multi-Signal Collection & Probability Engine
             collector = SignalCollector(redis_client)
+            has_card = tx.card is not None
+            has_upi = tx.upi is not None
+            
             flat_tx = {
                 "amount": float(tx.amount),
                 "currency": tx.currency,
                 "customer_id": tx.customer.id,
                 "customer_name": getattr(tx.customer, 'name', '') or tx.customer.id,
-                "card_holder_name": getattr(tx.card, 'holder_name', '') or getattr(tx.customer, 'name', ''),
-                "card_last_four": tx.card.last_four,
-                "card_bin": getattr(tx.card, 'bin', '') or '',
-                "card_type": tx.card.type,
-                "card_issuing_country": tx.card.issuing_country,
+                "card_holder_name": (getattr(tx.card, 'holder_name', '') if has_card else None) or getattr(tx.customer, 'name', ''),
+                "card_last_four": tx.card.last_four if has_card else "UPI",
+                "card_bin": getattr(tx.card, 'bin', '') if has_card else "",
+                "card_type": tx.card.type if has_card else (tx.payment_method or "upi"),
+                "card_issuing_country": tx.card.issuing_country if has_card else "IN",
                 "billing_country": getattr(tx.customer, 'billing_country', tx.customer.country),
                 "ip_address": tx.customer.ip,
                 "ip_country": tx.customer.country,
@@ -256,6 +262,14 @@ class FraudDetectionService:
                 "card_history_with_merchant": tx.metadata.get("card_history_with_merchant", 0),
                 "card_multi_account_use": tx.metadata.get("card_multi_account_use", 1),
                 "tx_count_same_card_1min": tx.metadata.get("velocity_card_1min") or tx.metadata.get("tx_count_same_card_1min") or 1,
+                # UPI specific fields
+                "is_upi": has_upi or (tx.payment_method == "upi"),
+                "vpa": tx.upi.vpa if has_upi else None,
+                "upi_app": tx.upi.app if has_upi else None,
+                "upi_flow_type": tx.upi.flow_type if has_upi else "intent",
+                "gateway": tx.gateway,
+                "is_cod": tx.delivery.is_cod if tx.delivery else False,
+                "delivery_pincode": tx.delivery.pincode if tx.delivery else None,
                 **tx.metadata
             }
             collected_data = await collector.collect_signals(flat_tx, org_id=org_id_str, db_session=db)
@@ -359,6 +373,19 @@ class FraudDetectionService:
                     "requests_per_minute": bot_f.get("requests_per_minute")
                 }
 
+            # UPI and RTO Signals computation for Indian Payment Ecosystem
+            upi_signals = {}
+            if tx.upi:
+                upi_signals = {
+                    "vpa": tx.upi.vpa,
+                    "app": tx.upi.app or "upi",
+                    "flow_type": tx.upi.flow_type or "intent",
+                    "is_collect_risk": tx.upi.flow_type == "collect"
+                }
+
+            rto_risk_score = self.compute_rto_risk(tx, baseline_score=final_score)
+            cod_recommendation = self.get_cod_recommendation(rto_risk_score, tx)
+
             result_dict = {
                 "risk_score": round(final_score, 4),
                 "risk_label": label,
@@ -379,7 +406,10 @@ class FraudDetectionService:
                 "decision_details": decision_res,
                 "challenge_method": decision_res.get("challenge_method"),
                 "top_signals": prob_result["top_signals"],
-                "explanation": decision_res.get("explanation")
+                "explanation": decision_res.get("explanation"),
+                "upi_signals": upi_signals,
+                "rto_risk_score": rto_risk_score,
+                "cod_recommendation": cod_recommendation
             }
 
         except Exception as e:
@@ -399,7 +429,10 @@ class FraudDetectionService:
                 "decision_details": {},
                 "challenge_method": "manual_review",
                 "top_signals": [],
-                "explanation": "System fallback mode active. Transaction held for manual review."
+                "explanation": "System fallback mode active. Transaction held for manual review.",
+                "upi_signals": {},
+                "rto_risk_score": None,
+                "cod_recommendation": "REQUIRE_PREPAID_UPI"
             }
             
         latency_ms = int((time.time() - start) * 1000)
@@ -425,8 +458,36 @@ class FraudDetectionService:
             decision_details=result_dict.get("decision_details"),
             challenge_method=result_dict.get("challenge_method"),
             top_signals=result_dict.get("top_signals"),
-            explanation=result_dict.get("explanation")
+            explanation=result_dict.get("explanation"),
+            upi_signals=result_dict.get("upi_signals"),
+            rto_risk_score=result_dict.get("rto_risk_score"),
+            cod_recommendation=result_dict.get("cod_recommendation")
         )
+
+    def compute_rto_risk(self, tx: TransactionAnalyzeRequest, baseline_score: float = 0.0) -> int:
+        rto_risk_score = 12
+        if tx.delivery and tx.delivery.is_cod:
+            # High-risk return-to-origin pin clusters in India
+            if tx.delivery.pincode in ["800001", "842001", "208001", "110094"]:
+                rto_risk_score += 42
+            if float(tx.amount) > 3500:
+                rto_risk_score += 25
+            if baseline_score > 0.35:
+                rto_risk_score += 30
+            if tx.delivery.address_hash and "generic" in tx.delivery.address_hash:
+                rto_risk_score += 15
+        elif tx.delivery:
+            rto_risk_score = 8
+        return min(99, max(1, rto_risk_score))
+
+    def get_cod_recommendation(self, rto_risk_score: int, tx: TransactionAnalyzeRequest) -> str:
+        if not (tx.delivery and tx.delivery.is_cod):
+            return "ALLOW_COD"
+        if rto_risk_score >= 80:
+            return "REQUIRE_PREPAID_UPI" if rto_risk_score < 90 else "BLOCK"
+        elif rto_risk_score >= 50:
+            return "REQUIRE_PREPAID_UPI"
+        return "ALLOW_COD"
 
     async def process_auto_alert(self, org_id: uuid.UUID, tx: TransactionAnalyzeRequest, result: FraudResult, internal_id: uuid.UUID):
         if result.risk_score >= 0.70:
@@ -442,12 +503,13 @@ class FraudDetectionService:
             )
 
 def transaction_row_from_request(org_id: uuid.UUID, tx: TransactionAnalyzeRequest, result: FraudResult, internal_id: uuid.UUID, latency_ms: int) -> dict[str, object]:
-    geo_mismatch = tx.customer.country.upper() != tx.card.issuing_country.upper()
+    geo_mismatch = (tx.customer.country.upper() != tx.card.issuing_country.upper()) if tx.card else False
     return {
         "id": internal_id, "org_id": org_id, "external_id": tx.transaction_id,
         "amount": tx.amount, "currency": tx.currency.upper(),
         "merchant_id": tx.merchant.id, "merchant_name": tx.merchant.name, "merchant_category": tx.merchant.category,
-        "card_last_four": tx.card.last_four, "card_type": tx.card.type,
+        "card_last_four": tx.card.last_four if tx.card else "UPI",
+        "card_type": tx.card.type if tx.card else (tx.payment_method or "upi"),
         "customer_id": tx.customer.id, "customer_ip": tx.customer.ip, "customer_country": tx.customer.country.upper(),
         "device_fingerprint": tx.customer.device_fingerprint, "channel": tx.channel,
         "risk_score": Decimal(str(result.risk_score)), "risk_label": result.risk_label, "decision": result.decision,
@@ -464,8 +526,16 @@ def transaction_row_from_request(org_id: uuid.UUID, tx: TransactionAnalyzeReques
         "customer_avg_amount_30d": Decimal(str(result.features.get("customer_avg_amount_30d"))) if (result.features and result.features.get("customer_avg_amount_30d") is not None) else None,
         "amount_vs_avg_ratio": Decimal(str(result.features.get("amount_vs_avg_ratio"))) if (result.features and result.features.get("amount_vs_avg_ratio") is not None) else None,
         "ip_geolocation_country": tx.customer.country.upper(),
-        "card_issuing_country": tx.card.issuing_country.upper(),
+        "card_issuing_country": tx.card.issuing_country.upper() if tx.card else "IN",
         "geo_mismatch": geo_mismatch,
         "account_inactive_days": int(result.features.get("account_inactive_days")) if (result.features and result.features.get("account_inactive_days") is not None) else 0,
-        "fraud_type_detected": result.fraud_type
+        "fraud_type_detected": result.fraud_type,
+        # UPI & India Telemetry Additions
+        "vpa": tx.upi.vpa if tx.upi else None,
+        "upi_app": tx.upi.app if tx.upi else None,
+        "upi_flow_type": tx.upi.flow_type if tx.upi else None,
+        "payment_gateway": tx.gateway,
+        "delivery_pincode": tx.delivery.pincode if tx.delivery else None,
+        "is_cod": tx.delivery.is_cod if tx.delivery else False,
+        "rto_risk_score": getattr(result, 'rto_risk_score', None)
     }
