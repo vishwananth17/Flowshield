@@ -170,10 +170,23 @@ export default function Login() {
               variant="primary"
               size="md"
               isLoading={isLoading}
-              className="w-full justify-center mt-2"
+              className="w-full justify-center mt-2 bg-[#635BFF] hover:bg-[#4F46E5] text-white"
             >
               <span>{authMode === 'mobile' && !otpSent ? 'Send OTP' : 'Sign in to Console'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={async () => {
+                await login({ email: 'operator@flowshield.ai', password: 'demo' });
+                navigate('/dashboard');
+              }}
+              className="w-full justify-center text-xs border border-[#E3E8EE] hover:bg-[#F8FAFC]"
+            >
+              <span>Explore Demo Console →</span>
             </Button>
           </form>
 
