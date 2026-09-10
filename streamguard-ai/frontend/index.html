@@ -8,100 +8,25 @@
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
-    content="Flowshield AI — Autonomous fraud intelligence for high-volume commerce and fintech platforms. Detect complex fraud behavior in under 100ms." />
-  <meta name="theme-color" content="#020617" />
+    content="FlowShield - Real-time fraud detection and automated chargeback defense for high-volume merchants. 43ms ML evaluation." />
+  <meta name="theme-color" content="#0d1320" />
 
   <!-- OpenGraph / Social -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Flowshield AI — Autonomous Fraud Detection" />
+  <meta property="og:title" content="FlowShield - Real-Time Payment Fraud Prevention" />
   <meta property="og:description"
-    content="Secure your pipeline with sovereign financial intelligence. Sub-100ms fraud analysis for modern marketplaces." />
+    content="Evaluate every transaction in 43ms. Block fraud, reduce chargebacks, and protect merchant revenue." />
   <meta property="og:image" content="/og-preview.png" />
 
-  <title>Flowshield AI — Autonomous Fraud Intelligence</title>
-  <!-- Subresource Integrity for CDN assets (Layer 15.6) -->
+  <title>FlowShield — Payment Fraud & Chargeback Defense</title>
+  <!-- Subresource Integrity for CDN assets -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"
     integrity="sha384-H6x+v1jS622n5H6x16b32c44d0F9x8d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t" crossorigin="anonymous">
-    </script>
+  </script>
 </head>
 
 <body>
-  <div id="root">
-    <div id="flowshield-preloader" style="position: fixed; inset: 0; background: #05080F; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden;">
-      <style>
-        @keyframes fs-sonar {
-          0% { transform: scale(0.9); opacity: 0.7; }
-          100% { transform: scale(2.6); opacity: 0; }
-        }
-        @keyframes fs-rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes fs-breathe {
-          0%, 100% { transform: scale(0.97); filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.4)); }
-          50% { transform: scale(1.03); filter: drop-shadow(0 0 24px rgba(34, 211, 238, 0.8)); }
-        }
-        @keyframes fs-scan {
-          0%, 100% { top: 6%; opacity: 0.2; }
-          50% { top: 88%; opacity: 0.9; }
-        }
-        @keyframes fs-shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes fs-pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(0.85); }
-        }
-      </style>
-
-      <!-- Ambient Glow Behind Radar -->
-      <div style="position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(5, 8, 15, 0) 70%); pointer-events: none;"></div>
-
-      <!-- Radar Animation Hub -->
-      <div style="position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
-        <!-- Sonar Pulse Ring 1 -->
-        <div style="position: absolute; width: 84px; height: 84px; border-radius: 50%; border: 1.5px solid rgba(34, 211, 238, 0.4); animation: fs-sonar 2.4s ease-out infinite; pointer-events: none;"></div>
-        <!-- Sonar Pulse Ring 2 -->
-        <div style="position: absolute; width: 84px; height: 84px; border-radius: 50%; border: 1.5px solid rgba(6, 182, 212, 0.3); animation: fs-sonar 2.4s ease-out infinite 0.8s; pointer-events: none;"></div>
-        
-        <!-- Rotating Dashed Orbit Ring -->
-        <div style="position: absolute; width: 114px; height: 114px; border-radius: 50%; border: 1px dashed rgba(34, 211, 238, 0.25); animation: fs-rotate 16s linear infinite; pointer-events: none;"></div>
-
-        <!-- Rotating Radar Sweep Beam -->
-        <div style="position: absolute; width: 92px; height: 92px; border-radius: 50%; background: conic-gradient(from 0deg, rgba(6, 182, 212, 0) 0deg, rgba(6, 182, 212, 0.05) 240deg, rgba(34, 211, 238, 0.45) 360deg); animation: fs-rotate 2s linear infinite; pointer-events: none;"></div>
-
-        <!-- Shield Core Container -->
-        <div style="position: relative; z-index: 10; width: 72px; height: 72px; border-radius: 18px; background: #080D15; border: 1.5px solid rgba(34, 211, 238, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(6, 182, 212, 0.25); overflow: hidden;">
-          <img src="/flowshield-symbol.png" alt="Flowshield AI" style="width: 44px; height: 44px; object-fit: contain; animation: fs-breathe 2s ease-in-out infinite;" />
-
-          <!-- Laser Scan Line -->
-          <div style="position: absolute; left: 6px; right: 6px; height: 2px; background: linear-gradient(90deg, transparent, #22D3EE, transparent); box-shadow: 0 0 8px #22D3EE; animation: fs-scan 1.8s ease-in-out infinite; pointer-events: none;"></div>
-        </div>
-      </div>
-
-      <!-- Telemetry Info -->
-      <div style="margin-top: 28px; display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <!-- Status Pill -->
-        <div style="display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border-radius: 9999px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(34, 211, 238, 0.25); color: #22D3EE; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;">
-          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22D3EE; box-shadow: 0 0 8px #22D3EE; animation: fs-pulse-dot 1.5s infinite;"></span>
-          SOVEREIGN RADAR ACTIVE
-        </div>
-
-        <div style="color: #FFFFFF; font-size: 15px; font-weight: 600; letter-spacing: 0.02em;">
-          Initializing Defense Pipeline...
-        </div>
-        <div style="color: #64748B; font-size: 12px; margin-top: 4px;">
-          Calibrating telemetry and sovereign fraud models
-        </div>
-
-        <!-- Shimmer Progress Track -->
-        <div style="width: 180px; height: 3px; background: rgba(30, 41, 59, 0.8); border-radius: 9999px; overflow: hidden; margin-top: 18px; position: relative; border: 1px solid rgba(34, 211, 238, 0.15);">
-          <div style="width: 100%; height: 100%; background: linear-gradient(90deg, transparent, #22D3EE, transparent); animation: fs-shimmer 1.4s ease-in-out infinite;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
