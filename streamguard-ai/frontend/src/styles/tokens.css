@@ -1,0 +1,219 @@
+/* =========================================================================
+   FLOWSHIELD AI — PRODUCTION FINTECH DESIGN TOKENS
+   Standard: Stripe / Linear / High-Throughput Financial Terminal
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+
+  /* ── BRAND ─────────────────────────────────────────── */
+  --brand-50:   #ECFEFF;
+  --brand-100:  #CFFAFE;
+  --brand-200:  #A5F3FC;
+  --brand-300:  #67E8F9;
+  --brand-400:  #22D3EE;
+  --brand-500:  #06B6D4;  /* PRIMARY — use for CTAs, active, accents */
+  --brand-600:  #0891B2;  /* hover states */
+  --brand-700:  #0E7490;  /* pressed states */
+
+  /* ── LIGHT MODE SURFACES ───────────────────────────── */
+  --surface-page:      #FFFFFF;
+  --surface-secondary: #F8FAFC;
+  --surface-subtle:    #F1F5F9;
+  --surface-inset:     #EEF2F7;
+  --surface-elevated:  #FFFFFF;
+  --surface-overlay:   #FFFFFF;
+
+  /* ── DARK MODE SURFACES ────────────────────────────── */
+  --dark-page:      #070A0F;
+  --dark-secondary: #0D1117;
+  --dark-subtle:    #111827;
+  --dark-elevated:  #161D2B;
+  --dark-overlay:   #1C2536;
+
+  /* ── TEXT ──────────────────────────────────────────── */
+  --text-primary:   #111827;
+  --text-secondary: #4B5563;
+  --text-tertiary:  #9CA3AF;
+  --text-disabled:  #D1D5DB;
+  --text-inverse:   #FFFFFF;
+  --text-brand:     #0891B2;
+  --text-link:      #0891B2;
+
+  /* ── BORDERS ───────────────────────────────────────── */
+  --border-subtle:  #F3F4F6;
+  --border-default: #E5E7EB;
+  --border-strong:  #D1D5DB;
+  --border-brand:   rgba(6, 182, 212, 0.30);
+  --border-focus:   #06B6D4;
+
+  /* ── RISK SEMANTIC COLORS ──────────────────────────── */
+  /* These are the only colors that communicate risk level */
+  /* Use ONLY these — never introduce new risk colors */
+
+  --risk-low-bg:       #F0FDF4;
+  --risk-low-border:   #BBF7D0;
+  --risk-low-text:     #166534;
+  --risk-low-dot:      #22C55E;
+
+  --risk-medium-bg:    #FFFBEB;
+  --risk-medium-border:#FDE68A;
+  --risk-medium-text:  #92400E;
+  --risk-medium-dot:   #F59E0B;
+
+  --risk-high-bg:      #FEF2F2;
+  --risk-high-border:  #FECACA;
+  --risk-high-text:    #991B1B;
+  --risk-high-dot:     #EF4444;
+
+  --risk-critical-bg:  #FFF1F2;
+  --risk-critical-border:#FFB3BC;
+  --risk-critical-text:#7F1D1D;
+  --risk-critical-dot: #DC2626;
+
+  /* ── STATUS COLORS ─────────────────────────────────── */
+  --status-success-bg:   #F0FDF4;
+  --status-success-text: #166534;
+  --status-success-border:#BBF7D0;
+
+  --status-warning-bg:   #FFFBEB;
+  --status-warning-text: #92400E;
+  --status-warning-border:#FDE68A;
+
+  --status-error-bg:     #FEF2F2;
+  --status-error-text:   #991B1B;
+  --status-error-border: #FECACA;
+
+  --status-info-bg:      #EFF6FF;
+  --status-info-text:    #1E40AF;
+  --status-info-border:  #BFDBFE;
+
+  /* ── SHADOWS (use sparingly — only for floating elements) */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.03);
+  --shadow-xl:  0 20px 25px rgba(0,0,0,0.06), 0 8px 10px rgba(0,0,0,0.03);
+
+  /* ── RADIUS ────────────────────────────────────────── */
+  --radius-xs:  4px;   /* tags, small badges */
+  --radius-sm:  6px;   /* buttons, inputs, small cards */
+  --radius-md:  8px;   /* standard buttons and inputs */
+  --radius-lg:  10px;  /* cards, panels */
+  --radius-xl:  12px;  /* modals, large cards */
+  --radius-2xl: 16px;  /* hero cards only */
+  --radius-full: 9999px; /* pills, avatars */
+
+  /* ── SPACING (8-point grid — no other values) ──────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ── TYPOGRAPHY ────────────────────────────────────── */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+  --font-numeric: 'Inter', sans-serif;
+
+  /* Scale — use ONLY these sizes */
+  --text-xs:    11px;  /* labels, captions, tags */
+  --text-sm:    13px;  /* secondary body, table cells */
+  --text-base:  15px;  /* primary body text */
+  --text-lg:    17px;  /* lead text, descriptions */
+  --text-xl:    20px;  /* card titles, section intros */
+  --text-2xl:   24px;  /* h3 level */
+  --text-3xl:   30px;  /* h2 level */
+  --text-4xl:   36px;  /* h1 level */
+  --text-5xl:   48px;  /* display level */
+  --text-6xl:   56px;  /* hero headline MAX */
+
+  /* Weights */
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-extrabold:800;
+
+  /* Line heights */
+  --leading-none:    1.0;
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+  --leading-loose:   1.8;
+
+  /* Letter spacing */
+  --tracking-tight:   -0.03em;
+  --tracking-snug:    -0.02em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.04em;
+  --tracking-wider:    0.08em;
+  --tracking-widest:   0.12em;
+
+  /* ── ANIMATION ─────────────────────────────────────── */
+  --ease-linear:    linear;
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce:    cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  /* Durations */
+  --duration-instant: 80ms;   /* button press, toggle */
+  --duration-fast:    150ms;  /* hover states */
+  --duration-normal:  220ms;  /* dropdowns, tooltips */
+  --duration-slow:    350ms;  /* modals, panels */
+  --duration-enter:   480ms;  /* page reveals */
+}
+
+/* ── DARK MODE ─────────────────────────────────────────── */
+[data-theme="dark"] {
+  --surface-page:      var(--dark-page);
+  --surface-secondary: var(--dark-secondary);
+  --surface-subtle:    var(--dark-subtle);
+  --surface-inset:     #0A0E16;
+  --surface-elevated:  var(--dark-elevated);
+  --surface-overlay:   var(--dark-overlay);
+
+  --text-primary:   #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary:  #6B7280;
+  --text-disabled:  #374151;
+
+  --border-subtle:  #111827;
+  --border-default: #1F2937;
+  --border-strong:  #374151;
+
+  --risk-low-bg:       rgba(34,197,94,0.08);
+  --risk-low-border:   rgba(34,197,94,0.20);
+  --risk-low-text:     #4ADE80;
+
+  --risk-medium-bg:    rgba(245,158,11,0.08);
+  --risk-medium-border:rgba(245,158,11,0.20);
+  --risk-medium-text:  #FCD34D;
+
+  --risk-high-bg:      rgba(239,68,68,0.08);
+  --risk-high-border:  rgba(239,68,68,0.20);
+  --risk-high-text:    #F87171;
+
+  --risk-critical-bg:  rgba(220,38,38,0.10);
+  --risk-critical-border:rgba(220,38,38,0.25);
+  --risk-critical-text: #FCA5A5;
+
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.3);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.4);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.5);
+  --shadow-xl:  0 20px 25px rgba(0,0,0,0.6);
+}

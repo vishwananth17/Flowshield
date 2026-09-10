@@ -1,268 +1,330 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Check, 
-  ChevronRight, 
-  ArrowRight, 
-  Menu, 
-  X, 
-  Terminal, 
-  Sliders, 
-  Activity, 
-  ShieldCheck, 
-  FileText, 
-  Cpu, 
-  Lock, 
-  RefreshCw,
-  ExternalLink,
-  Zap
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MotionDiv, MotionSection } from '@/components/ui/Motion';
-import EnterpriseModal from '@/components/EnterpriseModal';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
+import { Button } from '@/components/ui/Button';
+import { RiskBadge } from '@/components/ui/RiskBadge';
+import { LiveIndicator } from '@/components/ui/LiveIndicator';
+import { useTheme } from '@/contexts/ThemeContext';
+import {
+  Check,
+  ArrowRight,
+  Menu,
+  X,
+  Copy,
+  CheckCheck,
+  ChevronRight,
+  Sun,
+  Moon,
+  ExternalLink,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
-// Simulated Real-time Transactions Feed for Hero Stream
 interface StreamTx {
   id: string;
   amount: number;
   currency: string;
-  merchant: string;
-  score: number;
-  decision: 'ALLOW' | 'REVIEW' | 'BLOCK';
+  customer: string;
+  riskScore: number;
+  status: 'APPROVED' | 'REVIEW' | 'BLOCKED';
   time: string;
 }
 
-const INITIAL_TRANSACTIONS: StreamTx[] = [
-  { id: 'tx_998124', amount: 2450, currency: '₹', merchant: 'Blue Tokai Coffee', score: 0.04, decision: 'ALLOW', time: 'Just now' },
-  { id: 'tx_998123', amount: 48900, currency: '₹', merchant: 'Croma Retail', score: 0.89, decision: 'BLOCK', time: '1s ago' },
-  { id: 'tx_998122', amount: 1299, currency: '₹', merchant: 'Snitch Menswear', score: 0.12, decision: 'ALLOW', time: '2s ago' },
-  { id: 'tx_998121', amount: 18500, currency: '₹', merchant: 'Nykaa Beauty', score: 0.58, decision: 'REVIEW', time: '4s ago' },
-  { id: 'tx_998120', amount: 3400, currency: '₹', merchant: 'Boat Lifestyle', score: 0.08, decision: 'ALLOW', time: '6s ago' },
+const INITIAL_TXS: StreamTx[] = [
+  { id: 'TXN-10483', amount: 98500, currency: '₹', customer: 'CUS-8124', riskScore: 92, status: 'BLOCKED', time: 'Just now' },
+  { id: 'TXN-10482', amount: 14200, currency: '₹', customer: 'CUS-5510', riskScore: 78, status: 'REVIEW', time: '2s ago' },
+  { id: 'TXN-10481', amount: 4500, currency: '₹', customer: 'CUS-9912', riskScore: 14, status: 'APPROVED', time: '5s ago' },
+  { id: 'TXN-10480', amount: 32000, currency: '₹', customer: 'CUS-2041', riskScore: 84, status: 'REVIEW', time: '8s ago' },
+  { id: 'TXN-10479', amount: 2100, currency: '₹', customer: 'CUS-7718', riskScore: 8, status: 'APPROVED', time: '12s ago' },
 ];
 
 const NEW_POOL_TXS: StreamTx[] = [
-  { id: 'tx_998129', amount: 15400, currency: '₹', merchant: 'Lenskart Vision', score: 0.05, decision: 'ALLOW', time: 'Just now' },
-  { id: 'tx_998128', amount: 92000, currency: '₹', merchant: 'Apple Authorized', score: 0.94, decision: 'BLOCK', time: 'Just now' },
-  { id: 'tx_998127', amount: 4200, currency: '₹', merchant: 'Urbanic Fashion', score: 0.62, decision: 'REVIEW', time: 'Just now' },
-  { id: 'tx_998126', amount: 890, currency: '₹', merchant: 'Zepto Instant', score: 0.02, decision: 'ALLOW', time: 'Just now' },
-  { id: 'tx_998125', amount: 27500, currency: '₹', merchant: 'Samsung Shop', score: 0.78, decision: 'BLOCK', time: 'Just now' },
+  { id: 'TXN-10488', amount: 84000, currency: '₹', customer: 'CUS-9102', riskScore: 89, status: 'BLOCKED', time: 'Just now' },
+  { id: 'TXN-10487', amount: 12500, currency: '₹', customer: 'CUS-3411', riskScore: 68, status: 'REVIEW', time: 'Just now' },
+  { id: 'TXN-10486', amount: 3200, currency: '₹', customer: 'CUS-1094', riskScore: 12, status: 'APPROVED', time: 'Just now' },
+  { id: 'TXN-10485', amount: 56000, currency: '₹', customer: 'CUS-6029', riskScore: 94, status: 'BLOCKED', time: 'Just now' },
+  { id: 'TXN-10484', amount: 1890, currency: '₹', customer: 'CUS-4820', riskScore: 6, status: 'APPROVED', time: 'Just now' },
 ];
 
 export default function Landing() {
-  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(false);
-  const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
+  const [activeLang, setActiveLang] = useState<'curl' | 'node' | 'python' | 'go'>('curl');
+  const [hasCopiedCode, setHasCopiedCode] = useState(false);
+  const [txFeed, setTxFeed] = useState<StreamTx[]>(INITIAL_TXS);
 
-  // Live Transaction Stream state
-  const [txFeed, setTxFeed] = useState<StreamTx[]>(INITIAL_TRANSACTIONS);
-
+  // Nav scroll listener
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 60);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Simulate live WebSocket stream arrival every 3.5s
+  // Live transaction feed simulation (adds new row every 4s)
   useEffect(() => {
     let poolIndex = 0;
     const interval = setInterval(() => {
       const nextTx = {
         ...NEW_POOL_TXS[poolIndex % NEW_POOL_TXS.length],
-        id: `tx_${Math.floor(998000 + Math.random() * 2000)}`,
-        time: 'Just now'
+        id: `TXN-${Math.floor(10480 + Math.random() * 900)}`,
+        time: 'Just now',
       };
       poolIndex++;
       setTxFeed((prev) => [nextTx, ...prev.slice(0, 4)]);
-    }, 3500);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
 
   const featureTabs = [
     {
-      id: 'disputes',
-      title: 'Dispute Defense',
-      headline: 'Autonomous Chargeback Representment',
-      description: 'Automatically pull courier Proof-of-Delivery, order telemetry, and policy agreements to generate court-ready 4-page representment dossiers.',
-      capabilities: [
-        'Syncs directly with Razorpay, Cashfree, and PayU webhook events in real-time.',
-        'Delhivery, BlueDart, and Shiprocket tracking extraction with signed receipt proof.',
-        '94.2% historical dispute win rate across standard fraud reason codes.',
-        'One-click automated dispute evidence upload to payment gateway endpoints.'
+      id: 'scoring',
+      title: 'Real-time Risk Scoring',
+      headline: '43ms ML inference before payment capture',
+      description: 'Evaluate incoming payments against 120+ risk signals including device canvas hashing, proxy telemetry, BIN consistency, and behavioral velocity.',
+      points: [
+        'Deterministic rules executed concurrently with gradient boosted decision trees.',
+        'Sub-50ms roundtrip latency prevents checkout drop-off.',
+        'Dynamic 3DS step-up engine: frictionless for safe buyers, challenge for risky.',
       ],
-      terminalCode: `POST /v1/disputes/disp_9918skL90/represent
+      code: `// Evaluate checkout payload
+const evaluation = await flowshield.evaluate({
+  amount: 98500,
+  currency: 'INR',
+  customerId: 'cus_8124',
+  deviceFingerprint: 'a8f9c1d2e3b4',
+  ip: '41.58.100.5'
+});
+
+// Result returned in 41ms:
+// { decision: "BLOCK", score: 92, signals: ["TOR_EXIT", "VELOCITY_SPIKE"] }`,
+    },
+    {
+      id: 'chargebacks',
+      title: 'Chargeback Defense',
+      headline: 'Automated 4-page representment dossiers',
+      description: 'Stop losing winnable disputes to paperwork. FlowShield automatically aggregates courier delivery proofs, customer IP logs, and order receipts into bank-formatted PDF packages.',
+      points: [
+        'Direct sync with Delhivery, BlueDart, and Shiprocket for signed POD extraction.',
+        'Pre-formatted to Visa and Mastercard compelling evidence specifications.',
+        '94% win rate on commercial merchandise non-receipt claims.',
+      ],
+      code: `POST /v1/disputes/disp_99182/represent
 Content-Type: application/pdf
 Authorization: Bearer sk_live_9f82a...
 
-Evidence Docket Generated:
-├── 1. Merchant Order & Invoice (Shopify #ORD-9918)
-├── 2. Delhivery Air Waybill #DEL98871625 [DELIVERED]
-├── 3. Signature Proof by 'Rahul S.' (12-07-2026)
+Evidence Package Compiled:
+├── 1. Merchant Invoice #ORD-9918
+├── 2. Delhivery Air Waybill #DEL98871625 [SIGNED]
+├── 3. Device & Geolocation Audit Trail
 └── 4. Terms of Service Acceptance Log
 
-Status: AUTO_SUBMITTED_TO_GATEWAY (Win Probability: 95%)`
-    },
-    {
-      id: 'fraud_api',
-      title: 'Fraud Detection API',
-      headline: 'Sub-45ms Real-Time Inference',
-      description: 'Evaluate transaction risk at checkout before payments capture using an ensemble of Isolation Forest and XGBoost trained on Indian telemetry.',
-      capabilities: [
-        'Instant detection of residential VPNs, datacenter TOR nodes, and proxy cycling.',
-        'Device fingerprint hashing across 14 million merchant browser profiles.',
-        'Dynamic 3DS exemption recommendation engine to maximize checkout conversion.',
-        'Zero impact on customer checkout UX with 43ms median response times.'
-      ],
-      terminalCode: `curl -X POST https://api.flowshield.ai/v1/radar/evaluate \\
-  -H "Authorization: Bearer sk_live_9f82a..." \\
-  -d '{
-    "amount": 48900.00,
-    "currency": "INR",
-    "customer_ip": "103.241.12.89",
-    "device_hash": "a8f9c1d2e3b4"
-  }'
-
-HTTP/2 200 OK
-{
-  "decision": "BLOCK",
-  "risk_score": 0.89,
-  "reasons": ["DATACENTER_PROXY", "VELOCITY_BURST"],
-  "latency_ms": 38
-}`
+Result: SUBMITTED_TO_GATEWAY (Win Probability: 95%)`,
     },
     {
       id: 'rules',
-      title: 'Rule Builder',
-      headline: 'Precise Logical Control Engine',
-      description: 'Enforce deterministic business policies alongside machine learning models with zero-code visual and JSON rule expressions.',
-      capabilities: [
-        'Block high-velocity card testing runs exceeding 3 attempts in 2 minutes.',
-        'Force 3DS OTP step-up on high-ticket orders with mismatching BIN country.',
-        'Fast-track verified repeat buyers to skip friction and reduce drop-offs.',
-        'Simulate and backtest rule logic on your past 90 days of transactions.'
+      title: 'Smart Rules Engine',
+      headline: 'Combine custom heuristics with machine learning',
+      description: 'Write transparent business policies in plain logic or JSON. Block carding bursts, limit foreign cards on high-ticket SKUs, or VIP-whitelist repeat customers.',
+      points: [
+        'Simulate new rules against past 90 days of transactions before deploying.',
+        'Sub-millisecond rule evaluation overhead.',
+        'Zero code deployments with instant global propagation.',
       ],
-      terminalCode: `RULE: Block Datacenter Proxy Burst
-IF:
-  :risk_score: > 0.75 AND
-  :is_vpn: == true AND
-  :velocity_10m: > 5
+      code: `RULE: Block_Datacenter_Proxy_Burst
+WHEN:
+  transaction.amount > 25000 AND
+  ip.is_datacenter == true AND
+  velocity.card_attempts_10m >= 3
 THEN:
-  ACTION: BLOCK
-  REASON: "PROXY_VELOCITY_ATTACK"
-  NOTIFY: SOC_SLACK_CHANNEL
-
-Enforcement: 1,420 attacks intercepted this week.`
+  action: BLOCK
+  reason: "PROXY_CARDING_BURST"
+  notify: "#fraud-ops-alerts"`,
     },
     {
-      id: 'intelligence',
-      title: 'Intelligence Dashboard',
-      headline: 'Security Operations Center Telemetry',
-      description: 'Monitor live payment streams, analyze fraud patterns by geography and BIN, and triage manual dispute queues with audit logging.',
-      capabilities: [
-        'Real-time WebSocket telemetry stream with instant alert broadcast.',
-        'Deep-dive audit logs with IP geolocation, ASN, and fingerprint data.',
-        'Cohort dispute recovery tracking by gateway and product category.',
-        'Role-based access control with granular API key permission scopes.'
+      id: 'api',
+      title: 'API & Webhooks',
+      headline: 'Built for developers who respect clean architecture',
+      description: 'Drop-in REST API with typed SDKs for TypeScript, Python, and Go. Real-time webhooks with SHA-256 HMAC signature verification and automatic retries.',
+      points: [
+        'Idempotent requests with X-Idempotency-Key support.',
+        'Granular API keys with read/write permission scopes.',
+        'Zero third-party vendor dependencies in core evaluation path.',
       ],
-      terminalCode: `SOC TELEMETRY STREAM ACTIVE
-Ingestion: 1,240 events/sec | P99 Latency: 44ms
-Active Gateways: Razorpay (99.98%), Cashfree (99.95%)
+      code: `import { FlowShield } from '@flowshield/node';
 
-Live Risk Distribution:
-  [■■■■■■■■■■■■■■■■■■■■] Safe (88.4%)
-  [■■■                 ] Review (6.8%)
-  [■■                  ] Blocked (4.8%)
+const client = new FlowShield({ apiKey: process.env.FLOWSHIELD_KEY });
 
-Current System Status: ALL SYSTEMS OPERATIONAL`
-    }
+// Webhook signature verification
+const event = client.webhooks.constructEvent(
+  req.body,
+  req.headers['x-flowshield-signature'],
+  process.env.WEBHOOK_SECRET
+);
+
+if (event.type === 'transaction.blocked') {
+  console.log('Blocked fraud attempt:', event.data.id);
+}`,
+    },
   ];
 
+  const codeSnippets: Record<'curl' | 'node' | 'python' | 'go', string> = {
+    curl: `curl -X POST https://api.flowshield.ai/v1/transactions/analyze \\
+  -H "Authorization: Bearer sk_live_9f82a..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 98500,
+    "currency": "INR",
+    "customer_id": "cus_8124",
+    "payment_method": "card",
+    "ip_address": "41.58.100.5"
+  }'
+
+# Response (41ms latency):
+{
+  "risk_score": 92,
+  "decision": "BLOCK",
+  "signals": ["ANONYMOUS_PROXY", "VELOCITY_SPIKE"],
+  "latency_ms": 41
+}`,
+    node: `import { FlowShield } from '@flowshield/sdk';
+
+const flowshield = new FlowShield({ apiKey: process.env.FLOWSHIELD_KEY });
+
+const result = await flowshield.transactions.analyze({
+  amount: 98500,
+  currency: 'INR',
+  customerId: 'cus_8124',
+  paymentMethod: 'card',
+  ipAddress: '41.58.100.5'
+});
+
+console.log(result.decision); // "BLOCK"
+console.log(result.riskScore); // 92`,
+    python: `from flowshield import FlowShield
+
+client = FlowShield(api_key="sk_live_9f82a...")
+
+response = client.transactions.analyze(
+    amount=98500,
+    currency="INR",
+    customer_id="cus_8124",
+    payment_method="card",
+    ip_address="41.58.100.5"
+)
+
+if response.decision == "BLOCK":
+    print(f"Transaction blocked: Score {response.risk_score}")`,
+    go: `package main
+
+import (
+    "context"
+    "fmt"
+    "github.com/flowshield/flowshield-go"
+)
+
+func main() {
+    client := flowshield.NewClient("sk_live_9f82a...")
+    res, _ := client.Transactions.Analyze(context.Background(), &flowshield.AnalyzeParams{
+        Amount:   98500,
+        Currency: "INR",
+        CustomerID: "cus_8124",
+    })
+    fmt.Printf("Decision: %s (Score: %d)\\n", res.Decision, res.RiskScore)
+}`,
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(codeSnippets[activeLang]);
+    setHasCopiedCode(true);
+    toast.success('Snippet copied to clipboard');
+    setTimeout(() => setHasCopiedCode(false), 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-surface-100 text-text-primary selection:bg-cyan-500/20 selection:text-cyan-300 font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--surface-canvas)] text-[var(--text-primary)] font-sans antialiased selection:bg-[var(--brand-100)] selection:text-[var(--brand-600)] overflow-x-hidden">
       
       {/* =========================================================================
-          1. NAVIGATION (56px Fixed)
+          6.1 — FIXED NAVIGATION (52px STRICT)
           ========================================================================= */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 h-14 transition-all duration-normal ${
+        className={`fixed top-0 left-0 right-0 z-50 h-[52px] transition-all duration-normal ${
           scrolled
-            ? 'bg-surface-100/85 border-b border-border-200 backdrop-blur-md shadow-sm'
+            ? 'bg-[var(--surface-page)]/85 border-b border-[var(--border-default)] backdrop-blur-md shadow-xs'
             : 'bg-transparent border-b border-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           
-          {/* Official Company Logo & Wordmark */}
-          <Link to="/" className="flex items-center space-x-2.5 select-none group">
-            <Logo size={32} withContainer={false} className="group-hover:scale-105 transition-transform" />
-            <div className="flex items-center space-x-1">
-              <span className="font-bold text-base tracking-tight text-text-primary">Flowshield</span>
-              <span className="text-cyan-500 font-bold text-base">/</span>
-              <span className="font-bold text-base tracking-tight text-text-primary">AI</span>
-            </div>
+          {/* Left: Logo + Wordmark */}
+          <Link to="/" className="flex items-center gap-2.5 select-none">
+            <Logo size={28} withContainer={false} />
+            <span className="font-semibold text-[15px] tracking-tight text-[var(--text-primary)]">
+              FlowShield
+            </span>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-text-secondary">
-            <a href="#features" className="hover:text-text-primary transition-colors">Product</a>
-            <Link to="/simulator" className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-              <span>Attack Simulator</span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">LIVE</span>
+          {/* Center: Clean Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium text-[var(--text-secondary)]">
+            <a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Product</a>
+            <a href="#problem" className="hover:text-[var(--text-primary)] transition-colors">Solutions</a>
+            <Link to="/simulator" className="hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5">
+              <span>Simulator</span>
+              <span className="px-1.5 py-0.2 rounded-[var(--radius-xs)] text-[10px] font-mono font-bold bg-[var(--brand-100)] text-[var(--brand-600)]">LIVE</span>
             </Link>
-            <a href="#problem" className="hover:text-text-primary transition-colors">Solutions</a>
-            <Link to="/docs" className="hover:text-text-primary transition-colors">Documentation</Link>
-            <a href="#pricing" className="hover:text-text-primary transition-colors">Pricing</a>
+            <Link to="/docs" className="hover:text-[var(--text-primary)] transition-colors">Docs</Link>
+            <a href="#pricing" className="hover:text-[var(--text-primary)] transition-colors">Pricing</a>
           </nav>
 
-          {/* Right Action CTAs */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Right: Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={toggleTheme}
+              className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+              title="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign in</Link>
+              <Link to="/login">Sign In</Link>
             </Button>
             <Button variant="primary" size="sm" asChild>
-              <Link to="/register">
-                <span>Get started</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <Link to="/register">Get Started</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Toggle */}
-          <div className="flex md:hidden">
+          <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-text-secondary hover:text-text-primary p-1.5 focus:outline-none"
-              aria-label="Toggle Navigation Menu"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1.5 focus:outline-none"
+              aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-border-200 bg-surface-200 px-4 py-4 space-y-3 animate-in fade-in duration-fast">
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Product</a>
-            <Link to="/simulator" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-semibold text-cyan-400 py-1.5">Attack Simulator (Live)</Link>
-            <a href="#problem" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Solutions</a>
-            <Link to="/docs" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-cyan-400 py-1.5">Documentation</Link>
-            <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-text-secondary py-1.5">Pricing</a>
-            <div className="pt-2 flex flex-col space-y-2">
+          <div className="md:hidden border-b border-[var(--border-default)] bg-[var(--surface-page)] px-4 py-4 space-y-3">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-[13px] font-medium text-[var(--text-secondary)] py-1">Product</a>
+            <a href="#problem" onClick={() => setMobileMenuOpen(false)} className="block text-[13px] font-medium text-[var(--text-secondary)] py-1">Solutions</a>
+            <Link to="/simulator" onClick={() => setMobileMenuOpen(false)} className="block text-[13px] font-semibold text-[var(--brand-600)] py-1">Simulator (Live)</Link>
+            <Link to="/docs" onClick={() => setMobileMenuOpen(false)} className="block text-[13px] font-medium text-[var(--text-secondary)] py-1">Docs</Link>
+            <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-[13px] font-medium text-[var(--text-secondary)] py-1">Pricing</a>
+            <div className="pt-2 flex flex-col gap-2">
               <Button variant="secondary" size="sm" asChild className="w-full justify-center">
-                <Link to="/login">Sign in</Link>
+                <Link to="/login">Sign In</Link>
               </Button>
               <Button variant="primary" size="sm" asChild className="w-full justify-center">
-                <Link to="/register">Get started →</Link>
+                <Link to="/register">Get Started</Link>
               </Button>
             </div>
           </div>
@@ -270,163 +332,127 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION (2-Column Left-Aligned, 55/45 Split)
+          6.2 — HERO SECTION (Left-Aligned, Max 56px Headline, 55/45 Split)
           ========================================================================= */}
-      <section className="relative pt-28 sm:pt-36 pb-20 sm:pb-28 overflow-hidden">
-        
-        {/* Subtle Radial Glow and 48px SVG Background Grid */}
-        <div 
-          className="absolute inset-0 pointer-events-none -z-10"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, rgba(148, 163, 184, 0.025) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(148, 163, 184, 0.025) 1px, transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-            maskImage: 'radial-gradient(ellipse 80% 60% at 50% 10%, #000 60%, transparent 100%)'
-          }}
-        />
-
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 border-b border-[var(--border-default)] overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             
-            {/* Left Column (55% / 7 cols) */}
-            <div className="lg:col-span-7 space-y-8 text-left">
+            {/* Left Column (58% / 7 cols) */}
+            <div className="lg:col-span-7 space-y-6 text-left">
               
-              {/* Category Rule Badge */}
-              <div className="flex items-center space-x-3">
-                <span className="w-4 h-[2px] bg-cyan-500" />
-                <span className="text-xs font-normal text-text-tertiary tracking-wide">
-                  Real-time · AI-powered · Indian merchants
-                </span>
+              {/* Category Rule Tagline: 2px solid brand-500 left border */}
+              <div className="border-l-2 border-[var(--brand-500)] pl-3 text-[12px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                REAL-TIME PAYMENT INTELLIGENCE
               </div>
 
-              {/* Strict Type Headline */}
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.04em] text-text-primary leading-[1.0] font-display">
-                Stop Fraud.<br />
-                Before It <span className="text-cyan-500">Costs</span> You.
+              {/* Strict Max 56px Headline */}
+              <h1 className="text-[36px] sm:text-[46px] lg:text-[54px] font-bold tracking-tight text-[var(--text-primary)] leading-[1.1]">
+                See the risk. Before it becomes a{' '}
+                <span className="text-[var(--brand-500)]">loss</span>.
               </h1>
 
-              {/* Subheadline (Max 520px) */}
-              <p className="max-w-[520px] text-base sm:text-lg text-text-secondary leading-[1.65] font-normal">
-                Flowshield AI detects fraud and automates chargeback defense for merchants using Razorpay, Cashfree, and custom payment stacks. Real decisions in 43ms.
+              {/* Subheading: max 20px, text-secondary, max-w-xl */}
+              <p className="max-w-xl text-[16px] sm:text-[18px] text-[var(--text-secondary)] leading-relaxed font-normal">
+                FlowShield evaluates every transaction in 43ms. Block fraud, reduce chargebacks, and protect revenue with ML trained on 50M+ payment events.
               </p>
 
               {/* Action CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Button variant="primary" size="lg" asChild>
-                  <Link to="/register">
+                  <Link to="/register" className="gap-2">
                     <span>Start free</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-                <Button variant="secondary" size="lg" asChild className="border-cyan-500/40 hover:border-cyan-400 bg-cyan-950/30 text-cyan-300">
-                  <Link to="/simulator" className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-cyan-400 fill-current" />
-                    <span>Test Attack Simulator</span>
+                    <ArrowRight size={15} />
                   </Link>
                 </Button>
                 <Button variant="ghost" size="lg" asChild>
-                  <a href="#how-it-works" className="flex items-center gap-1.5">
+                  <a href="#how-it-works" className="gap-2">
                     <span>See how it works</span>
-                    <span className="text-text-tertiary">↓</span>
+                    <span className="text-[var(--text-tertiary)]">↓</span>
                   </a>
                 </Button>
               </div>
 
-              {/* Trust Strip */}
-              <div className="pt-6 border-t border-border-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-text-tertiary font-normal">
-                <div className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>No card required</span>
+              {/* Trust Line: 3 Checkmarks */}
+              <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[var(--text-secondary)]">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>No credit card required</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>DPDP Act 2023 compliant</span>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>5-minute integration</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Connect in 2 minutes</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>94% detection accuracy</span>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>Free up to 1,000 txns/mo</span>
                 </div>
               </div>
 
             </div>
 
-            {/* Right Column: Live Transaction Stream Panel (45% / 5 cols) */}
+            {/* Right Column (42% / 5 cols): Dark Frame Live Feed Preview */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="w-full max-w-[480px] bg-surface-300/80 border border-border-200 rounded-lg p-5 shadow-lg backdrop-blur-xl relative overflow-hidden">
+              <div className="w-full max-w-[460px] bg-[var(--surface-page)] border border-[var(--border-default)] rounded-[var(--radius-lg)] p-4 shadow-md relative overflow-hidden">
                 
-                {/* Panel Header */}
-                <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-border-200">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-allow opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-status-allow" />
+                {/* Frame Header */}
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2.5">
+                    <LiveIndicator />
+                    <span className="text-[12px] font-semibold text-[var(--text-primary)]">
+                      Real-time Feed
                     </span>
-                    <span className="type-label text-text-tertiary">Live Transactions</span>
                   </div>
-                  <span className="font-mono text-xs text-text-tertiary font-medium">43ms avg</span>
+                  <span className="font-mono text-[11px] text-[var(--text-tertiary)]">
+                    43ms median latency
+                  </span>
                 </div>
 
-                {/* Animated Transaction Rows */}
-                <div className="space-y-2.5 min-h-[380px]">
-                  <AnimatePresence initial={false}>
-                    {txFeed.map((tx) => {
-                      const isBlock = tx.decision === 'BLOCK';
-                      const isReview = tx.decision === 'REVIEW';
-                      const riskPercent = Math.round(tx.score * 100);
+                {/* Animated Rows */}
+                <div className="space-y-2">
+                  {txFeed.map((tx) => (
+                    <div
+                      key={tx.id}
+                      className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-secondary)] border border-[var(--border-subtle)] space-y-1.5 transition-colors"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-medium text-[var(--text-secondary)]">
+                            {tx.id}
+                          </span>
+                          <span className="text-[var(--text-tertiary)]">·</span>
+                          <span className="font-mono text-[var(--text-tertiary)]">
+                            {tx.customer}
+                          </span>
+                        </div>
+                        <div className="font-bold text-[13px] text-[var(--text-primary)] tabular-numbers">
+                          {tx.currency}{tx.amount.toLocaleString('en-IN')}
+                        </div>
+                      </div>
 
-                      return (
-                        <motion.div
-                          key={tx.id}
-                          initial={{ opacity: 0, y: -16, filter: 'blur(4px)' }}
-                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                          exit={{ opacity: 0, y: 16, transition: { duration: 0.2 } }}
-                          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                          className="bg-surface-200/90 border border-border-100 rounded-sm p-3 space-y-2 relative hover:border-border-300 transition-colors"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs text-text-tertiary">{tx.id}</span>
-                                <span className="text-xs text-text-tertiary">·</span>
-                                <span className="text-xs text-text-secondary truncate max-w-[140px]">{tx.merchant}</span>
-                              </div>
-                              <div className="font-sans font-semibold text-sm text-text-primary">
-                                {tx.currency}{tx.amount.toLocaleString('en-IN')}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-[11px] text-text-tertiary">{tx.score.toFixed(2)}</span>
-                              <Badge variant={isBlock ? 'block' : isReview ? 'review' : 'allow'} size="sm">
-                                {tx.decision}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {/* Thin 3-Phase Risk Progress Bar */}
-                          <div className="w-full bg-surface-500 h-1 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-500 ${
-                                isBlock ? 'bg-status-block' : isReview ? 'bg-status-review' : 'bg-status-allow'
-                              }`}
-                              style={{ width: `${riskPercent}%` }}
-                            />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+                      <div className="flex items-center justify-between pt-0.5">
+                        <RiskBadge
+                          level={
+                            tx.riskScore >= 85 ? 'critical' :
+                            tx.riskScore >= 70 ? 'high' :
+                            tx.riskScore >= 35 ? 'medium' :
+                            'low'
+                          }
+                          score={tx.riskScore}
+                          size="sm"
+                        />
+                        <span className="text-[11px] font-mono text-[var(--text-tertiary)]">
+                          {tx.time}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-border-100 flex items-center justify-between text-[11px] font-mono text-text-tertiary">
+                {/* Frame Footer */}
+                <div className="pt-3 mt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-tertiary)]">
                   <span>Ensemble: XGBoost + MVIForest</span>
-                  <span className="text-cyan-400">● 100% Intercept Active</span>
+                  <span className="text-[var(--risk-low-text)] font-medium">● 100% Intercept Active</span>
                 </div>
 
               </div>
@@ -437,30 +463,46 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       </section>
 
       {/* =========================================================================
-          3. SOCIAL PROOF STRIP (Immediate After Fold)
+          6.3 — STATS STRIP (4 Centered Stats with 1px Dividers)
           ========================================================================= */}
-      <section className="border-t border-b border-border-200 bg-surface-200 py-6">
+      <section className="border-b border-[var(--border-default)] bg-[var(--surface-page)] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border-200 gap-6 md:gap-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-[var(--border-default)]">
             
-            <div className="text-center md:px-6 py-2">
-              <div className="text-3xl font-bold font-sans tracking-tight text-text-primary">94%</div>
-              <div className="type-label text-text-tertiary mt-1">Detection Accuracy</div>
+            <div className="text-center py-3 md:py-0 md:px-6">
+              <div className="text-[32px] sm:text-[36px] font-bold font-sans tracking-tight text-[var(--text-primary)] tabular-numbers">
+                94%
+              </div>
+              <div className="text-[12px] text-[var(--text-secondary)] mt-1 font-medium">
+                Fraud caught before capture
+              </div>
             </div>
 
-            <div className="text-center md:px-6 py-2">
-              <div className="text-3xl font-bold font-sans tracking-tight text-text-primary">43ms</div>
-              <div className="type-label text-text-tertiary mt-1">Evaluation Latency</div>
+            <div className="text-center py-3 md:py-0 md:px-6">
+              <div className="text-[32px] sm:text-[36px] font-bold font-sans tracking-tight text-[var(--text-primary)] tabular-numbers">
+                43ms
+              </div>
+              <div className="text-[12px] text-[var(--text-secondary)] mt-1 font-medium">
+                Average evaluation latency
+              </div>
             </div>
 
-            <div className="text-center md:px-6 py-2">
-              <div className="text-3xl font-bold font-sans tracking-tight text-text-primary">₹0</div>
-              <div className="type-label text-text-tertiary mt-1">To Start Free</div>
+            <div className="text-center py-3 md:py-0 md:px-6">
+              <div className="text-[32px] sm:text-[36px] font-bold font-sans tracking-tight text-[var(--text-primary)] tabular-numbers">
+                ₹0
+              </div>
+              <div className="text-[12px] text-[var(--text-secondary)] mt-1 font-medium">
+                Setup fee, pay as you scale
+              </div>
             </div>
 
-            <div className="text-center md:px-6 py-2">
-              <div className="text-3xl font-bold font-sans tracking-tight text-text-primary">250k+</div>
-              <div className="type-label text-text-tertiary mt-1">Transactions Analyzed</div>
+            <div className="text-center py-3 md:py-0 md:px-6">
+              <div className="text-[32px] sm:text-[36px] font-bold font-sans tracking-tight text-[var(--text-primary)] tabular-numbers">
+                250K+
+              </div>
+              <div className="text-[12px] text-[var(--text-secondary)] mt-1 font-medium">
+                Transactions evaluated daily
+              </div>
             </div>
 
           </div>
@@ -468,172 +510,204 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       </section>
 
       {/* =========================================================================
-          4. PROBLEM SECTION (2-Column Data Visualization)
+          6.4 — PROBLEM STATEMENT SECTION (01 / 02 / 03 Pain Points)
           ========================================================================= */}
-      <section id="problem" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-4 mb-16">
-          <span className="type-label text-cyan-500">The Problem</span>
-          <h2 className="type-h1 text-text-primary">
-            Why Indian merchants lose winnable chargebacks.
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section id="problem" className="py-20 sm:py-28 border-b border-[var(--border-default)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          {/* Left Framing */}
-          <div className="lg:col-span-5 space-y-6">
-            <p className="type-body-lg text-text-secondary">
-              Indian merchants lose over <strong className="text-text-primary">₹12,000 per dispute</strong> they could have easily won — simply by not knowing what evidence banks require, or missing the strict 10-day representment deadline.
-            </p>
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-block mt-2 flex-shrink-0" />
-                <p className="text-sm text-text-tertiary">
-                  Manual screenshot collection takes an average of 4.5 hours per incident.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-block mt-2 flex-shrink-0" />
-                <p className="text-sm text-text-tertiary">
-                  68% of merchant dispute responses are rejected due to improper PDF formatting.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-block mt-2 flex-shrink-0" />
-                <p className="text-sm text-text-tertiary">
-                  Card networks penalize merchants with dispute ratios above 0.9% with higher gateway fees.
-                </p>
-              </div>
+          <div className="space-y-3">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[var(--brand-600)]">
+              THE PROBLEM
             </div>
-          </div>
-
-          {/* Right Data Visualization: Failure Path Timeline */}
-          <div className="lg:col-span-7 bg-surface-300 border border-border-200 rounded-lg p-6 sm:p-8">
-            <div className="space-y-6 relative before:absolute before:left-[15px] before:top-3 before:bottom-3 before:w-[2px] before:bg-border-200">
-              
-              <div className="relative flex items-center gap-4 pl-8">
-                <span className="absolute left-3 w-2 h-2 rounded-full bg-text-tertiary -translate-x-1/2" />
-                <div className="flex-1 flex justify-between items-center text-sm">
-                  <span className="font-semibold text-text-primary">Day 1: Dispute received via gateway webhook</span>
-                  <span className="font-mono text-xs text-text-tertiary">10d left</span>
-                </div>
-              </div>
-
-              <div className="relative flex items-center gap-4 pl-8">
-                <span className="absolute left-3 w-2 h-2 rounded-full bg-text-tertiary -translate-x-1/2" />
-                <div className="flex-1 flex justify-between items-center text-sm">
-                  <span className="text-text-secondary">Day 3: Merchant unaware, buried in email inbox</span>
-                  <span className="font-mono text-xs text-text-tertiary">7d left</span>
-                </div>
-              </div>
-
-              <div className="relative flex items-center gap-4 pl-8">
-                <span className="absolute left-3 w-2 h-2 rounded-full bg-status-review -translate-x-1/2" />
-                <div className="flex-1 flex justify-between items-center text-sm">
-                  <span className="text-status-review font-medium">Day 7: Critical evidence submission deadline approaching</span>
-                  <span className="font-mono text-xs text-status-review">3d left</span>
-                </div>
-              </div>
-
-              {/* Highlighted Deadline Missed Node */}
-              <div className="relative flex items-center gap-4 pl-8 bg-status-block/[0.06] border border-status-block/20 rounded-sm p-3.5 -ml-3">
-                <span className="absolute left-6 w-3 h-3 rounded-full bg-status-block -translate-x-1/2 animate-pulse" />
-                <div className="flex-1 flex justify-between items-center text-sm pl-3">
-                  <span className="font-bold text-status-block">Day 10: DEADLINE MISSED — Gateway auto-forfeits claim</span>
-                  <span className="font-mono text-xs text-status-block font-bold">0d remaining</span>
-                </div>
-              </div>
-
-              <div className="relative flex items-center gap-4 pl-8">
-                <span className="absolute left-3 w-2 h-2 rounded-full bg-status-block -translate-x-1/2" />
-                <div className="flex-1 flex justify-between items-center text-sm">
-                  <span className="text-text-tertiary">Day 14: ₹12,000 deducted + ₹1,500 dispute penalty fee assessed</span>
-                  <span className="font-mono text-xs text-status-block">Lost</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          5. PRODUCT FEATURES (Tabbed System)
-          ========================================================================= */}
-      <section id="features" className="py-24 border-t border-border-200 bg-surface-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="space-y-4 mb-16">
-            <span className="type-label text-cyan-500">The Solution</span>
-            <h2 className="type-h1 text-text-primary">
-              Built for high-volume Indian commerce.
+            <h2 className="text-[28px] sm:text-[36px] font-bold tracking-tight text-[var(--text-primary)]">
+              Chargebacks are eating your margins
             </h2>
+            <p className="text-[15px] text-[var(--text-secondary)] max-w-2xl">
+              High-growth merchants lose critical capital to fraudulent chargebacks, bank penalties, and tedious evidence compilation.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Left Tabs (280px / 4 cols) */}
-            <div className="lg:col-span-4 space-y-1.5">
+            {/* Card 01 */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] space-y-4">
+              <div className="text-[28px] font-mono font-bold text-[var(--text-tertiary)]">01</div>
+              <h3 className="text-[18px] font-semibold text-[var(--text-primary)]">
+                1.8% average revenue lost
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                Direct fraud losses and false chargebacks drain top-line margins before accounting for shipping or packaging costs.
+              </p>
+            </div>
+
+            {/* Card 02 */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] space-y-4">
+              <div className="text-[28px] font-mono font-bold text-[var(--text-tertiary)]">02</div>
+              <h3 className="text-[18px] font-semibold text-[var(--text-primary)]">
+                ₹1,500 fee per dispute from banks
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                Even when you win the dispute, issuing banks charge non-refundable administrative fees that accumulate rapidly.
+              </p>
+            </div>
+
+            {/* Card 03 */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] space-y-4">
+              <div className="text-[28px] font-mono font-bold text-[var(--text-tertiary)]">03</div>
+              <h3 className="text-[18px] font-semibold text-[var(--text-primary)]">
+                2–4 weeks to resolve each claim
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                Manual proof gathering from couriers and databases leads to missed submission deadlines and automated forfeiture.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6.5 — HOW IT WORKS SECTION (01 ── 02 ── 03 Horizontal Flow)
+          ========================================================================= */}
+      <section id="how-it-works" className="py-20 sm:py-28 border-b border-[var(--border-default)] bg-[var(--surface-page)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          
+          <div className="space-y-3">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[var(--brand-600)]">
+              HOW IT WORKS
+            </div>
+            <h2 className="text-[28px] sm:text-[36px] font-bold tracking-tight text-[var(--text-primary)]">
+              Three steps. Under 5 minutes.
+            </h2>
+            <p className="text-[15px] text-[var(--text-secondary)] max-w-2xl">
+              Zero code or complex server provisioning required to begin intercepting threat vectors.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            
+            {/* Connecting line on desktop */}
+            <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-[var(--border-default)] z-0" />
+
+            {/* Step 1 */}
+            <div className="relative z-10 space-y-4">
+              <div className="w-14 h-14 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-default)] flex items-center justify-center font-mono font-bold text-[16px] text-[var(--brand-600)]">
+                01
+              </div>
+              <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                Connect your gateway
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                One-click sync with Stripe, Razorpay, and Cashfree webhooks. No gateway code changes necessary.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative z-10 space-y-4">
+              <div className="w-14 h-14 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-default)] flex items-center justify-center font-mono font-bold text-[16px] text-[var(--brand-600)]">
+                02
+              </div>
+              <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                ML evaluates in real time
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                In 43ms, our dual-model ensemble evaluates 120+ signals against network-wide fraud telemetry.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative z-10 space-y-4">
+              <div className="w-14 h-14 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-default)] flex items-center justify-center font-mono font-bold text-[16px] text-[var(--brand-600)]">
+                03
+              </div>
+              <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                Automate actions
+              </h3>
+              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                Automatically approve genuine shoppers, challenge suspicious checkouts with 3DS, and block malicious cards.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6.6 — PRODUCT FEATURES (4 Vertical Tabs + Interactive Preview)
+          ========================================================================= */}
+      <section id="features" className="py-20 sm:py-28 border-b border-[var(--border-default)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="space-y-3">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[var(--brand-600)]">
+              CAPABILITIES
+            </div>
+            <h2 className="text-[28px] sm:text-[36px] font-bold tracking-tight text-[var(--text-primary)]">
+              Built for high-volume merchants
+            </h2>
+            <p className="text-[15px] text-[var(--text-secondary)] max-w-2xl">
+              Deep protection against card testing bots, friendly fraud, and payment processor disputes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Vertical Tabs (4 cols) */}
+            <div className="lg:col-span-4 space-y-2">
               {featureTabs.map((tab, idx) => {
                 const isActive = activeTab === idx;
                 return (
-                  <button
+                  <div
                     key={tab.id}
                     onClick={() => setActiveTab(idx)}
-                    className={`w-full text-left p-4 rounded-sm transition-all duration-fast flex items-center justify-between ${
+                    className={`p-4 rounded-[var(--radius-md)] border cursor-pointer transition-all select-none ${
                       isActive
-                        ? 'bg-surface-400 text-text-primary border-l-2 border-cyan-500 shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-300/60'
+                        ? 'bg-[var(--surface-page)] border-[var(--border-default)] border-l-4 border-l-[var(--brand-500)] shadow-xs'
+                        : 'bg-transparent border-transparent hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)]'
                     }`}
                   >
-                    <span className="font-semibold text-sm">{tab.title}</span>
-                    <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'text-cyan-400 translate-x-0.5' : 'text-text-tertiary'}`} />
-                  </button>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[14px] font-semibold ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                        {tab.title}
+                      </span>
+                      <ChevronRight size={16} className={`transition-transform ${isActive ? 'text-[var(--brand-500)] translate-x-0.5' : 'text-[var(--text-tertiary)]'}`} />
+                    </div>
+                  </div>
                 );
               })}
             </div>
 
-            {/* Right Active Tab Content Panel */}
-            <div className="lg:col-span-8 bg-surface-300 border border-border-200 rounded-lg p-6 sm:p-8 min-h-[440px] flex flex-col justify-between">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={featureTabs[activeTab].id}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="type-h2 text-text-primary mb-2">
-                      {featureTabs[activeTab].headline}
-                    </h3>
-                    <p className="type-body text-text-secondary max-w-2xl">
-                      {featureTabs[activeTab].description}
-                    </p>
-                  </div>
+            {/* Right Interactive Preview Panel (8 cols) */}
+            <div className="lg:col-span-8 p-6 sm:p-8 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] space-y-6">
+              <div>
+                <h3 className="text-[20px] font-bold text-[var(--text-primary)] tracking-tight">
+                  {featureTabs[activeTab].headline}
+                </h3>
+                <p className="text-[14px] text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+                  {featureTabs[activeTab].description}
+                </p>
+              </div>
 
-                  <div className="space-y-2.5">
-                    {featureTabs[activeTab].capabilities.map((cap, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-sm text-text-secondary">
-                        <Check className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                        <span>{cap}</span>
-                      </div>
-                    ))}
+              <div className="space-y-2.5">
+                {featureTabs[activeTab].points.map((pt, i) => (
+                  <div key={i} className="flex items-start gap-2.5 text-[13px] text-[var(--text-secondary)]">
+                    <Check size={15} className="text-[var(--brand-500)] mt-0.5 flex-shrink-0" />
+                    <span>{pt}</span>
                   </div>
+                ))}
+              </div>
 
-                  {/* Terminal Display Inset Card */}
-                  <div className="bg-surface-100 border border-border-100 rounded-sm p-4 font-mono text-xs text-text-secondary overflow-x-auto">
-                    <pre className="leading-relaxed"><code>{featureTabs[activeTab].terminalCode}</code></pre>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+              {/* Code Snippet Box */}
+              <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface-secondary)] border border-[var(--border-subtle)] font-mono text-[12px] text-[var(--text-primary)] overflow-x-auto">
+                <pre className="leading-relaxed"><code>{featureTabs[activeTab].code}</code></pre>
+              </div>
 
-              <div className="pt-6 border-t border-border-100 flex items-center justify-between">
-                <Link to="/docs" className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors">
+              <div className="pt-2 flex items-center justify-between border-t border-[var(--border-subtle)]">
+                <Link to="/docs" className="text-[12px] font-semibold text-[var(--brand-600)] hover:underline flex items-center gap-1">
                   <span>Explore technical documentation</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight size={13} />
                 </Link>
                 <Button variant="primary" size="sm" asChild>
                   <Link to="/register">Start free</Link>
@@ -647,194 +721,261 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       </section>
 
       {/* =========================================================================
-          6. HOW IT WORKS (3-Step Horizontal Flow)
+          6.7 — API / DEVELOPER SECTION (POST analyze + 43ms Latency Bar)
           ========================================================================= */}
-      <section id="how-it-works" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-4 mb-16">
-          <span className="type-label text-cyan-500">Implementation</span>
-          <h2 className="type-h1 text-text-primary">
-            From setup to automated defense in 2 minutes.
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+      <section className="py-20 sm:py-28 border-b border-[var(--border-default)] bg-[var(--surface-page)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          {/* Step 1 */}
-          <div className="bg-surface-300 border border-border-200 rounded-lg p-6 space-y-4 relative">
-            <div className="text-4xl font-extrabold font-sans text-text-tertiary">01</div>
-            <h3 className="type-h3 text-text-primary">Connect your gateway in 2 minutes</h3>
-            <p className="type-sm text-text-secondary leading-relaxed">
-              Paste your Razorpay or Cashfree API key. Disputes and transaction feeds sync automatically with zero manual configuration.
+          <div className="space-y-3">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[var(--brand-600)]">
+              DEVELOPER-FIRST
+            </div>
+            <h2 className="text-[28px] sm:text-[36px] font-bold tracking-tight text-[var(--text-primary)]">
+              Integrate with one POST request
+            </h2>
+            <p className="text-[15px] text-[var(--text-secondary)] max-w-2xl">
+              Send your transaction payload at checkout. Receive a deterministic risk score, recommended decision, and forensic signals in under 45ms.
             </p>
           </div>
 
-          {/* Step 2 */}
-          <div className="bg-surface-300 border border-border-200 rounded-lg p-6 space-y-4 relative">
-            <div className="text-4xl font-extrabold font-sans text-text-tertiary">02</div>
-            <h3 className="type-h3 text-text-primary">Evidence gathered automatically</h3>
-            <p className="type-sm text-text-secondary leading-relaxed">
-              Order items, Delhivery/BlueDart tracking receipts, and customer device telemetry are pulled instantly from your store logs.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Specs (5 cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Latency Metric Card */}
+              <div className="p-5 rounded-[var(--radius-md)] bg-[var(--surface-secondary)] border border-[var(--border-default)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                    Inference Latency
+                  </span>
+                  <span className="font-mono text-[13px] font-bold text-[var(--risk-low-text)]">
+                    41ms actual
+                  </span>
+                </div>
 
-          {/* Step 3 */}
-          <div className="bg-surface-300 border border-border-200 rounded-lg p-6 space-y-4 relative">
-            <div className="text-4xl font-extrabold font-sans text-text-tertiary">03</div>
-            <h3 className="type-h3 text-text-primary">Download and win the dispute</h3>
-            <p className="type-sm text-text-secondary leading-relaxed">
-              Court-grade PDF response formatted exactly how payment processors expect. Generated and submitted in under 5 seconds.
-            </p>
+                {/* Latency Bar */}
+                <div className="w-full bg-[var(--surface-subtle)] h-2 rounded-[var(--radius-pill)] overflow-hidden">
+                  <div className="bg-[var(--risk-low-dot)] h-full rounded-[var(--radius-pill)]" style={{ width: '41%' }} />
+                </div>
+
+                <div className="flex justify-between text-[11px] font-mono text-[var(--text-tertiary)]">
+                  <span>0ms</span>
+                  <span>Target &lt; 50ms</span>
+                  <span>100ms max</span>
+                </div>
+              </div>
+
+              {/* Language Selector */}
+              <div className="flex items-center gap-1 bg-[var(--surface-secondary)] border border-[var(--border-default)] p-1 rounded-[var(--radius-sm)]">
+                {(['curl', 'node', 'python', 'go'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => setActiveLang(lang)}
+                    className={`flex-1 py-1.5 text-[12px] font-mono font-medium rounded-[var(--radius-xs)] uppercase transition-colors ${
+                      activeLang === lang
+                        ? 'bg-[var(--surface-page)] text-[var(--text-primary)] font-bold shadow-xs'
+                        : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-2 text-[13px] text-[var(--text-secondary)]">
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>Standard TLS 1.3 / AES-256 payload encryption</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>Webhook event signatures with replay attack protection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={14} className="text-[var(--brand-500)]" />
+                  <span>Comprehensive API reference with interactive playground</span>
+                </div>
+              </div>
+
+              <Button variant="secondary" size="md" asChild>
+                <Link to="/docs" className="gap-2">
+                  <span>Read full API documentation</span>
+                  <ExternalLink size={14} />
+                </Link>
+              </Button>
+
+            </div>
+
+            {/* Right Dark Code Editor (7 cols) */}
+            <div className="lg:col-span-7 rounded-[var(--radius-lg)] bg-[#090D14] border border-slate-800 p-5 font-mono text-[12px] text-slate-200 space-y-4 shadow-md">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                  <span className="text-[11px] text-slate-400 ml-2 font-mono">
+                    POST /v1/transactions/analyze
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition-colors"
+                  title="Copy snippet"
+                >
+                  {hasCopiedCode ? <CheckCheck size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                  <span>{hasCopiedCode ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto max-h-[380px]">
+                <pre className="leading-relaxed"><code>{codeSnippets[activeLang]}</code></pre>
+              </div>
+            </div>
+
           </div>
 
         </div>
       </section>
 
       {/* =========================================================================
-          7. PRICING (4 Tiers with Elevated Growth Card & 20% Annual Toggle)
+          6.8 — PRICING SECTION (4 Tiers, Growth Elevated, Annual Toggle)
           ========================================================================= */}
-      <section id="pricing" className="py-24 border-t border-border-200 bg-surface-200">
+      <section id="pricing" className="py-20 sm:py-28 border-b border-[var(--border-default)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-4">
-            <span className="type-label text-cyan-500">Transparent Capacity</span>
-            <h2 className="type-h1 text-text-primary">
-              Pay for what you evaluate. Scale seamlessly.
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[var(--brand-600)]">
+              PRICING
+            </div>
+            <h2 className="text-[28px] sm:text-[36px] font-bold tracking-tight text-[var(--text-primary)]">
+              Simple, transparent pricing
             </h2>
-            <p className="type-sm text-text-secondary">
-              Every plan includes real-time webhook ingestion, ML fraud scoring, and automated dispute defense dossiers.
+            <p className="text-[15px] text-[var(--text-secondary)]">
+              Start free. Scale smoothly as your order volume expands.
             </p>
 
-            {/* Annual Billing Switcher */}
-            <div className="inline-flex items-center gap-3 bg-surface-300 border border-border-200 p-1 rounded-sm mt-4">
+            {/* Annual / Monthly Switcher */}
+            <div className="inline-flex items-center gap-1 p-1 bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-[var(--radius-sm)] mt-2">
               <button
                 onClick={() => setIsAnnual(false)}
-                className={`px-3 py-1 text-xs font-semibold rounded-xs transition-colors ${
-                  !isAnnual ? 'bg-cyan-500 text-surface-000' : 'text-text-secondary hover:text-text-primary'
+                className={`px-3 py-1 text-[12px] font-semibold rounded-[var(--radius-xs)] transition-colors ${
+                  !isAnnual ? 'bg-[var(--brand-500)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setIsAnnual(true)}
-                className={`px-3 py-1 text-xs font-semibold rounded-xs transition-colors ${
-                  isAnnual ? 'bg-cyan-500 text-surface-000' : 'text-text-secondary hover:text-text-primary'
+                className={`px-3 py-1 text-[12px] font-semibold rounded-[var(--radius-xs)] transition-colors ${
+                  isAnnual ? 'bg-[var(--brand-500)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                Annual (save 20%)
+                Annual (Save 20%)
               </button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             
-            {/* Tier 1: Free */}
-            <Card variant="data" padding="md" className="flex flex-col justify-between space-y-6">
+            {/* Tier 1: Developer */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="type-h3 text-text-primary">Free Sandbox</h3>
-                  <p className="type-sm text-text-tertiary mt-1">For testing integrations</p>
+                  <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Developer</h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For testing & initial launch</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold font-sans text-text-primary">₹0</span>
-                  <span className="text-xs text-text-tertiary">/month</span>
+                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">₹0</span>
+                  <span className="text-[12px] text-[var(--text-tertiary)]">forever</span>
                 </div>
-                <div className="border-t border-border-100 pt-4 space-y-2.5 text-xs text-text-secondary">
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 1,000 evaluations / mo</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 3 dispute templates / mo</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Core fraud risk score</div>
-                  <div className="flex items-center gap-2 text-text-tertiary"><span className="w-3.5 text-center">—</span> Automated Razorpay sync</div>
-                  <div className="flex items-center gap-2 text-text-tertiary"><span className="w-3.5 text-center">—</span> Courier proof extraction</div>
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 1,000 txns/mo</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Core ML risk scoring</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> 3 dispute dossiers/mo</div>
+                  <div className="flex items-center gap-2 text-[var(--text-tertiary)]"><span className="w-3 text-center">—</span> Custom rules engine</div>
                 </div>
               </div>
-              <Button variant="secondary" size="md" asChild className="w-full justify-center">
-                <Link to="/register">Start free</Link>
+              <Button variant="secondary" size="sm" asChild className="w-full justify-center">
+                <Link to="/register">Start Free</Link>
               </Button>
-            </Card>
+            </div>
 
-            {/* Tier 2: Builder */}
-            <Card variant="data" padding="md" className="flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
+            {/* Tier 2: Growth (Elevated 1.5px brand border, MOST POPULAR) */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border-[1.5px] border-[var(--brand-500)] flex flex-col justify-between space-y-6 relative shadow-sm">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[var(--brand-500)] text-white text-[10px] font-bold uppercase tracking-wider">
+                MOST POPULAR
+              </div>
+              <div className="space-y-4 pt-1">
                 <div>
-                  <h3 className="type-h3 text-text-primary">Builder</h3>
-                  <p className="type-sm text-text-tertiary mt-1">For growing D2C brands</p>
+                  <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Growth</h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For growing D2C brands</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold font-sans text-text-primary">
-                    {isAnnual ? '₹799' : '₹999'}
+                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
+                    {isAnnual ? '₹3,999' : '₹4,999'}
                   </span>
-                  <span className="text-xs text-text-tertiary">/month</span>
+                  <span className="text-[12px] text-[var(--text-tertiary)]">/month</span>
                 </div>
-                <div className="border-t border-border-100 pt-4 space-y-2.5 text-xs text-text-secondary">
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 10,000 evaluations / mo</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 10 dispute dossiers / mo</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Automated Razorpay sync</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Real-time webhook triage</div>
-                  <div className="flex items-center gap-2 text-text-tertiary"><span className="w-3.5 text-center">—</span> Courier tracking validation</div>
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 50,000 txns/mo</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> 50 dispute dossiers/mo</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Delhivery & BlueDart tracking sync</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Custom rule builder</div>
                 </div>
               </div>
-              <Button variant="secondary" size="md" asChild className="w-full justify-center">
-                <Link to="/login">Start Builder</Link>
+              <Button variant="primary" size="sm" asChild className="w-full justify-center">
+                <Link to="/register">Start Growth</Link>
               </Button>
-            </Card>
+            </div>
 
-            {/* Tier 3: Growth (Most Popular Elevated) */}
-            <div className="relative">
-              <div className="text-center mb-2">
-                <span className="type-label text-cyan-400 text-[10px] bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-sm">
-                  Most popular
-                </span>
-              </div>
-              <Card variant="data" padding="md" className="flex flex-col justify-between space-y-6 border-cyan-500/40 shadow-glow-cyan h-[calc(100%-28px)]">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="type-h3 text-text-primary">Growth</h3>
-                    <p className="type-sm text-text-tertiary mt-1">For scaling commerce teams</p>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold font-sans text-cyan-400">
-                      {isAnnual ? '₹2,399' : '₹2,999'}
-                    </span>
-                    <span className="text-xs text-text-tertiary">/month</span>
-                  </div>
-                  <div className="border-t border-border-100 pt-4 space-y-2.5 text-xs text-text-secondary">
-                    <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 50,000 evaluations / mo</div>
-                    <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> 50 dispute dossiers / mo</div>
-                    <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Shopify order telemetry</div>
-                    <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Courier tracking validation</div>
-                    <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Custom rule editor</div>
-                  </div>
+            {/* Tier 3: Scale */}
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Scale</h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For established volume merchants</p>
                 </div>
-                <Button variant="primary" size="md" asChild className="w-full justify-center">
-                  <Link to="/login">Start Growth</Link>
-                </Button>
-              </Card>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
+                    {isAnnual ? '₹11,999' : '₹14,999'}
+                  </span>
+                  <span className="text-[12px] text-[var(--text-tertiary)]">/month</span>
+                </div>
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 250,000 txns/mo</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Unlimited dispute dossiers</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Priority webhook delivery</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Team role-based access</div>
+                </div>
+              </div>
+              <Button variant="secondary" size="sm" asChild className="w-full justify-center">
+                <Link to="/register">Start Scale</Link>
+              </Button>
             </div>
 
             {/* Tier 4: Enterprise */}
-            <Card variant="data" padding="md" className="flex flex-col justify-between space-y-6">
+            <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--surface-page)] border border-[var(--border-default)] flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="type-h3 text-text-primary">Enterprise</h3>
-                  <p className="type-sm text-text-tertiary mt-1">For fintechs & aggregators</p>
+                  <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Enterprise</h3>
+                  <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For payment aggregators & fintechs</p>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold font-sans text-text-primary">
-                    {isAnnual ? '₹6,399' : '₹7,999'}
-                  </span>
-                  <span className="text-xs text-text-tertiary">/month</span>
+                  <span className="text-[32px] font-bold text-[var(--text-primary)]">Custom</span>
                 </div>
-                <div className="border-t border-border-100 pt-4 space-y-2.5 text-xs text-text-secondary">
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Unlimited evaluations</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Unlimited dispute dockets</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Dedicated VPC cluster</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Priority 99.98% SLA</div>
-                  <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-cyan-400" /> Bank representment team</div>
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Unlimited transactions</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> 99.99% uptime SLA</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Dedicated VPC deployment</div>
+                  <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> 24/7 fraud ops phone hotline</div>
                 </div>
               </div>
-              <Button variant="secondary" size="md" onClick={() => setIsEnterpriseModalOpen(true)} className="w-full justify-center">
-                Contact sales
+              <Button variant="secondary" size="sm" asChild className="w-full justify-center">
+                <a href="mailto:support@flowshield.ai">Contact Sales</a>
               </Button>
-            </Card>
+            </div>
 
           </div>
 
@@ -842,76 +983,80 @@ Current System Status: ALL SYSTEMS OPERATIONAL`
       </section>
 
       {/* =========================================================================
-          8. FOOTER (3 Columns + Information Dense)
+          6.9 — DENSE FOOTER (3 Columns + Information Dense + System Status)
           ========================================================================= */}
-      <footer className="border-t border-border-200 bg-surface-100 py-16 text-text-secondary text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-12">
-          
-          {/* Col 1: Wordmark & Core Identity */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-1">
-              <span className="font-semibold text-base tracking-tight text-text-primary">Flowshield</span>
-              <span className="text-cyan-500 font-bold text-base">/</span>
-              <span className="font-semibold text-base tracking-tight text-text-primary">AI</span>
+      <footer className="bg-[var(--surface-page)] border-t border-[var(--border-default)] py-12 text-[12px] text-[var(--text-secondary)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            
+            {/* Col 1: Wordmark & Purpose */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Logo size={24} withContainer={false} />
+                <span className="font-semibold text-[15px] text-[var(--text-primary)]">
+                  FlowShield
+                </span>
+              </div>
+              <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed max-w-xs">
+                Real-time fraud prevention, automated chargeback defense, and dynamic 3DS intelligence engineered for high-volume merchants.
+              </p>
             </div>
-            <p className="text-text-tertiary leading-relaxed max-w-sm">
-              Real-time payment fraud prevention, dynamic 3DS exemption, and automated dispute defense engineered for Indian fintechs and merchants.
-            </p>
-          </div>
 
-          {/* Col 2: Platform Links */}
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2.5">
-              <span className="type-label text-text-primary block">Platform</span>
-              <ul className="space-y-1.5 text-text-tertiary">
-                <li><a href="#features" className="hover:text-text-primary transition-colors">Dispute Defense</a></li>
-                <li><a href="#features" className="hover:text-text-primary transition-colors">Fraud Detection API</a></li>
-                <li><a href="#features" className="hover:text-text-primary transition-colors">Rule Builder</a></li>
-                <li><a href="#pricing" className="hover:text-text-primary transition-colors">Capacity Pricing</a></li>
+            {/* Col 2: Navigation Links */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+                  Product
+                </div>
+                <ul className="space-y-1.5 text-[var(--text-secondary)]">
+                  <li><a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Risk Scoring</a></li>
+                  <li><a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Dispute Defense</a></li>
+                  <li><a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Rules Engine</a></li>
+                  <li><Link to="/simulator" className="hover:text-[var(--text-primary)] transition-colors">Attack Simulator</Link></li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+                  Developers
+                </div>
+                <ul className="space-y-1.5 text-[var(--text-secondary)]">
+                  <li><Link to="/docs" className="hover:text-[var(--text-primary)] transition-colors">API Reference</Link></li>
+                  <li><Link to="/docs" className="hover:text-[var(--text-primary)] transition-colors">Webhooks</Link></li>
+                  <li><Link to="/docs" className="hover:text-[var(--text-primary)] transition-colors">SDK Libraries</Link></li>
+                  <li><Link to="/developers" className="hover:text-[var(--text-primary)] transition-colors">Dev Portal</Link></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Col 3: Compliance & Legal */}
+            <div className="space-y-2">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+                Compliance & Legal
+              </div>
+              <ul className="space-y-1.5 text-[var(--text-secondary)]">
+                <li><Link to="/privacy" className="hover:text-[var(--text-primary)] transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-[var(--text-primary)] transition-colors">Terms of Service</Link></li>
+                <li><Link to="/security" className="hover:text-[var(--text-primary)] transition-colors">Security Policy</Link></li>
+                <li><Link to="/dpa" className="hover:text-[var(--text-primary)] transition-colors">Data Processing Agreement</Link></li>
               </ul>
             </div>
-            <div className="space-y-2.5">
-              <span className="type-label text-text-primary block">Developers</span>
-              <ul className="space-y-1.5 text-text-tertiary">
-                <li><Link to="/docs" className="hover:text-text-primary transition-colors">API Reference</Link></li>
-                <li><Link to="/docs" className="hover:text-text-primary transition-colors">Webhook Specs</Link></li>
-                <li><Link to="/docs" className="hover:text-text-primary transition-colors">Python SDK</Link></li>
-                <li><Link to="/docs" className="hover:text-text-primary transition-colors">Node.js Library</Link></li>
-              </ul>
-            </div>
+
           </div>
 
-          {/* Col 3: Compliance & Contact */}
-          <div className="space-y-3">
-            <span className="type-label text-text-primary block">Compliance & Legal</span>
-            <div className="space-y-1.5 text-text-tertiary">
-              <div>DPDP Act 2023 Compliant</div>
-              <div>PCI-DSS Level 1 Compliant Architecture</div>
-              <div>RBI / NPCI Gateway Integration Standards</div>
+          <div className="pt-8 mt-8 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[var(--text-tertiary)] gap-4">
+            <div>
+              © {new Date().getFullYear()} FlowShield AI Inc. All rights reserved.
             </div>
-            <div className="pt-2 flex items-center space-x-4 text-text-tertiary">
-              <Link to="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
-              <span>·</span>
-              <Link to="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
-              <span>·</span>
-              <Link to="/security" className="hover:text-text-primary transition-colors">Security</Link>
+
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--risk-low-dot)]" />
+              <span className="font-mono text-[var(--text-secondary)]">All systems operational</span>
             </div>
-          </div>
-
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-border-100 flex flex-col sm:flex-row items-center justify-between text-text-tertiary text-xs gap-4">
-          <div>© {new Date().getFullYear()} Flowshield AI Inc. All rights reserved.</div>
-          <div className="text-text-tertiary">
-            RBI FRM & DPDP Compliant
           </div>
         </div>
       </footer>
 
-      <EnterpriseModal 
-        isOpen={isEnterpriseModalOpen} 
-        onClose={() => setIsEnterpriseModalOpen(false)} 
-      />
     </div>
   );
 }

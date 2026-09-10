@@ -1,33 +1,28 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center font-sans font-semibold transition-all duration-fast select-none disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-100',
+  'inline-flex items-center justify-center font-medium transition-all duration-fast select-none cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-[var(--brand-500)] focus-visible:outline-offset-2 active:scale-[0.98]',
   {
     variants: {
       variant: {
         primary:
-          'bg-cyan-500 text-surface-000 hover:bg-cyan-400 active:bg-cyan-600 hover:-translate-y-[1px] active:translate-y-0 shadow-sm',
+          'bg-[var(--brand-500)] text-white border-0 hover:bg-[var(--brand-600)] active:bg-[var(--brand-700)] shadow-none',
         secondary:
-          'bg-transparent border border-border-300 text-text-primary hover:bg-white/[0.04] hover:border-border-400 active:bg-white/[0.08]',
+          'bg-[var(--surface-page)] border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] hover:border-[var(--border-strong)] active:bg-[var(--surface-subtle)]',
         ghost:
-          'bg-transparent border-0 text-text-secondary hover:text-text-primary active:text-text-primary',
-        destructive:
-          'bg-status-block/15 border border-status-block/30 text-status-block hover:bg-status-block/25 active:bg-status-block/35',
-        outline:
-          'bg-transparent border border-border-300 text-text-primary hover:bg-white/[0.04] hover:border-border-400 active:bg-white/[0.08]',
-        default:
-          'bg-cyan-500 text-surface-000 hover:bg-cyan-400 active:bg-cyan-600 hover:-translate-y-[1px] active:translate-y-0 shadow-sm',
+          'bg-transparent border-0 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] active:bg-[var(--surface-inset)]',
+        danger:
+          'bg-[var(--status-error-bg)] border border-[var(--status-error-border)] text-[var(--status-error-text)] hover:opacity-90 active:opacity-100',
+        link:
+          'bg-transparent border-0 text-[var(--text-link)] hover:underline p-0 h-auto font-normal active:scale-100',
       },
       size: {
-        xs: 'h-8 px-3 text-xs rounded-sm gap-1.5',
-        sm: 'h-9 px-3.5 text-xs rounded gap-1.5',
-        md: 'h-10 px-4.5 text-sm rounded gap-2',
-        lg: 'h-12 px-6 text-base rounded-md gap-2.5',
-        icon: 'h-9 w-9 p-0 rounded flex items-center justify-center',
-        default: 'h-10 px-4.5 text-sm rounded gap-2',
+        xs: 'h-[28px] px-[10px] text-[12px] rounded-[var(--radius-sm)] gap-1.5',
+        sm: 'h-[34px] px-[14px] text-[13px] rounded-[var(--radius-sm)] gap-1.5',
+        md: 'h-[38px] px-[16px] text-[14px] rounded-[var(--radius-md)] gap-2',
+        lg: 'h-[44px] px-[20px] text-[15px] rounded-[var(--radius-md)] gap-2',
       },
     },
     defaultVariants: {
@@ -45,21 +40,21 @@ export interface ButtonProps
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, isLoading, asChild, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, isLoading, asChild = false, children, disabled, ...props }, ref) => {
     return (
       <button
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
           buttonVariants({ variant, size }),
-          isLoading && 'opacity-70 pointer-events-none cursor-wait',
+          isLoading && 'pointer-events-none cursor-wait relative',
           className
         )}
         {...props}
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="inline-block w-[14px] h-[14px] border-2 border-current border-t-transparent rounded-full animate-spin flex-shrink-0 mr-1.5" />
             <span>{children}</span>
           </>
         ) : (

@@ -1,15 +1,14 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, helperText, id, ...props }, ref) => {
+  ({ className, type = 'text', label, error, helperText, id, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
@@ -17,7 +16,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-[13px] font-medium text-text-secondary select-none"
+            className="text-[12px] font-medium text-[var(--text-secondary)] select-none"
           >
             {label}
           </label>
@@ -27,21 +26,21 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           ref={ref}
           className={cn(
-            'h-10 w-full rounded bg-surface-200 px-3.5 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-fast focus:outline-none',
-            'border border-border-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15',
-            error && 'border-status-block/60 focus:border-status-block focus:ring-status-block/15',
-            'disabled:cursor-not-allowed disabled:opacity-50',
+            'h-[38px] w-full rounded-[var(--radius-md)] bg-[var(--surface-page)] px-3.5 text-[14px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-colors duration-fast focus:outline-none',
+            'border border-[var(--border-default)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--border-brand)]',
+            error && 'border-[var(--status-error-border)] focus:border-[var(--status-error-text)] focus:ring-2 focus:ring-[var(--status-error-border)]',
+            'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--surface-subtle)]',
             className
           )}
           {...props}
         />
         {error && (
-          <span className="text-xs text-status-block animate-in fade-in duration-fast">
+          <span className="text-[11px] font-medium text-[var(--status-error-text)]">
             {error}
           </span>
         )}
         {!error && helperText && (
-          <span className="text-xs text-text-tertiary">
+          <span className="text-[11px] text-[var(--text-tertiary)]">
             {helperText}
           </span>
         )}

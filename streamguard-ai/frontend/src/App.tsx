@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -38,12 +39,13 @@ import ThankYou from '@/pages/ThankYou';
 function App() {
   useAutoLogout();
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <Toaster position="top-right" richColors closeButton theme="dark" />
-        <CookieConsent />
-        <PageTitleTracker />
-        <Suspense fallback={<LoadingScreen message="Navigating sovereign interface..." />}>
+    <ThemeProvider>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <Toaster position="top-right" richColors closeButton theme="dark" />
+          <CookieConsent />
+          <PageTitleTracker />
+          <Suspense fallback={<LoadingScreen message="Loading telemetry..." />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -85,6 +87,7 @@ function App() {
         </Suspense>
       </ErrorBoundary>
     </BrowserRouter>
+  </ThemeProvider>
   );
 }
 
