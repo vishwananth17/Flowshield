@@ -215,123 +215,125 @@ const INITIAL_ENDPOINTS: IntegrationEndpoint[] = [
 
 const DOSSIER_MOCK_DATA: EvidenceDossierItem[] = [
   {
-    id: 'dos-1',
-    orderId: 'ORD-99412',
-    disputeRef: 'DP-RZP-88412',
-    amount: '₹14,999',
+    id: 'disp_9918skL90',
+    orderId: 'ORD-9918',
+    disputeRef: 'dp_razor_9918',
+    amount: '₹14,500',
     gateway: 'Razorpay',
     customerName: 'Rahul Sharma',
-    customerEmail: 'r.sharma91@gmail.com',
+    customerEmail: 'rahul.sharma@example.com',
     customerIp: '49.37.142.88',
-    reason: 'Customer claims product never delivered',
+    reason: 'Product not received',
     carrier: 'Delhivery',
-    awbNumber: 'DEL-992018427',
-    deliveryDate: 'Yesterday at 14:32 IST',
-    signedBy: 'Rahul S. (Recipient OTP Verified)',
+    awbNumber: 'DEL98871625',
+    deliveryDate: '12-07-2026 at 14:32 IST',
+    signedBy: 'Rahul S. (Signature & OTP Verified)',
     gpsCoords: '19.0760° N, 72.8777° E (Within 6m)',
-    winProbability: 96.4,
+    winProbability: 95,
     status: 'WON',
     timeline: [
-      { event: 'Delhivery courier OTP matched & digital signature captured', timestamp: '14:32:04 IST', badge: 'DELIVERY' },
-      { event: 'Razorpay webhook received: Dispute DP-RZP-88412 opened', timestamp: '16:15:20 IST', badge: 'GATEWAY' },
-      { event: 'Flowshield Auto-POD bound AWB DEL-992018427 to dispute', timestamp: '16:15:22 IST', badge: 'AUTO-POD' },
-      { event: 'Court-ready 4-page evidence dossier sent via HMAC SHA-256 API', timestamp: '16:15:25 IST', badge: 'REPRESENTMENT' },
-      { event: 'Issuing bank ruled dispute in merchant favor (Won)', timestamp: '18:40:11 IST', badge: 'RESOLVED' },
+      { event: 'Order #ORD-9918 placed and Terms of Service accepted', timestamp: '10-07-2026 18:24 IST', badge: 'CHECKOUT' },
+      { event: 'Delhivery courier dispatch registered under AWB DEL98871625', timestamp: '11-07-2026 09:15 IST', badge: 'CARRIER' },
+      { event: 'Doorstep delivery completed with digital signature by Rahul S.', timestamp: '12-07-2026 14:32 IST', badge: 'DELIVERY' },
+      { event: 'Razorpay dispute dp_razor_9918 opened ("Product not received")', timestamp: '14-07-2026 16:15 IST', badge: 'GATEWAY' },
+      { event: 'Flowshield Auto-POD compiled 4-page court-ready dossier & auto-submitted', timestamp: '14-07-2026 16:15 IST', badge: 'REPRESENTMENT' },
+      { event: 'Issuing bank accepted courier POD and closed dispute in merchant favor', timestamp: '16-07-2026 11:40 IST', badge: 'RESOLVED' },
     ]
   },
   {
-    id: 'dos-2',
-    orderId: 'ORD-99285',
-    disputeRef: 'DP-CFR-40192',
-    amount: '₹28,450',
+    id: 'disp_9914abX21',
+    orderId: 'ORD-9914',
+    disputeRef: 'dp_cash_9914',
+    amount: '₹3,200',
     gateway: 'Cashfree',
-    customerName: 'Priya Nambiar',
-    customerEmail: 'priya.n@outlook.com',
+    customerName: 'Pooja Verma',
+    customerEmail: 'pooja.v@example.com',
     customerIp: '122.179.82.14',
-    reason: 'Fraudulent transaction unrecognized by cardholder',
+    reason: 'Fraudulent transaction',
     carrier: 'BlueDart',
     awbNumber: 'BLU-440182741',
-    deliveryDate: '2 days ago at 11:18 IST',
-    signedBy: 'Priya Nambiar (Digital Stylus Sign)',
+    deliveryDate: '14-07-2026 at 11:18 IST',
+    signedBy: 'Pooja Verma (Digital Stylus Sign)',
     gpsCoords: '12.9716° N, 77.5946° E (Drop Verified)',
-    winProbability: 94.8,
+    winProbability: 94,
     status: 'SUBMITTED',
     timeline: [
-      { event: 'BlueDart doorstep dispatch completed with digital stylus signature', timestamp: '11:18:40 IST', badge: 'DELIVERY' },
-      { event: 'Cashfree dispute alert: Unauthorized Transaction filed', timestamp: '09:12:10 IST', badge: 'GATEWAY' },
-      { event: 'Extracted 3DS OTP ARN (74920184) & BlueDart POD image slip', timestamp: '09:12:12 IST', badge: 'AUTO-POD' },
-      { event: 'Representment packet transmitted to Cashfree Dispute Ops', timestamp: '09:12:14 IST', badge: 'SUBMITTED' }
+      { event: 'Order #ORD-9914 verified with 3DS OTP ARN (74920184)', timestamp: '13-07-2026 16:02 IST', badge: 'CHECKOUT' },
+      { event: 'BlueDart doorstep delivery completed with digital stylus signature', timestamp: '14-07-2026 11:18 IST', badge: 'DELIVERY' },
+      { event: 'Cashfree dispute dp_cash_9914 opened ("Fraudulent transaction")', timestamp: '16-07-2026 09:12 IST', badge: 'GATEWAY' },
+      { event: 'Auto-POD response package compiled with BlueDart delivery confirmation', timestamp: '16-07-2026 09:12 IST', badge: 'SUBMITTED' }
     ]
   },
   {
-    id: 'dos-3',
-    orderId: 'ORD-98920',
-    disputeRef: 'DP-RZP-77194',
-    amount: '₹8,200',
+    id: 'disp_9902mmP44',
+    orderId: 'ORD-9902',
+    disputeRef: 'dp_razor_9902',
+    amount: '₹28,900',
     gateway: 'Razorpay',
-    customerName: 'Vikramaditya Sengupta',
-    customerEmail: 'v.sengupta@tcs.com',
+    customerName: 'Vikram Mehta',
+    customerEmail: 'vikram.m@example.com',
     customerIp: '103.211.23.6',
-    reason: 'Product defective or damaged in transit',
+    reason: 'Duplicate billing',
     carrier: 'Delhivery',
     awbNumber: 'DEL-883019255',
-    deliveryDate: '3 days ago at 17:05 IST',
-    signedBy: 'Security Desk (V. Sengupta authorized)',
+    deliveryDate: '08-07-2026 at 17:05 IST',
+    signedBy: 'Vikram Mehta',
     gpsCoords: '22.5726° N, 88.3639° E',
-    winProbability: 92.1,
-    status: 'AUTO-COMPILED',
+    winProbability: 95,
+    status: 'SUBMITTED',
     timeline: [
-      { event: 'Delhivery manifest logged building security intake verification', timestamp: '17:05:00 IST', badge: 'DELIVERY' },
-      { event: 'Razorpay dispute notice indexed: Condition Ref #77194', timestamp: '10:04:19 IST', badge: 'GATEWAY' },
-      { event: 'Compiled unboxing confirmation and carrier weight certificate', timestamp: '10:04:21 IST', badge: 'AUTO-POD' }
+      { event: 'Single checkout authorization token validated on Razorpay', timestamp: '07-07-2026 14:10 IST', badge: 'AUTH' },
+      { event: 'Delhivery courier delivered to registered merchant address', timestamp: '08-07-2026 17:05 IST', badge: 'DELIVERY' },
+      { event: 'Customer reported duplicate charge dp_razor_9902', timestamp: '10-07-2026 10:04 IST', badge: 'GATEWAY' },
+      { event: 'Representment docket demonstrated single charge and single fulfillment', timestamp: '10-07-2026 10:04 IST', badge: 'SUBMITTED' }
     ]
   },
   {
-    id: 'dos-4',
-    orderId: 'ORD-98614',
-    disputeRef: 'DP-CFR-38910',
-    amount: '₹42,000',
-    gateway: 'Cashfree',
-    customerName: 'Amitabh Saxena',
-    customerEmail: 'a.saxena@deloitte.com',
-    customerIp: '14.143.12.190',
-    reason: 'Order cancelled prior to warehouse dispatch',
+    id: 'disp_9881zzK12',
+    orderId: 'ORD-9881',
+    disputeRef: 'dp_payu_9881',
+    amount: '₹9,500',
+    gateway: 'Razorpay',
+    customerName: 'Aditi Rao',
+    customerEmail: 'aditi.rao@example.com',
+    customerIp: '27.59.182.90',
+    reason: 'Item defective',
     carrier: 'BlueDart',
     awbNumber: 'BLU-319028475',
-    deliveryDate: 'Sep 06 at 13:45 IST',
-    signedBy: 'Amitabh Saxena (OTP confirmed)',
+    deliveryDate: '02-07-2026 at 13:45 IST',
+    signedBy: 'Aditi Rao',
     gpsCoords: '28.4595° N, 77.0266° E',
-    winProbability: 97.5,
+    winProbability: 97,
     status: 'WON',
     timeline: [
-      { event: 'Order physically delivered with OTP confirmation at Gurugram', timestamp: 'Sep 06, 13:45 IST', badge: 'DELIVERY' },
-      { event: 'Customer initiated chargeback alleging pre-shipment cancellation', timestamp: 'Sep 07, 08:30 IST', badge: 'GATEWAY' },
-      { event: 'Disproved claim: shipping timestamp preceded dispute notice by 48h', timestamp: 'Sep 07, 08:30:03 IST', badge: 'AUTO-POD' },
-      { event: 'Cashfree risk desk resolved in merchant favor (₹42,000 retained)', timestamp: 'Sep 08, 14:00 IST', badge: 'RESOLVED' }
+      { event: 'Order #ORD-9881 fulfilled and delivered with photo confirmation', timestamp: '02-07-2026 13:45 IST', badge: 'DELIVERY' },
+      { event: 'Dispute opened alleging defective item without return initiation', timestamp: '04-07-2026 08:30 IST', badge: 'GATEWAY' },
+      { event: 'Manufacturer inspection certificate & store policy docket submitted', timestamp: '04-07-2026 08:30 IST', badge: 'AUTO-POD' },
+      { event: 'Dispute won! Capital successfully restored to merchant account', timestamp: '06-07-2026 14:00 IST', badge: 'RESOLVED' }
     ]
   },
   {
-    id: 'dos-5',
-    orderId: 'ORD-98401',
-    disputeRef: 'DP-RZP-66291',
-    amount: '₹5,890',
-    gateway: 'Razorpay',
-    customerName: 'Kavita Reddy',
-    customerEmail: 'kavita.r@rediffmail.com',
+    id: 'disp_9862qqW11',
+    orderId: 'ORD-9862',
+    disputeRef: 'dp_cash_9862',
+    amount: '₹45,000',
+    gateway: 'Cashfree',
+    customerName: 'Suresh Raina',
+    customerEmail: 'suresh.raina@example.com',
     customerIp: '49.206.18.91',
-    reason: 'Duplicate charge reported on card account',
+    reason: 'Product not received',
     carrier: 'Delhivery',
     awbNumber: 'DEL-771920831',
-    deliveryDate: 'Sep 04 at 16:20 IST',
-    signedBy: 'K. Reddy',
+    deliveryDate: '28-06-2026 at 16:20 IST',
+    signedBy: 'Suresh Raina',
     gpsCoords: '17.3850° N, 78.4867° E',
-    winProbability: 95.0,
+    winProbability: 94,
     status: 'WON',
     timeline: [
-      { event: 'Carrier delivery successfully executed in Hyderabad', timestamp: 'Sep 04, 16:20 IST', badge: 'DELIVERY' },
-      { event: 'Razorpay alert: Duplicate Transaction DP-RZP-66291', timestamp: 'Sep 05, 11:15 IST', badge: 'GATEWAY' },
-      { event: 'Demonstrated single authorization token and single fulfillment cycle', timestamp: 'Sep 05, 11:15:02 IST', badge: 'AUTO-POD' },
-      { event: 'Acquirer verified single charge, dispute closed favorably', timestamp: 'Sep 06, 19:10 IST', badge: 'RESOLVED' }
+      { event: 'Delhivery delivery executed and signed with OTP validation', timestamp: '28-06-2026 16:20 IST', badge: 'DELIVERY' },
+      { event: 'Cashfree chargeback dp_cash_9862 filed by issuing bank', timestamp: '30-06-2026 11:15 IST', badge: 'GATEWAY' },
+      { event: 'Flowshield auto-represented with carrier proof & GPS drop coordinates', timestamp: '30-06-2026 11:15 IST', badge: 'AUTO-POD' },
+      { event: 'Bank verified delivery manifest and reversed chargeback', timestamp: '02-07-2026 19:10 IST', badge: 'RESOLVED' }
     ]
   }
 ];
@@ -1241,21 +1243,21 @@ export default function Integrations() {
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Autonomous Representment Pipeline</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">Autonomous Chargeback Representment</h3>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                    94.2% WIN PROBABILITY
+                    94.2% HISTORICAL WIN RATE
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                  When a customer files a chargeback, Flowshield AI extracts signed courier manifests and GPS tags from Delhivery & BlueDart to compile court-ready defense dossiers submitted directly to Razorpay & Cashfree APIs.
+                  Automatically pull courier Proof-of-Delivery, order telemetry, and policy agreements to generate court-ready 4-page representment dossiers submitted directly to Razorpay & Cashfree APIs.
                 </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3 shrink-0">
               <div className="text-right">
-                <span className="text-[10px] font-mono text-slate-400 block uppercase">Auto-Resolved</span>
-                <span className="text-base font-bold text-white font-mono">₹142,800</span>
+                <span className="text-[10px] font-mono text-slate-400 block uppercase">Protected Capital</span>
+                <span className="text-base font-bold text-white font-mono">₹38,400</span>
               </div>
               <div className="h-8 w-px bg-slate-800"></div>
               <div className="text-right">
@@ -1270,12 +1272,12 @@ export default function Integrations() {
             <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span>Dispute Representment Packets</span>
+                  <span>Dispute Defense Packets</span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
                     {DOSSIER_MOCK_DATA.length} Active Dossiers
                   </span>
                 </h3>
-                <span className="text-[11px] text-slate-400">Click "Inspect Dossier" to preview court-ready proofs, signed receipts, and download PDF packets</span>
+                <span className="text-[11px] text-slate-400">Click "Inspect Defense Dossier" to preview court-ready proofs, signed receipts, and download PDF packets</span>
               </div>
               <span className="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -1358,7 +1360,7 @@ export default function Integrations() {
                         className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 shadow-sm transition-all"
                       >
                         <FileText className="w-3 h-3 mr-1" />
-                        <span>Inspect Dossier</span>
+                        <span>Inspect Defense Dossier</span>
                       </Button>
                     </TableCell>
 
