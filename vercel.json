@@ -1,7 +1,6 @@
 {
-  "buildCommand": "cd streamguard-ai/frontend && npm install && npm run build",
-  "outputDirectory": "streamguard-ai/frontend/dist",
-  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/v1/:match*",
