@@ -393,17 +393,17 @@ func main() {
 
             {/* Right Column (42% / 5 cols): Dark Frame Live Feed Preview */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="w-full max-w-[460px] bg-[var(--surface-page)] border border-[var(--border-default)] rounded-[var(--radius-lg)] p-4 shadow-md relative overflow-hidden">
+              <div className="w-full max-w-[460px] bg-[#0A0E17] border border-slate-800 rounded-[var(--radius-xl)] p-5 shadow-2xl relative overflow-hidden text-slate-200">
                 
                 {/* Frame Header */}
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-800/80">
                   <div className="flex items-center gap-2.5">
                     <LiveIndicator />
-                    <span className="text-[12px] font-semibold text-[var(--text-primary)]">
+                    <span className="text-[12px] font-semibold text-slate-200 tracking-tight">
                       Real-time Feed
                     </span>
                   </div>
-                  <span className="font-mono text-[11px] text-[var(--text-tertiary)]">
+                  <span className="font-mono text-[11px] text-slate-400">
                     43ms median latency
                   </span>
                 </div>
@@ -413,19 +413,19 @@ func main() {
                   {txFeed.map((tx) => (
                     <div
                       key={tx.id}
-                      className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-secondary)] border border-[var(--border-subtle)] space-y-1.5 transition-colors"
+                      className="p-3 rounded-[var(--radius-md)] bg-[#101520] border border-slate-800/70 space-y-2 hover:border-slate-700 transition-colors"
                     >
                       <div className="flex items-center justify-between text-[12px]">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-medium text-[var(--text-secondary)]">
+                          <span className="font-mono font-medium text-slate-300">
                             {tx.id}
                           </span>
-                          <span className="text-[var(--text-tertiary)]">·</span>
-                          <span className="font-mono text-[var(--text-tertiary)]">
+                          <span className="text-slate-600">·</span>
+                          <span className="font-mono text-slate-400 text-[11px]">
                             {tx.customer}
                           </span>
                         </div>
-                        <div className="font-bold text-[13px] text-[var(--text-primary)] tabular-numbers">
+                        <div className="font-bold text-[13px] text-white tabular-numbers font-mono">
                           {tx.currency}{tx.amount.toLocaleString('en-IN')}
                         </div>
                       </div>
@@ -441,7 +441,7 @@ func main() {
                           score={tx.riskScore}
                           size="sm"
                         />
-                        <span className="text-[11px] font-mono text-[var(--text-tertiary)]">
+                        <span className="text-[11px] font-mono text-slate-400">
                           {tx.time}
                         </span>
                       </div>
@@ -450,9 +450,9 @@ func main() {
                 </div>
 
                 {/* Frame Footer */}
-                <div className="pt-3 mt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-tertiary)]">
+                <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
                   <span>Ensemble: XGBoost + MVIForest</span>
-                  <span className="text-[var(--risk-low-text)] font-medium">● 100% Intercept Active</span>
+                  <span className="text-emerald-400 font-medium">● 100% Intercept Active</span>
                 </div>
 
               </div>
@@ -886,9 +886,14 @@ func main() {
                   <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Developer</h3>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For testing & initial launch</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">₹0</span>
-                  <span className="text-[12px] text-[var(--text-tertiary)]">forever</span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">₹0</span>
+                    <span className="text-[12px] text-[var(--text-tertiary)] font-mono">forever</span>
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] font-mono">
+                    Free up to 1,000 txns/mo
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
                   <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 1,000 txns/mo</div>
@@ -912,11 +917,18 @@ func main() {
                   <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Growth</h3>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For growing D2C brands</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
-                    {isAnnual ? '₹3,999' : '₹4,999'}
-                  </span>
-                  <span className="text-[12px] text-[var(--text-tertiary)]">/month</span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
+                      {isAnnual ? '₹47,988' : '₹4,999'}
+                    </span>
+                    <span className="text-[12px] text-[var(--text-tertiary)] font-mono">
+                      {isAnnual ? '/year' : '/month'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[var(--brand-500)] font-medium font-mono">
+                    {isAnnual ? '₹3,999/month · save ₹12,000/yr' : 'Billed monthly'}
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
                   <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 50,000 txns/mo</div>
@@ -937,11 +949,18 @@ func main() {
                   <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Scale</h3>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For established volume merchants</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
-                    {isAnnual ? '₹11,999' : '₹14,999'}
-                  </span>
-                  <span className="text-[12px] text-[var(--text-tertiary)]">/month</span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[32px] font-bold text-[var(--text-primary)] tabular-numbers">
+                      {isAnnual ? '₹1,43,988' : '₹14,999'}
+                    </span>
+                    <span className="text-[12px] text-[var(--text-tertiary)] font-mono">
+                      {isAnnual ? '/year' : '/month'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[var(--brand-500)] font-medium font-mono">
+                    {isAnnual ? '₹11,999/month · save ₹36,000/yr' : 'Billed monthly'}
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
                   <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Up to 250,000 txns/mo</div>
@@ -962,8 +981,13 @@ func main() {
                   <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">Enterprise</h3>
                   <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">For payment aggregators & fintechs</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold text-[var(--text-primary)]">Custom</span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[32px] font-bold text-[var(--text-primary)]">Custom</span>
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] font-mono">
+                    Volume pricing & dedicated SLA
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2.5 text-[12px] text-[var(--text-secondary)]">
                   <div className="flex items-center gap-2"><Check size={14} className="text-[var(--brand-500)]" /> Unlimited transactions</div>

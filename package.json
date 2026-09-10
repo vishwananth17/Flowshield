@@ -1,0 +1,7 @@
+{
+  "name": "flowshield-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "cd streamguard-ai/frontend && npm run build"
+  }
+}
