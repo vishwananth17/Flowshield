@@ -19,6 +19,7 @@ import {
   Sun,
   Moon,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -65,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       group: 'TOOLS',
       items: [
+        { name: 'Risk Audit', path: '/dashboard/audit', icon: FileText },
         { name: 'Rules', path: '/dashboard/rules', icon: Sliders },
         { name: 'Disputes', path: '/dashboard/disputes', icon: Users },
         { name: 'Integrations', path: '/dashboard/integrations', icon: Plug2 },

@@ -269,13 +269,13 @@ func main() {
           </Link>
 
           {/* Center: Clean Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium text-[var(--text-secondary)]">
+          <nav className="hidden md:flex items-center gap-7 text-[13px] font-medium text-[var(--text-secondary)]">
             <a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Product</a>
-            <a href="#problem" className="hover:text-[var(--text-primary)] transition-colors">Solutions</a>
-            <Link to="/simulator" className="hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5">
-              <span>Simulator</span>
-              <span className="px-1.5 py-0.2 rounded-[var(--radius-xs)] text-[10px] font-mono font-bold bg-[var(--brand-100)] text-[var(--brand-600)]">LIVE</span>
+            <Link to="/audit" className="hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5">
+              <span>Free Risk Audit</span>
+              <span className="px-1.5 py-0.2 rounded-[var(--radius-xs)] text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FREE</span>
             </Link>
+            <Link to="/simulator" className="hover:text-[var(--text-primary)] transition-colors">Simulator</Link>
             <Link to="/docs" className="hover:text-[var(--text-primary)] transition-colors">Docs</Link>
             <a href="#pricing" className="hover:text-[var(--text-primary)] transition-colors">Pricing</a>
           </nav>

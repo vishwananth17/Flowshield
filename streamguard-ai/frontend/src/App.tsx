@@ -24,6 +24,7 @@ import Integrations from '@/pages/Integrations';
 import Disputes from '@/pages/Disputes';
 import DisputeDetail from '@/pages/DisputeDetail';
 import Simulator from '@/pages/Simulator';
+import RiskAudit from '@/pages/RiskAudit';
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
 import TermsOfService from '@/pages/legal/TermsOfService';
 import DataProcessingAgreement from '@/pages/legal/DataProcessingAgreement';
@@ -56,6 +57,8 @@ function App() {
             <Route path="/developers" element={<DevPortal />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/demo" element={<Simulator />} />
+            <Route path="/audit" element={<RiskAudit />} />
+            <Route path="/risk-audit" element={<RiskAudit />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/dpa" element={<DataProcessingAgreement />} />
@@ -69,6 +72,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="simulator" element={<Simulator />} />
+                <Route path="audit" element={<RiskAudit />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="api-keys" element={<ApiKeys />} />
                 <Route path="transactions" element={<Transactions />} />
