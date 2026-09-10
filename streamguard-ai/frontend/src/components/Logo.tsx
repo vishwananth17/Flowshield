@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import symbolLight from '@/assets/flowshield-symbol.png';
+import symbolDark from '@/assets/flowshield-symbol-dark.png';
 
 interface LogoProps {
   className?: string;
@@ -22,17 +24,30 @@ export const Logo: React.FC<LogoProps> = ({
   const actualIconSize = iconSize || (withContainer ? Math.round(size * 0.85) : size);
   
   const isLight = theme === 'light';
-  const logoSrc = isLight ? '/flowshield-symbol-dark.png' : '/flowshield-symbol.png';
+  const primarySrc = isLight ? symbolDark : symbolLight;
+  const publicFallback = isLight ? '/flowshield-symbol-dark.png' : '/flowshield-symbol.png';
+  
+  const [currentSrc, setCurrentSrc] = useState(primarySrc);
+
+  const handleImgError = () => {
+    if (currentSrc !== publicFallback) {
+      setCurrentSrc(publicFallback);
+    } else if (currentSrc !== '/favicon.svg') {
+      setCurrentSrc('/favicon.svg');
+    }
+  };
 
   if (!withContainer) {
     return (
       <img
-        src={logoSrc}
-        alt="Flowshield AI"
+        src={currentSrc}
+        alt=""
+        aria-label="Flowshield AI"
         width={size}
         height={size}
+        onError={handleImgError}
         className={`object-contain select-none transition-all duration-300 filter drop-shadow-[0_0_10px_rgba(34,211,238,0.35)] shrink-0 ${className}`}
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, minWidth: size, minHeight: size }}
         loading="eager"
       />
     );
@@ -54,10 +69,12 @@ export const Logo: React.FC<LogoProps> = ({
       <div className="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       
       <img
-        src={logoSrc}
-        alt="Flowshield AI Logo"
+        src={currentSrc}
+        alt=""
+        aria-label="Flowshield AI"
         width={actualIconSize}
         height={actualIconSize}
+        onError={handleImgError}
         className="object-contain select-none transform transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]"
         style={{ width: actualIconSize, height: actualIconSize }}
         loading="eager"
