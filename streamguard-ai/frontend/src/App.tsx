@@ -11,6 +11,7 @@ import DashboardLayout from '@/pages/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import ApiKeys from '@/pages/ApiKeys';
 import Transactions from '@/pages/Transactions';
+import LiveFeed from '@/pages/LiveFeed';
 import Docs from '@/pages/Docs';
 import Settings from '@/pages/Settings';
 import Alerts from '@/pages/Alerts';
@@ -72,8 +73,8 @@ function App() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="api-keys" element={<ApiKeys />} />
                 <Route path="transactions" element={<Transactions />} />
-                <Route path="live" element={<Transactions />} />
-                <Route path="feed" element={<Transactions />} />
+                <Route path="live" element={<LiveFeed />} />
+                <Route path="feed" element={<LiveFeed />} />
                 <Route path="intelligence" element={<RiskAudit />} />
                 <Route path="rules" element={<Settings />} />
                 <Route path="disputes" element={<Disputes />} />
