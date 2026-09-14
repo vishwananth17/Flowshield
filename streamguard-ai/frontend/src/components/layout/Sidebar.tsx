@@ -39,7 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const { user, organization, logout } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
-  const [environment, setEnvironment] = useState<'LIVE' | 'SANDBOX'>('LIVE');
 
   const navGroups = [
     {
@@ -116,37 +115,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
         </div>
-
-        {/* Environment Badge */}
-        {!isCollapsed ? (
-          <div className="px-4 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setEnvironment(environment === 'LIVE' ? 'SANDBOX' : 'LIVE')}
-              className="flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              title="Click to switch environment"
-            >
-              <span
-                className={cn(
-                  'w-[6px] h-[6px] rounded-full flex-shrink-0',
-                  environment === 'LIVE' ? 'bg-[#22C55E]' : 'bg-[#F59E0B]'
-                )}
-              />
-              <span>{environment}</span>
-            </button>
-            <span className="text-[10px] text-[var(--text-tertiary)] font-mono">v1.2</span>
-          </div>
-        ) : (
-          <div className="py-2 flex justify-center border-b border-[var(--border-subtle)]">
-            <span
-              className={cn(
-                'w-[6px] h-[6px] rounded-full',
-                environment === 'LIVE' ? 'bg-[#22C55E]' : 'bg-[#F59E0B]'
-              )}
-              title={`Environment: ${environment}`}
-            />
-          </div>
-        )}
 
         {/* Scrollable Navigation Groups */}
         <nav className="flex-1 overflow-y-auto py-2 overflow-x-hidden">
