@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { RiskBadge } from '@/components/ui/RiskBadge';
-import { LiveIndicator } from '@/components/ui/LiveIndicator';
 import { Button } from '@/components/ui/button';
 import {
   TransactionDetailDrawer,
@@ -512,7 +511,6 @@ export default function Transactions() {
             <h1 className="text-[20px] font-semibold text-[var(--text-primary)] tracking-tight">
               Transactions
             </h1>
-            <LiveIndicator />
           </div>
           <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">
             Real-time packet interception, fraud classification, and 3DS challenge logs.

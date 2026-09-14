@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { RiskBadge } from '@/components/ui/RiskBadge';
-import { LiveIndicator } from '@/components/ui/LiveIndicator';
 import { Button } from '@/components/ui/button';
 import {
   TransactionDetailDrawer,
@@ -396,7 +395,6 @@ export default function Dashboard() {
                 <h3 className="text-[14px] font-semibold text-[var(--text-primary)]">
                   Live Transactions
                 </h3>
-                <LiveIndicator />
               </div>
               <span className="text-[11px] font-mono text-[var(--text-tertiary)]">
                 {transactions.length} events stream
