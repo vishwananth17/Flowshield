@@ -82,11 +82,23 @@ async def resolve_organization_from_request(
     db: AsyncSession,
     api_key: Optional[str] = None,
     x_api_key: Optional[str] = None,
+    org_id: Optional[str] = None,
     shop_domain: Optional[str] = None,
     payload: Optional[dict] = None
 ) -> tuple[Organization, Optional[ApiKey]]:
-    """Resolves Organization using API key, shop domain, customer email, or fallback."""
+    """Resolves Organization using org_id, API key, shop domain, customer email, or fallback."""
     from app.models.user import User
+
+    # Check org_id directly if provided
+    if org_id:
+        try:
+            parsed_uuid = uuid.UUID(org_id.strip())
+            org_res = await db.execute(select(Organization).where(Organization.id == parsed_uuid))
+            org = org_res.scalar_one_or_none()
+            if org:
+                return org, None
+        except Exception:
+            pass
 
     key_str = api_key or x_api_key
     if key_str:
@@ -355,6 +367,7 @@ async def shopify_order_webhook(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     api_key: Optional[str] = Query(default=None),
+    org_id: Optional[str] = Query(default=None),
     x_api_key: Optional[str] = Header(alias="X-API-Key", default=None),
     x_shopify_shop_domain: Optional[str] = Header(alias="X-Shopify-Shop-Domain", default=None),
     x_shopify_hmac: Optional[str] = Header(alias="X-Shopify-Hmac-Sha256", default=None),
@@ -373,7 +386,9 @@ async def shopify_order_webhook(
             else:
                 logger.warning("⚠️ Shopify Webhook HMAC Signature mismatch. Processing telemetry.")
 
-        org, _ = await resolve_organization_from_request(db, api_key, x_api_key, x_shopify_shop_domain, payload=payload)
+        org, _ = await resolve_organization_from_request(
+            db, api_key=api_key, x_api_key=x_api_key, org_id=org_id, shop_domain=x_shopify_shop_domain, payload=payload
+        )
         
         result = await process_shopify_order(
             payload=payload,
@@ -396,9 +411,10 @@ async def shopify_order_webhook(
 async def shopify_test_webhook(
     db: Annotated[AsyncSession, Depends(get_db)],
     api_key: Optional[str] = Query(default=None),
+    org_id: Optional[str] = Query(default=None),
 ):
     """Generates a synthetic test Shopify order to verify end-to-end webhook integration."""
-    org, _ = await resolve_organization_from_request(db, api_key)
+    org, _ = await resolve_organization_from_request(db, api_key=api_key, org_id=org_id)
     synthetic_payload = {
         "id": f"test_sp_{uuid.uuid4().hex[:6]}",
         "name": f"#TEST-{int(time.time()) % 10000}",

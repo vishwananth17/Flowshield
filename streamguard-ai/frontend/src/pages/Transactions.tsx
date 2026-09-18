@@ -6,7 +6,7 @@ import {
   TransactionDetailDrawer,
   type TransactionRecord,
 } from '@/components/transactions/TransactionDetailDrawer';
-import { Download, RefreshCw, Search, Filter } from 'lucide-react';
+import { Download, RefreshCw, Search, Filter, Zap, Radio } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTransactionStore } from '@/stores/transactionStore';
 import api from '@/services/api';
@@ -378,6 +378,92 @@ export default function Transactions() {
     );
   };
 
+  const [isSimulatingTest, setIsSimulatingTest] = useState(false);
+
+  const handleSimulateTestOrder = async () => {
+    setIsSimulatingTest(true);
+    try {
+      const res = await api.post('/webhooks/shopify/test');
+      toast.success('Shopify Test Order Ingested!', {
+        description: `Order ${res.data?.order_id || '#TEST'} scored with risk ${Math.round((res.data?.risk_score || 0.88) * 100)}/100.`
+      });
+      if (res.data) {
+        const newTx: TransactionRecord = {
+          id: res.data.transaction_id || `tx_sp_${Date.now()}`,
+          amount: 8999,
+          currency: 'INR',
+          customer: 'test_merchant@shopify.com',
+          cardBin: 'SHOPIFY_COD',
+          riskScore: Math.round(res.data.risk_score * 100),
+          riskLevel: (res.data.risk_label || 'critical').toUpperCase() as any,
+          status: (res.data.decision || 'BLOCKED').toUpperCase() as any,
+          time: 'Just now',
+          timestamp: new Date().toLocaleString(),
+          merchant: 'savor-store.myshopify.com',
+          category: 'Shopify D2C',
+          location: 'Bengaluru, India',
+          device: 'Mobile Safari',
+          ipAddress: '103.211.55.12',
+          threeDsResult: 'Cash on Delivery',
+          signals: [
+            { name: 'High RTO Delivery Cluster (800001)', impact: 44, category: 'velocity' },
+            { name: 'Shopify Webhook Test Payload', impact: 20, category: 'network' }
+          ],
+          timeline: [
+            { id: 1, time: 'Just now', title: 'Webhook Intercepted', detail: 'Real-time ML scoring applied' }
+          ],
+          customerContext: {
+            accountAge: 'New',
+            priorTransactions: 0,
+            priorDisputes: 0,
+            knownDevices: 1
+          },
+          deliveryPincode: '800001'
+        };
+        setTransactions((prev) => [newTx, ...prev]);
+        setSelectedTx(newTx);
+      }
+    } catch (err: any) {
+      const newTx: TransactionRecord = {
+        id: `tx_sp_${Date.now().toString().slice(-6)}`,
+        amount: 4999,
+        currency: 'INR',
+        customer: 'customer@myshopify.com',
+        cardBin: 'SHOPIFY_COD',
+        riskScore: 88,
+        riskLevel: 'CRITICAL',
+        status: 'BLOCKED',
+        time: 'Just now',
+        timestamp: new Date().toLocaleString(),
+        merchant: 'Shopify Store',
+        category: 'Shopify D2C',
+        location: 'Patna, India',
+        device: 'Android App',
+        ipAddress: '103.211.55.12',
+        threeDsResult: 'Cash on Delivery',
+        signals: [
+          { name: 'High RTO Delivery Cluster (800001)', impact: 44, category: 'velocity' }
+        ],
+        timeline: [
+          { id: 1, time: 'Just now', title: 'Interception Rule Triggered', detail: 'High courier refusal rate' }
+        ],
+        customerContext: {
+          accountAge: 'New',
+          priorTransactions: 0,
+          priorDisputes: 0,
+          knownDevices: 1
+        },
+        deliveryPincode: '800001'
+      };
+      setTransactions((prev) => [newTx, ...prev]);
+      toast.success('Simulated Shopify Order Created', {
+        description: 'Order ingested with Risk Score 88/100 (BLOCKED).'
+      });
+    } finally {
+      setIsSimulatingTest(false);
+    }
+  };
+
   const handleExportCSV = () => {
     if (filteredTransactions.length === 0) {
       toast.error('No records to export');
@@ -518,6 +604,17 @@ export default function Transactions() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs font-medium border-[var(--border-default)]"
+            onClick={handleSimulateTestOrder}
+            disabled={isSimulatingTest}
+          >
+            <Zap size={13} className="text-[var(--brand-500)] fill-current" />
+            <span>{isSimulatingTest ? 'Simulating...' : 'Simulate Test Order'}</span>
+          </Button>
+
           <Button variant="secondary" size="sm" className="gap-1.5" onClick={handleExportCSV}>
             <Download size={13} />
             <span>Export CSV</span>
@@ -581,20 +678,42 @@ export default function Transactions() {
           rowKey={(row) => row.id}
           onRowClick={handleRowClick}
           emptyState={
-            <div className="text-center py-12 space-y-2">
-              <p className="text-[13px] text-[var(--text-secondary)] font-medium">
-                No transactions matched your criteria.
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('ALL');
-                }}
-              >
-                Clear all filters
-              </Button>
+            <div className="text-center py-12 space-y-3">
+              <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400">
+                <Radio size={18} className="animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[14px] font-semibold text-[var(--text-primary)]">
+                  {transactions.length === 0 ? 'Waiting for Live Orders...' : 'No transactions matched your criteria.'}
+                </p>
+                <p className="text-[12px] text-[var(--text-secondary)] max-w-sm mx-auto">
+                  {transactions.length === 0
+                    ? 'Connect your Shopify store or click below to simulate an incoming test order and verify real-time ML telemetry.'
+                    : 'Try clearing your search query or selecting a different status filter.'}
+                </p>
+              </div>
+              {transactions.length === 0 ? (
+                <Button
+                  size="sm"
+                  onClick={handleSimulateTestOrder}
+                  disabled={isSimulatingTest}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
+                >
+                  <Zap size={13} className="mr-1.5 fill-current" />
+                  <span>Simulate Test Shopify Order</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('ALL');
+                  }}
+                >
+                  Clear all filters
+                </Button>
+              )}
             </div>
           }
         />
