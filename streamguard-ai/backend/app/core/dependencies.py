@@ -72,7 +72,11 @@ async def get_current_user(
             detail="User not found",
         )
     request.state.user_id = str(user.id)
+    request.state.org_id = str(user.org_id)
+    from app.db.session import set_tenant_rls_context
+    await set_tenant_rls_context(db, user.org_id)
     return user
+
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
@@ -156,7 +160,12 @@ async def get_analyze_auth(
     if not org:
         raise HTTPException(status_code=404, detail="Organization group not found")
     
+    request.state.org_id = str(org_id)
+    from app.db.session import set_tenant_rls_context
+    await set_tenant_rls_context(db, org_id)
+
     return AnalyzeAuth(org_id=org_id, plan=org.plan or "free", api_key=api_key_obj)
+
 
 
 AnalyzeAuthDep = Annotated[AnalyzeAuth, Depends(get_analyze_auth)]

@@ -23,7 +23,28 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Coroutine[None, None, Response]]) -> Response:
         client_ip = request.client.host if request.client else "unknown"
 
-        # 1. Auth Endpoint Brute-Force Rate Limiting (IP-based)
+        # Layer 1 — Global IP rate limiting (1000 req/min per IP)
+        try:
+            minute_bucket = int(time.time() // 60)
+            global_key = f"rate:global_ip:{client_ip}:{minute_bucket}"
+            global_count = await self.redis.incr(global_key)
+            if global_count == 1:
+                await self.redis.expire(global_key, 120)
+            if global_count > 1000:
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    headers={"Retry-After": "60"},
+                    content={
+                        "error": {
+                            "code": "TOO_MANY_REQUESTS",
+                            "message": "Global request rate limit exceeded. Please retry after 1 minute.",
+                        }
+                    },
+                )
+        except Exception as e:
+            logger.error(f"Global Rate Limiter Redis Error: {e}")
+
+        # Layer 2 — Auth Endpoint Brute-Force Rate Limiting (10 attempts/min per IP)
         is_auth = request.url.path in {"/api/v1/auth/login", "/api/v1/auth/register"}
         if is_auth and request.method == "POST":
             auth_key = f"rate:auth_ip:{client_ip}"
@@ -32,18 +53,20 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 if current and int(current) >= 10:
                     return JSONResponse(
                         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                        headers={"Retry-After": "60"},
                         content={
                             "error": {
                                 "code": "TOO_MANY_REQUESTS",
-                                "message": "Too many failed attempts. Please retry after 1 minute."
+                                "message": "Too many failed authentication attempts. Please retry after 1 minute.",
                             }
-                        }
+                        },
                     )
                 new_val = await self.redis.incr(auth_key)
                 if new_val == 1:
                     await self.redis.expire(auth_key, 60)
             except Exception as e:
                 logger.error(f"Auth Rate Limiter Redis Error: {e}")
+
 
         # Only apply to analyze and sandbox endpoints
         is_analyze = request.url.path == "/api/v1/transactions/analyze"

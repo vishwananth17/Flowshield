@@ -89,3 +89,44 @@ def get_settings() -> Settings:
 
 def clear_settings_cache() -> None:
     get_settings.cache_clear()
+
+
+def validate_secrets() -> None:
+    """Validates presence and minimum entropy of required secrets at application startup.
+    
+    Fails loudly with clear error diagnostics before the application binds ports or accepts traffic.
+    Prevents silent runtime crashes on live payment/auth workflows.
+    """
+    import os
+    settings = get_settings()
+    errors: list[str] = []
+
+    # Universal requirements
+    if not settings.database_url or len(settings.database_url) < 20:
+        errors.append(f"DATABASE_URL: too short or missing (len={len(settings.database_url or '')}, min=20)")
+    
+    if not settings.redis_url or len(settings.redis_url) < 10:
+        errors.append(f"REDIS_URL: too short or missing (len={len(settings.redis_url or '')}, min=10)")
+
+    min_secret_len = 64 if settings.environment == "production" else 32
+    if not settings.secret_key or len(settings.secret_key) < min_secret_len:
+        errors.append(f"SECRET_KEY: insufficient entropy (len={len(settings.secret_key or '')}, min={min_secret_len})")
+
+    # Production-only requirements (Razorpay live keys)
+    is_cloud_prod = (
+        settings.environment == "production" 
+        or os.getenv("RAILWAY_ENVIRONMENT") 
+        or os.getenv("RENDER")
+    )
+
+    if is_cloud_prod:
+        if not settings.razorpay_key_secret or len(settings.razorpay_key_secret) < 20:
+            errors.append(f"RAZORPAY_KEY_SECRET: required in production (len={len(settings.razorpay_key_secret or '')}, min=20)")
+        if not settings.razorpay_webhook_secret or len(settings.razorpay_webhook_secret) < 16:
+            errors.append(f"RAZORPAY_WEBHOOK_SECRET: required in production (len={len(settings.razorpay_webhook_secret or '')}, min=16)")
+
+    if errors:
+        raise ValueError(
+            "STARTUP FAILED — Missing or insecure secrets:\n  - " + "\n  - ".join(errors)
+        )
+

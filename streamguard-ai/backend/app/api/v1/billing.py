@@ -124,32 +124,57 @@ async def create_subscription(
     description="Verify the checkout session to finalize organization plan upgrades."
 )
 async def verify_payment(
-    request: Request,
+    req: VerifyPaymentRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: CurrentUser
 ):
-    try:
-        data = await request.json()
-        plan_name = data.get("plan") or "basic"
-        interval = data.get("interval") or "monthly"
+    plan_name = req.plan if req.plan in PLANS else "basic"
+    interval = req.interval if req.interval in ["monthly", "annual"] else "monthly"
 
-        org = await db.get(Organization, user.org_id)
-        if org:
-            org.plan = plan_name
-            org.plan_interval = interval
-            org.subscription_status = "active"
-            if plan_name == "basic":
-                org.monthly_request_limit = 25000
-            elif plan_name == "standard":
-                org.monthly_request_limit = 100000
-            elif plan_name == "premium":
-                org.monthly_request_limit = -1
-            await db.commit()
+    # 1. Cryptographic HMAC Signature Verification (Charter Section 3.3 Threat 1 Defense)
+    is_prod = settings.environment == "production" or os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("RENDER")
+    
+    # In production, signature verification is strictly non-negotiable
+    if is_prod or RAZORPAY_KEY_SECRET:
+        if not req.razorpay_signature:
+            logger.warn(f"PRIVILEGE_ESCALATION_ATTEMPT: Org {user.org_id} attempted unverified plan upgrade to {plan_name}")
+            raise HTTPException(status_code=400, detail="Missing payment verification signature")
+        
+        target_id = req.razorpay_subscription_id or req.razorpay_order_id or ""
+        msg = f"{req.razorpay_payment_id}|{target_id}"
+        expected_sig = hmac.new(
+            (RAZORPAY_KEY_SECRET or "").encode("utf-8"),
+            msg.encode("utf-8"),
+            hashlib.sha256
+        ).hexdigest()
 
-        return {"success": True, "plan": plan_name}
-    except Exception as e:
-        logger.error(f"Verify payment error: {e}")
-        return {"success": True, "plan": "basic"}
+        if not hmac.compare_digest(expected_sig, req.razorpay_signature):
+            logger.warn(f"TAMPERED_PAYMENT_SIGNATURE: Forged signature from org {user.org_id}")
+            raise HTTPException(status_code=400, detail="Cryptographic payment signature mismatch")
+    else:
+        # Development / Sandbox mode only
+        logger.info(f"SANDBOX_DEV: Allowing simulated payment verification for org {user.org_id} ({plan_name})")
+
+    org = await db.get(Organization, user.org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    org.plan = plan_name
+    org.plan_interval = interval
+    org.subscription_status = "active"
+    if req.razorpay_subscription_id:
+        org.razorpay_subscription_id = req.razorpay_subscription_id
+
+    if plan_name == "basic":
+        org.monthly_request_limit = 25000
+    elif plan_name == "standard":
+        org.monthly_request_limit = 100000
+    elif plan_name == "premium":
+        org.monthly_request_limit = -1
+
+    await db.commit()
+    logger.info(f"PLAN_UPGRADE_SUCCESS: Org {user.org_id} upgraded to {plan_name} ({interval})")
+    return {"success": True, "plan": plan_name}
 
 
 @router.post("/webhook", include_in_schema=False)
@@ -159,16 +184,24 @@ async def razorpay_webhook(
     x_razorpay_signature: Annotated[str | None, Header(alias="X-Razorpay-Signature")] = None
 ):
     if not x_razorpay_signature:
+        logger.warn("WEBHOOK_REJECTED: Missing X-Razorpay-Signature header")
         raise HTTPException(status_code=400, detail="Missing signature")
     
+    if not WEBHOOK_SECRET:
+        logger.error("WEBHOOK_CONFIG_ERROR: RAZORPAY_WEBHOOK_SECRET is not configured")
+        raise HTTPException(status_code=500, detail="Webhook signature verification unconfigured")
+
     body = await request.body()
     
-    # Verification
-    # Razorpay recommends using their utility but manual is fine too if secret is set
+    # 1. Cryptographic HMAC Verification
     try:
-        client.utility.verify_webhook_signature(body.decode(), x_razorpay_signature, WEBHOOK_SECRET)
-    except:
-         raise HTTPException(status_code=400, detail="Invalid signature")
+        client.utility.verify_webhook_signature(body.decode("utf-8"), x_razorpay_signature, WEBHOOK_SECRET)
+    except razorpay.errors.SignatureVerificationError as e:
+        logger.warn(f"WEBHOOK_SIGNATURE_MISMATCH: Forged webhook signature: {e}")
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    except Exception as e:
+        logger.error(f"WEBHOOK_VERIFY_ERROR: Signature verification failed: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Signature verification failure")
 
     event_data = await request.json()
     event = event_data.get("event")
@@ -178,6 +211,18 @@ async def razorpay_webhook(
 
     if not sub_id:
         return {"status": "ignored"}
+
+    # 2. Replay Attack Defense via Redis Idempotency Lock (Charter Section 3.3 Threat 6)
+    event_id = request.headers.get("X-Razorpay-Event-Id") or event_data.get("event_id") or f"{event}:{sub_id}"
+    try:
+        from app.core.redis import get_redis_client
+        redis = get_redis_client()
+        is_new = await redis.set(f"webhook:razorpay:{event_id}", "1", nx=True, ex=86400)
+        if not is_new:
+            logger.warn(f"WEBHOOK_REPLAY: Duplicate Razorpay webhook ignored: {event_id}")
+            return {"status": "duplicate_ignored"}
+    except Exception as redis_err:
+        logger.error(f"Redis Idempotency Check Warning: {redis_err}")
 
     # Find organization by subscription ID
     result = await db.execute(select(Organization).where(Organization.razorpay_subscription_id == sub_id))
@@ -194,16 +239,15 @@ async def razorpay_webhook(
         if sub_payload.get("current_end"):
             org.subscription_end = datetime.fromtimestamp(sub_payload["current_end"], tz=UTC)
     elif event == "subscription.cancelled":
-        # Downgrade happens at period end logic usually handled by subscription_end
         org.subscription_status = "cancelled"
     elif event == "subscription.halted":
         org.subscription_status = "past_due"
     elif event == "payment.failed":
-        # Log failure, maybe send email
-        pass
+        logger.warn(f"PAYMENT_FAILED: Subscription {sub_id} payment failure recorded")
 
     await db.commit()
     return {"status": "success"}
+
 
 
 @router.get(
@@ -321,8 +365,16 @@ async def contact_enterprise(
     req: EnterpriseContactRequest,
     user: CurrentUser
 ):
-    # In a real app, send email via Resend or similar
-    # For now, we simulate success
-    print(f"ENTERPRISE LEAD: {req.name} <{req.email}> from {req.company}")
-    print(f"Volume: {req.monthly_volume}, Message: {req.message}")
+    logger.info(
+        "Commercial enterprise integration lead submitted",
+        extra={
+            "lead_name": req.name,
+            "lead_email": req.email,
+            "lead_company": req.company,
+            "monthly_volume": req.monthly_volume,
+            "user_id": str(user.id),
+            "org_id": str(user.org_id),
+        }
+    )
     return {"success": True}
+

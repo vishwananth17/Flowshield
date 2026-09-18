@@ -29,14 +29,19 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize singleton Redis client
+    # 1. Validate required secrets & entropy before accepting any traffic
+    from app.core.config import validate_secrets
+    validate_secrets()
+    logger.info("SECURITY_AUDIT: Startup secret entropy verification PASSED")
+
+    # 2. Initialize singleton Redis client
     from app.core.redis import get_redis_client
     get_redis_client()
     yield
     # Close Redis client connection gracefully on shutdown
-    from app.core.redis import get_redis_client
     client = get_redis_client()
     await client.close()
+
 
 def create_application() -> FastAPI:
     settings = get_settings()
@@ -50,62 +55,66 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Middlewares
+    # Middlewares (Starlette executes in reverse order of addition; last added executes first)
+    # 5. Innermost: GZip compression on responses > 1000 bytes
     app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+    # 4. Layer 5: Structured JSON Request Audit Logging
+    from app.core.middleware import (
+        RequestIdAndSecurityHeadersMiddleware,
+        StructuredLoggingMiddleware,
+        get_cors_origins,
+    )
+    app.add_middleware(StructuredLoggingMiddleware)
+
+    # 3. Layer 3: Strict Whitelisted CORS (No wildcard reflection with credentials)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=get_cors_origins(),
         allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "X-Requested-With", "Accept", "X-API-Key", "X-Request-ID"],
+        expose_headers=["X-Request-ID", "X-Process-Time", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-RateLimit-Plan", "Retry-After"],
     )
-    app.add_middleware(RequestLoggingMiddleware)
-    
+
+    # 2. Layer 1 & 4: Global IP & Endpoint Rate Limiting (rejection before application logic)
     if settings.redis_url:
         app.add_middleware(RateLimitMiddleware, redis_url=settings.redis_url)
+
+    # 1. Layer 1: Request ID Injection & Institutional Security Headers (Outermost: wraps 100% of responses)
+    app.add_middleware(RequestIdAndSecurityHeadersMiddleware)
 
     # API Router - Lazy import to avoid circular deadlock
     from app.api.v1.router import api_router
     app.include_router(api_router, prefix="/api/v1")
 
-    @app.middleware("http")
-    async def dynamic_cors_and_timing_middleware(request: Request, call_next):
-        origin = request.headers.get("origin")
-        
-        # Handle OPTIONS preflight requests immediately with 204
-        if request.method == "OPTIONS":
-            response = Response(status_code=204)
-        else:
-            start_time = time.perf_counter()
-            response = await call_next(request)
-            process_time = time.perf_counter() - start_time
-            response.headers["X-Process-Time"] = str(process_time)
-            
-        if origin:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, X-API-Key"
-            
-        return response
-
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         import traceback
         tb_str = traceback.format_exc()
-        logger.error(f"GLOBAL_CRASH: {str(exc)} | TRACE: {tb_str}")
+        request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+        logger.error(f"GLOBAL_CRASH: {str(exc)} | REQUEST_ID: {request_id} | TRACE: {tb_str}")
+        
+        # In production, never leak internal stack traces to client
+        is_dev = settings.environment == "development" and not settings.debug is False
+        error_msg = str(exc) if is_dev else "An internal server error occurred. Please quote the request_id."
+        
+        err_content = {
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": error_msg,
+                "request_id": request_id,
+            }
+        }
+        if is_dev:
+            err_content["error"]["traceback"] = tb_str[-1000:]
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "error": {
-                    "code": "INTERNAL_ERROR",
-                    "message": str(exc),
-                    "traceback": tb_str[-1000:],
-                    "request_id": request.state.request_id if hasattr(request.state, "request_id") else ""
-                }
-            }
+            content=err_content
         )
+
 
     @app.get("/", tags=["Health"])
     async def index_root():

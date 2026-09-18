@@ -437,9 +437,15 @@ class FraudDetectionService:
             
         latency_ms = int((time.time() - start) * 1000)
         
-        # Clean reasons Unicode character
-        clean_reasons = [r.replace('\u20b9', 'INR') for r in result_dict['reasons']]
-        print(f"==> [AUDIT] Score: {result_dict['risk_score']} | Decision: {result_dict['decision']} | Reasons: {clean_reasons[:1]}")
+        logger.info(
+            "Transaction risk evaluation completed",
+            extra={
+                "risk_score": result_dict["risk_score"],
+                "decision": result_dict["decision"],
+                "primary_reason": clean_reasons[0] if clean_reasons else None,
+            }
+        )
+
         
         return FraudResult(
             risk_score=result_dict["risk_score"],

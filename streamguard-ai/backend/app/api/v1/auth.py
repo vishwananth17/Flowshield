@@ -1,7 +1,11 @@
+import logging
 import secrets
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Any
+
+logger = logging.getLogger(__name__)
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, BackgroundTasks
 from sqlalchemy import select
@@ -131,10 +135,15 @@ async def register(
     await db.refresh(user)
 
     # Growth Telemetry Audit
-    print(f"\n[GROWTH_AUDIT] New Institutional Onboarding:")
-    print(f"  - Organization: {org.name}")
-    print(f"  - Identity:     {user.email}")
-    print(f"  - Status:       DETERMINISTIC_ACTIVE\n")
+    logger.info(
+        "Institutional onboarding completed",
+        extra={
+            "org_name": org.name,
+            "user_email": user.email,
+            "status": "DETERMINISTIC_ACTIVE",
+        }
+    )
+
 
     access = create_access_token(str(user.id))
     _set_auth_cookies(response, user.id)

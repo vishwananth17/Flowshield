@@ -39,10 +39,15 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-async def set_tenant_rls_context(session: AsyncSession, org_id: uuid.UUID):
-    """Sets PostgreSQL Row-Level Security (RLS) context for current tenant session."""
-    safe_org_id = str(org_id).replace("'", "''")
-    await session.execute(text(f"SET LOCAL app.current_org_id = '{safe_org_id}'"))
+async def set_tenant_rls_context(session: AsyncSession, org_id: uuid.UUID | str) -> None:
+    """Sets PostgreSQL Row-Level Security (RLS) context for current tenant transaction.
+
+    Guarantees transaction-scoped tenant isolation via SET LOCAL, preventing connection
+    pool state leakage across concurrent requests.
+    """
+    validated_uuid = uuid.UUID(str(org_id))
+    await session.execute(text(f"SET LOCAL app.current_org_id = '{validated_uuid}'"))
+
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
